@@ -78,14 +78,16 @@ app/
 │   │   │                                      7번 참가자 관리, 8번 공지, 9번 체크인, 10번 모임 개설
 │   │   ├─ detail/
 │   │   │   ├─ MeetingDetailScreen.kt       [화면] ← 참가자 5a, 5g, 5l, 5b, 5c, 9c, 5d
-│   │   │   │                                        호스트 5a-H-After, 5a-H2-After,
-│   │   │   │                                        5a-H4-After, 5a-H5
+│   │   │   │                                        isHost일 때 HostSection을 호출 (문찬주 소유)
+│   │   │   ├─ HostSection.kt               [부품] ← 호스트 5a-H-After, 5a-H2-After,
+│   │   │   │                                        5a-H4-After, 5a-H5 (문진곤 소유)
 │   │   │   ├─ MeetingDetailState.kt        진행 단계, 내 역할, 체크인 여부
 │   │   │   ├─ MeetingDetailViewModel.kt
 │   │   │   ├─ PlaceBottomSheet.kt          [시트] ← 5e
 │   │   │   ├─ CriteriaBottomSheet.kt       [시트] ← 5h 헬스, 5f 등산 (읽기 전용)
 │   │   │   ├─ MeetingCancelBottomSheet.kt  [시트] ← 5a-X2, 5a-X2-2
-│   │   │   ├─ MeetingDialogs.kt            [다이얼로그] ← 5a-X3 삭제 확인, 9a·9b 체크인 확인
+│   │   │   ├─ MeetingDialogs.kt            [다이얼로그] ← 5a-X3 삭제 확인 (문진곤)
+│   │   │   ├─ CheckInDialogs.kt            [다이얼로그] ← 9a·9b 체크인 확인 (문찬주)
 │   │   │   └─ ApplyScreen.kt               [화면] ← 6a, 6b
 │   │   ├─ manage/                          호스트 전용
 │   │   │   ├─ ParticipantManageScreen.kt   [화면] ← 7a, 7b, 7c, 7d 제목 + 탭 바
@@ -161,7 +163,7 @@ app/
 | 화면 | 25 |
 | 탭 내용 | 6 |
 | 바텀시트 | 11 (탐색의 붙박이 시트는 별도) |
-| 다이얼로그 묶음 | 1 |
+| 다이얼로그 묶음 | 2 |
 
 디자인의 16k(매트릭스)와 16l(규칙)은 코드가 아니라 문서여서 파일이 없다.
 
@@ -256,26 +258,9 @@ app/
 
 ## 9. 담당 범위
 
-기능 흐름 단위로 나눈다. 프레임 번호는 디자인 v4 기준이다.
-
-- 문찬주 (흐름 B: 가입 → 탐색 → 참여)
-  - `auth/` ← 1
-  - `record/` ← 2a~2e
-  - `explore/`, `explore/filter/` ← 3, 4
-  - `meeting/detail/` 참가자 시점 ← 5a~5l, 6, 9 (체크인)
-  - `notification/` ← 3-6
-  - `mypage/` ← 14
-  - 공통: `common/`, `navigation/`, `data/model/`, Repository interface ← 16
-- 문진곤 (흐름 A: 모임 운영 → 사후 관계)
-  - `meeting/create/` ← 10
-  - `meeting/detail/` 호스트 시점 ← 5a-H 계열, 5a-X2, 5a-X3 (별도 파일로 추가)
-  - `meeting/manage/` ← 7
-  - `meeting/notice/` ← 8
-  - `mate/review/` ← 12
-  - `mate/` ← 11, 15
-  - `activity/` ← 13
-- `meeting/detail/` 화면 본체는 문찬주가 소유한다. 문진곤은 호스트 영역을 별도 파일로 만들어 끼운다.
+- 누가 어느 폴더·화면을 맡는지는 `docs/work-split.md`가 기준이다. 이 문서에는 따로 적지 않는다.
 - 다른 팀원 담당 폴더는 고치기 전에 담당자에게 확인한다.
+- `meeting/detail/`은 `MeetingDetailScreen.kt`를 소유한 쪽이 정하고, 다른 쪽은 별도 파일로 추가한다.
 
 ## 10. 검토와 보고
 
