@@ -6,6 +6,7 @@
 관련 문서
 
 - `docs/service-rules.md` 서비스 규칙 정의서. 로직·정책의 기준이다. 디자인과 다르면 이 문서를 따른다.
+- `docs/work-split.md` 작업 분배표. 담당 범위와 작업 순서.
 - `docs/design/screens/` 화면 스크린샷(디자인 v4). 화면을 만들 때 보고 그대로 만든다. 목록은 `docs/design/screens/INDEX.md`.
 
 ---
@@ -255,9 +256,26 @@ app/
 
 ## 9. 담당 범위
 
-- 문찬주: 모임 개설(`meeting/create/`), 내 모임 관리(호스트 관련 화면).
+기능 흐름 단위로 나눈다. 프레임 번호는 디자인 v4 기준이다.
+
+- 문찬주 (흐름 B: 가입 → 탐색 → 참여)
+  - `auth/` ← 1
+  - `record/` ← 2a~2e
+  - `explore/`, `explore/filter/` ← 3, 4
+  - `meeting/detail/` 참가자 시점 ← 5a~5l, 6, 9 (체크인)
+  - `notification/` ← 3-6
+  - `mypage/` ← 14
+  - 공통: `common/`, `navigation/`, `data/model/`, Repository interface ← 16
+- 문진곤 (흐름 A: 모임 운영 → 사후 관계)
+  - `meeting/create/` ← 10
+  - `meeting/detail/` 호스트 시점 ← 5a-H 계열, 5a-X2, 5a-X3 (별도 파일로 추가)
+  - `meeting/manage/` ← 7
+  - `meeting/notice/` ← 8
+  - `mate/review/` ← 12
+  - `mate/` ← 11, 15
+  - `activity/` ← 13
+- `meeting/detail/` 화면 본체는 문찬주가 소유한다. 문진곤은 호스트 영역을 별도 파일로 만들어 끼운다.
 - 다른 팀원 담당 폴더는 고치기 전에 담당자에게 확인한다.
-- 나머지 담당 배정은 팀에서 채워 넣는다.
 
 ## 10. 검토와 보고
 
