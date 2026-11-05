@@ -13,8 +13,6 @@ object AppColor {
     val TextDisabled = Color(0xFFA1A1AA)
     val Border = Color(0xFFE4E4E7)
     val IconMuted = Color(0xFF71717A)
-    val Kakao = Color(0xFFFEE500)
-    val OnKakao = Color(0xFF191919)
 }
 
 object AppRadius {
