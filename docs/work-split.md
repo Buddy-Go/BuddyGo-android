@@ -224,16 +224,16 @@
 #### 1. 모임 개설
 
 ##### `ui/meeting/create/`
-- [ ] `MeetingCreateScreen.kt`
-  - [ ] 10a 헬스
-  - [ ] 10a-2 헬스 기록 숨김
-  - [ ] 10b 러닝
-  - [ ] 10c 등산
-- [ ] `HealthCriteriaBottomSheet.kt`
-  - [ ] 10d-After 헬스 기준
-  - [ ] 10d-2 헬스 기준 기록 숨김
-- [ ] `DescriptionBottomSheet.kt` ← 10e 설명
-- [ ] `TimeBottomSheet.kt` ← 10f 시간 설정
+- [x] `MeetingCreateScreen.kt`
+  - [x] 10a 헬스
+  - [x] 10a-2 헬스 기록 숨김
+  - [x] ~~10b 러닝~~ (범위 제외, 2026-10-30)
+  - [x] ~~10c 등산~~ (범위 제외, 2026-10-30)
+- [x] `HealthCriteriaBottomSheet.kt`
+  - [x] 10d-After 헬스 기준
+  - [x] 10d-2 헬스 기준 기록 숨김
+- [x] `DescriptionBottomSheet.kt` ← 10e 설명
+- [x] `TimeBottomSheet.kt` ← 10f 시간 설정
 - [ ] `PlaceSearchScreen.kt`
   - [ ] 10g 장소 검색
   - [ ] 10g-2 검색 결과
