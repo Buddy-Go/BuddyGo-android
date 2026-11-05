@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,7 +56,6 @@ import com.example.myapplication.ui.theme.MyApplicationTheme
 @Composable
 fun LoginScreen(
     onLoginClick: (email: String, password: String, keepLogin: Boolean) -> Unit = { _, _, _ -> },
-    onKakaoClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {},
     onFindPasswordClick: () -> Unit = {},
 ) {
@@ -170,34 +168,6 @@ fun LoginScreen(
         }
 
         Spacer(Modifier.height(AppSpace.x5))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = AppColor.Border)
-            Text(
-                text = "간편 로그인",
-                color = AppColor.TextDisabled,
-                fontSize = 13.sp,
-                modifier = Modifier.padding(horizontal = AppSpace.xxl),
-            )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = AppColor.Border)
-        }
-
-        Spacer(Modifier.height(AppSpace.xxl))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .clip(RoundedCornerShape(AppRadius.md))
-                .background(AppColor.Kakao)
-                .clickable { onKakaoClick() },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            KakaoBubble()
-            Spacer(Modifier.width(AppSpace.xl))
-            Text("카카오로 계속하기", color = AppColor.OnKakao, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Spacer(Modifier.height(AppSpace.xxl))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -343,14 +313,6 @@ private fun CheckIcon() {
         val sw = 2.dp.toPx()
         drawLine(Color.White, Offset(size.width * 0.2f, size.height * 0.52f), Offset(size.width * 0.42f, size.height * 0.74f), sw, StrokeCap.Round)
         drawLine(Color.White, Offset(size.width * 0.42f, size.height * 0.74f), Offset(size.width * 0.8f, size.height * 0.28f), sw, StrokeCap.Round)
-    }
-}
-
-@Composable
-private fun KakaoBubble() {
-    Canvas(Modifier.size(22.dp)) {
-        drawOval(AppColor.OnKakao, Offset(0f, size.height * 0.05f), Size(size.width, size.height * 0.8f))
-        drawCircle(AppColor.OnKakao, radius = size.width * 0.1f, center = Offset(size.width * 0.28f, size.height * 0.88f))
     }
 }
 
