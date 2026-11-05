@@ -14,6 +14,9 @@ object AppColor {
     val TextDisabled = Color(0xFFA1A1AA)
     val Border = Color(0xFFE4E4E7)
     // 16번 프레임 캡션 값
+    // 16i 캡션 값
+    val DestructiveSoftBg = Color(0xFFFDECEC)
+    val DestructiveText = Color(0xFFB3261E)
     val SkeletonBase = Color(0xFFEBECEE)
     val SkeletonShimmer = Color(0xFFF4F4F5)
     val IconMuted = Color(0xFF71717A)
