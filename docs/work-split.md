@@ -335,14 +335,14 @@
 #### 7. 활동 내역
 
 ##### `ui/activity/`
-- [ ] `ActivityScreen.kt` (탭 틀)
-- [ ] `HostActivityTab.kt`
-  - [ ] 13-H 호스트 · 모임 6건 · 필터 노출
-  - [ ] 13-H2 호스트 · 빈 상태
-- [ ] `JoinedActivityTab.kt`
-  - [ ] 13-P 참여 · 모임 3건 · 필터 숨김
-  - [ ] 13-P2 참여 · 빈 상태
-- [ ] `ReviewPendingCard.kt` ← 13-R 평가 대기 카드 (기한 비교)
+- [x] `ActivityScreen.kt` (탭 틀)
+- [x] `HostActivityTab.kt`
+  - [x] 13-H 호스트 · 모임 6건 · 필터 노출
+  - [x] 13-H2 호스트 · 빈 상태
+- [x] `JoinedActivityTab.kt`
+  - [x] 13-P 참여 · 모임 3건 · 필터 숨김
+  - [x] 13-P2 참여 · 빈 상태
+- [x] `ReviewPendingCard.kt` ← 13-R 평가 대기 카드 (기한 비교)
 - [ ] `ActivityState.kt`, `ActivityViewModel.kt`
 
 ---
