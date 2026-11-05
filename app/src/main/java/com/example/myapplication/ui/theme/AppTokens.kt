@@ -13,6 +13,9 @@ object AppColor {
     val TextSecondary = Color(0xFF71717A)
     val TextDisabled = Color(0xFFA1A1AA)
     val Border = Color(0xFFE4E4E7)
+    // 16번 프레임 캡션 값
+    val SkeletonBase = Color(0xFFEBECEE)
+    val SkeletonShimmer = Color(0xFFF4F4F5)
     val IconMuted = Color(0xFF71717A)
 }
 
@@ -20,6 +23,7 @@ object AppRadius {
     val sm = 8.dp
     val md = 12.dp
     val lg = 16.dp
+    val pill = 999.dp
 }
 
 object AppSpace {
