@@ -100,8 +100,8 @@
 ##### 부품 (`ui/common/`)
 - [x] `UiState.kt` 로딩/성공/에러
 - [x] `BottomNavBar.kt` 탐색·활동·개설·메이트·마이
-- [ ] `SkeletonList.kt` ← 16a
-- [ ] `SkeletonDetail.kt` ← 16b
+- [x] `SkeletonList.kt` ← 16a
+- [x] `SkeletonDetail.kt` ← 16b
 - [ ] `ActionButton.kt` ← 16c 제출 중, 16i 제출 실패
 - [ ] `ListFooter.kt` ← 16d 추가 로딩, 16h 부분 실패
 - [ ] `FullScreenError.kt` ← 16f 네트워크 없음, 16g 서버 오류
