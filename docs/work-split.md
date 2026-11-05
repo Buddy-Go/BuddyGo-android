@@ -264,14 +264,14 @@
 #### 3. 참가자 관리 (수락·거절·마감)
 
 ##### `ui/meeting/manage/`
-- [ ] `ParticipantManageScreen.kt`
-  - [ ] 7a 신청 탭
-  - [ ] 7b 확정 탭
-  - [ ] 7c 신청 없음
-  - [ ] 7d 마감 후
-- [ ] `ApplicantsTab.kt`
-- [ ] `ConfirmedTab.kt`
-- [ ] `ParticipantManageState.kt`, `ParticipantManageViewModel.kt`
+- [x] `ParticipantManageScreen.kt`
+  - [x] 7a 신청 탭
+  - [x] 7b 확정 탭
+  - [x] 7c 신청 없음
+  - [x] 7d 마감 후
+- [x] `ApplicantsTab.kt`
+- [x] `ConfirmedTab.kt`
+- [x] `ParticipantManageState.kt`, `ParticipantManageViewModel.kt`
 - [ ] 수락·거절·마감 동작 (`service-rules.md` 5번)
 
 ---
