@@ -99,7 +99,7 @@
 
 ##### 부품 (`ui/common/`)
 - [x] `UiState.kt` 로딩/성공/에러
-- [ ] `BottomNavBar.kt` 탐색·활동·개설·메이트·마이
+- [x] `BottomNavBar.kt` 탐색·활동·개설·메이트·마이
 - [ ] `SkeletonList.kt` ← 16a
 - [ ] `SkeletonDetail.kt` ← 16b
 - [ ] `ActionButton.kt` ← 16c 제출 중, 16i 제출 실패
