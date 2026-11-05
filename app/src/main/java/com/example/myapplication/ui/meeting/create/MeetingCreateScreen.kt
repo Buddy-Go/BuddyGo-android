@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,8 +55,12 @@ fun MeetingCreateScreen(
     viewModel: MeetingCreateViewModel,
     onClose: () -> Unit,
     onPlaceClick: () -> Unit, // 10g 장소 검색 화면으로 이동
+    onCreated: (meetingId: String) -> Unit, // 개설 후 5번 모임 상세로
 ) {
     val state = viewModel.state
+    LaunchedEffect(state.createdMeetingId) {
+        state.createdMeetingId?.let(onCreated)
+    }
     MeetingCreateContent(
         state = state,
         onClose = onClose,
@@ -144,7 +149,7 @@ private fun MeetingCreateContent(
             )
         }
 
-        BottomBar(enabled = state.canSubmit, onSubmit = onSubmit)
+        BottomBar(enabled = state.canSubmit && !state.isSubmitting, onSubmit = onSubmit)
     }
 }
 

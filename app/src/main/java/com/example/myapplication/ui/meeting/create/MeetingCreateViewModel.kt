@@ -6,12 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.BodyPart
+import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.UserRepository
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class MeetingCreateViewModel(
     private val userRepository: UserRepository,
+    private val meetingRepository: MeetingRepository,
 ) : ViewModel() {
 
     var state by mutableStateOf(MeetingCreateState(dateOptions = nextDays(), selectedDateIndex = 0))
@@ -80,8 +82,15 @@ class MeetingCreateViewModel(
     }
 
     fun onSubmit() {
-        if (!state.canSubmit) return
-        // TODO(임시): 공용 모델·MeetingRepository가 정해지면 개설 요청 연결
+        if (state.isSubmitting) return
+        val meeting = state.toMeeting() ?: return
+        state = state.copy(isSubmitting = true, errorMessage = null)
+        viewModelScope.launch {
+            meetingRepository.createMeeting(meeting)
+                .onSuccess { id -> state = state.copy(isSubmitting = false, createdMeetingId = id) }
+                // TODO(임시): 실패 안내는 공용 토스트(16j)가 생기면 그걸로 보여준다
+                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = e.message ?: "모임을 만들지 못했어요") }
+        }
     }
 
     private fun nextDays(count: Int = 5): List<DateOption> {

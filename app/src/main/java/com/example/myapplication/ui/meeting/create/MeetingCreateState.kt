@@ -3,7 +3,13 @@ package com.example.myapplication.ui.meeting.create
 import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.GenderLimit
+import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.MeetingCriteria
+import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.SkillLevel
+import java.util.Calendar
+import java.util.TimeZone
+
 
 // 모임 개설 화면(10a, 10a-2)의 상태.
 // 2026-10-30 범위 변경: 헬스 모임만 개설한다. 종목 선택·러닝·등산(10b, 10c)은 없다 (service-rules 4장).
@@ -114,6 +120,9 @@ data class MeetingCreateState(
     val gender: GenderLimit = GenderLimit.ANYONE,
     val description: String = "",
     val openSheet: CreateSheet? = null,
+    val isSubmitting: Boolean = false,
+    val createdMeetingId: String? = null, // 개설되면 채워지고, 화면이 모임 상세로 넘어간다
+    val errorMessage: String? = null,
 ) {
     val isCriteriaFilled: Boolean get() = healthCriteria.isFilled
 
@@ -149,6 +158,29 @@ data class MeetingCreateState(
             isCriteriaFilled &&
             place != null &&
             capacity != null
+
+    // 개설 요청에 담을 공용 Meeting. 필수 값이 비어 있으면 null.
+    // id·호스트·확정 인원·상태는 서버가 정한다.
+    fun toMeeting(timeZone: TimeZone = TimeZone.getDefault()): Meeting? {
+        if (!canSubmit) return null
+        val date = dateOptions.getOrNull(selectedDateIndex ?: return null) ?: return null
+        val start = startMinutes ?: return null
+        val startAt = Calendar.getInstance(timeZone).apply {
+            clear()
+            set(date.year, date.month - 1, date.day, 0, 0, 0)
+        }.timeInMillis + start * 60_000L
+        val record = healthCriteria.myRecord.takeIf { healthCriteria.showMyRecord && healthCriteria.hasAnyRecord }
+        return Meeting(
+            title = title.trim(),
+            criteria = MeetingCriteria.Health(parts = healthCriteria.parts.toSet(), hostRecord = record),
+            place = MeetingPlace(name = place?.name.orEmpty(), detailAddress = place?.detail),
+            startAtMillis = startAt,
+            durationMinutes = durationMinutes ?: 0,
+            capacity = capacity ?: 0,
+            genderLimit = gender,
+            description = description.trim(),
+        )
+    }
 
     private fun half(minutes: Int): String = if (minutes / 60 % 24 < 12) "오전" else "오후"
 
