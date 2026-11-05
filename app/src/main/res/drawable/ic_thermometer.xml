@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 디자인 v4 아이콘 (13-R 평가 대기 카드). 색은 Icon의 tint로 정한다. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M14,13.4 V5.5 A2,2 0 1,0 10,5.5 V13.4 A4.2,4.2 0 1,0 14,13.4 Z"
+        android:strokeWidth="1.8"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M10.8,17.3 A1.2,1.2 0 1,0 13.2,17.3 A1.2,1.2 0 1,0 10.8,17.3 Z" />
+</vector>
