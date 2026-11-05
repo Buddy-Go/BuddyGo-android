@@ -93,8 +93,8 @@
 ##### 계약 (모델·Repository·경로)
 - [x] `data/model/` 모델과 상태 enum 확정 (`Meeting`, 신청, `User`, `Notice`, `Comment`, `Review`, `Notification`)
 - [x] `data/repository/` interface 확정 (`MeetingRepository`, `UserRepository`)
-- [ ] `ui/navigation/Routes.kt` 전체 경로 목록
-- [ ] `ui/navigation/AppNavHost.kt` 경로와 화면 연결
+- [x] `ui/navigation/Routes.kt` 전체 경로 목록
+- [x] `ui/navigation/AppNavHost.kt` 경로와 화면 연결
 - [ ] 문진곤과 모델·interface 합의 완료
 
 ##### 부품 (`ui/common/`)
