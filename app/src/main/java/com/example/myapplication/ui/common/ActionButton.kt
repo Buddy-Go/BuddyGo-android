@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.common
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -85,13 +81,7 @@ fun InlineErrorBanner(message: String, modifier: Modifier = Modifier) {
             .padding(horizontal = AppSpace.xxl, vertical = AppSpace.xl),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Canvas(Modifier.size(20.dp)) {
-            val c = AppColor.DestructiveText
-            val sw = 1.8.dp.toPx()
-            drawCircle(c, size.width / 2 - sw / 2, style = Stroke(sw))
-            drawLine(c, Offset(size.width / 2, size.height * .28f), Offset(size.width / 2, size.height * .58f), sw, StrokeCap.Round)
-            drawCircle(c, sw * .7f, Offset(size.width / 2, size.height * .74f))
-        }
+        ExclamationIcon(AppColor.DestructiveText)
         Spacer(Modifier.width(AppSpace.xl))
         Text(message, color = AppColor.DestructiveText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
