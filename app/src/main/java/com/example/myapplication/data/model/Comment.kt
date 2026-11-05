@@ -8,4 +8,5 @@ data class Comment(
     val authorNickname: String = "",
     val body: String = "",
     val createdAtMillis: Long = 0L,
+    val isAuthorHost: Boolean = false, // 호스트 배지·초록 이니셜 (8f) — 공지 화면(문진곤)에서 추가
 )
