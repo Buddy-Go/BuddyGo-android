@@ -313,22 +313,22 @@
 #### 6. 메이트
 
 ##### `ui/mate/`
-- [ ] `MateScreen.kt` (탭 틀)
-- [ ] `MateListTab.kt`
-  - [ ] 11a 메이트 탭
-  - [ ] 11a-2 빈 상태
-- [ ] `WorkedOutTab.kt`
-  - [ ] 11b 함께 운동한 사람 탭
-  - [ ] 11b-2 헬스 필터
-  - [ ] 11b-3 필터 결과 빈 상태
-- [ ] `MateRequestScreen.kt`
-  - [ ] 11c 메이트 신청 2건
-  - [ ] 11c-2 빈 상태
-- [ ] `MateProfileScreen.kt`
-  - [ ] 15a 메이트
-  - [ ] 15b 메이트 아님
-  - [ ] 15c 신청 보냄
-- [ ] `MateState.kt`, `MateViewModel.kt`
+- [x] `MateScreen.kt` (탭 틀)
+- [x] `MateListTab.kt`
+  - [x] 11a 메이트 탭
+  - [x] 11a-2 빈 상태
+- [x] `WorkedOutTab.kt`
+  - [x] 11b 함께 운동한 사람 탭
+  - [x] ~~11b-2 헬스 필터~~ (범위 제외, 2026-10-30)
+  - [x] ~~11b-3 필터 결과 빈 상태~~ (범위 제외, 2026-10-30)
+- [x] `MateRequestScreen.kt`
+  - [x] 11c 메이트 신청 2건
+  - [x] 11c-2 빈 상태
+- [x] `MateProfileScreen.kt`
+  - [x] 15a 메이트
+  - [x] 15b 메이트 아님
+  - [x] 15c 신청 보냄
+- [x] `MateState.kt`, `MateViewModel.kt`
 
 ---
 
