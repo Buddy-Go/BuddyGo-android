@@ -8,6 +8,7 @@ object AppColor {
     val Accent = Color(0xFFA3E635)
     val AccentStrong = Color(0xFF4D7C0F)
     val Surface = Color(0xFFFFFFFF)
+    val SurfaceMuted = Color(0xFFF7F7F8)
     val TextPrimary = Color(0xFF18181B)
     val TextSecondary = Color(0xFF71717A)
     val TextDisabled = Color(0xFFA1A1AA)
