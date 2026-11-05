@@ -4,6 +4,7 @@
 
 - 구조·규칙: `docs/project-rules.md` (파일 위치의 기준)
 - 서비스 정책: `docs/service-rules.md`
+- 데이터 모델·Repository 계약: `docs/data-model.md`
 - 디자인 v4 화면: `docs/design/screens/` (목록은 `INDEX.md`)
 
 ## 2. 담당 요약
@@ -90,14 +91,14 @@
 문진곤이 가져다 쓰므로 가장 먼저 한다. 공용 파일 수정은 자기 화면 작업과 섞지 않고 따로 커밋한다.
 
 ##### 계약 (모델·Repository·경로)
-- [ ] `data/model/` 모델과 상태 enum 확정 (`Meeting`, 신청, `User`, `Notice`, `Comment`, `Review`, `Notification`)
-- [ ] `data/repository/` interface 확정 (`MeetingRepository`, `UserRepository`)
+- [x] `data/model/` 모델과 상태 enum 확정 (`Meeting`, 신청, `User`, `Notice`, `Comment`, `Review`, `Notification`)
+- [x] `data/repository/` interface 확정 (`MeetingRepository`, `UserRepository`)
 - [ ] `ui/navigation/Routes.kt` 전체 경로 목록
 - [ ] `ui/navigation/AppNavHost.kt` 경로와 화면 연결
 - [ ] 문진곤과 모델·interface 합의 완료
 
 ##### 부품 (`ui/common/`)
-- [ ] `UiState.kt` 로딩/성공/에러
+- [x] `UiState.kt` 로딩/성공/에러
 - [ ] `BottomNavBar.kt` 탐색·활동·개설·메이트·마이
 - [ ] `SkeletonList.kt` ← 16a
 - [ ] `SkeletonDetail.kt` ← 16b
