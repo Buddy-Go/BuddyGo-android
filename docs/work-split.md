@@ -248,15 +248,15 @@
 #### 2. 호스트 모임 상세 · 취소 · 삭제
 
 ##### `ui/meeting/detail/` (화면 본체는 문찬주 소유, 이 항목들은 별도 파일로 추가)
-- [ ] `HostSection.kt`
-  - [ ] 5a-H-After 모집중
-  - [ ] 5a-H2-After 신청자 없음
-  - [ ] 5a-H4-After 공지 2건
-  - [ ] 5a-H5 마감됨
-- [ ] `MeetingCancelBottomSheet.kt`
-  - [ ] 5a-X2 모임 취소 · 경고
-  - [ ] 5a-X2-2 사유 입력됨
-- [ ] `MeetingDialogs.kt` ← 5a-X3 모임 삭제 확인
+- [x] `HostSection.kt`
+  - [x] 5a-H-After 모집중
+  - [x] 5a-H2-After 신청자 없음
+  - [x] 5a-H4-After 공지 2건
+  - [x] 5a-H5 마감됨
+- [x] `MeetingCancelBottomSheet.kt`
+  - [x] 5a-X2 모임 취소 · 경고
+  - [x] 5a-X2-2 사유 입력됨
+- [x] `MeetingDialogs.kt` ← 5a-X3 모임 삭제 확인
 - [ ] 문찬주의 `MeetingDetailScreen`과 호출 지점 연결 확인
 
 ---
