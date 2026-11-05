@@ -297,15 +297,15 @@
 #### 5. 평가 · 매너온도
 
 ##### `ui/mate/review/`
-- [ ] `ReviewListScreen.kt` ← 12a 목록
-- [ ] `MemberReviewScreen.kt`
-  - [ ] 12b-1 판정 미선택 (2/3)
-  - [ ] 12b-2 좋음 선택 (2/3)
-  - [ ] 12b-3 보통 선택 (2/3)
-  - [ ] 12b-4 아쉬움 선택 (3/3 마지막)
-- [ ] `ReviewDoneScreen.kt`
-  - [ ] 12c 평가 완료
-  - [ ] 12c-2 평가 완료 (추가 대상 없음)
+- [x] `ReviewListScreen.kt` ← 12a 목록
+- [x] `MemberReviewScreen.kt`
+  - [x] 12b-1 판정 미선택 (2/3)
+  - [x] 12b-2 좋음 선택 (2/3)
+  - [x] 12b-3 보통 선택 (2/3)
+  - [x] 12b-4 아쉬움 선택 (3/3 마지막)
+- [x] `ReviewDoneScreen.kt`
+  - [x] 12c 평가 완료
+  - [x] 12c-2 평가 완료 (추가 대상 없음)
 - [ ] 매너온도 변화 규칙 (`service-rules.md` 11번)
 
 ---
