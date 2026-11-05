@@ -279,18 +279,18 @@
 #### 4. 공지 · 댓글
 
 ##### `ui/meeting/notice/`
-- [ ] `NoticeEditScreen.kt`
-  - [ ] 8a 공지 작성 · 빈 상태
-  - [ ] 8b 공지 작성 · 입력 중
-  - [ ] 8c 공지 수정 · 기본
-- [ ] `NoticeListScreen.kt`
-  - [ ] 8d 공지 목록 · 호스트
-  - [ ] 8e 공지 목록 · 참가자
-- [ ] `NoticeDetailScreen.kt`
-  - [ ] 8f 공지 상세 · 호스트
-  - [ ] 8g 공지 상세 · 참가자
-  - [ ] 8h 댓글 입력 중
-  - [ ] 8i 댓글 없음
+- [x] `NoticeEditScreen.kt`
+  - [x] 8a 공지 작성 · 빈 상태
+  - [x] 8b 공지 작성 · 입력 중
+  - [x] 8c 공지 수정 · 기본
+- [x] `NoticeListScreen.kt`
+  - [x] 8d 공지 목록 · 호스트
+  - [x] 8e 공지 목록 · 참가자
+- [x] `NoticeDetailScreen.kt`
+  - [x] 8f 공지 상세 · 호스트
+  - [x] 8g 공지 상세 · 참가자
+  - [x] 8h 댓글 입력 중
+  - [x] 8i 댓글 없음
 
 ---
 
