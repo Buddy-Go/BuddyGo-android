@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.common
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ fun ActionButton(
     enabled: Boolean = true,
     loading: Boolean = false,
     loadingText: String = text,
+    outlined: Boolean = false, // true이면 흰 배경 + 테두리 (보조 동작: '홈으로' 등)
 ) {
     val active = enabled && !loading
     Box(
@@ -46,7 +48,8 @@ fun ActionButton(
             .fillMaxWidth()
             .height(54.dp)
             .clip(RoundedCornerShape(AppRadius.md))
-            .background(if (active) AppColor.Accent else AppColor.SkeletonBase)
+            .background(if (!active) AppColor.SkeletonBase else if (outlined) AppColor.Surface else AppColor.Accent)
+            .then(if (outlined && active) Modifier.border(1.dp, AppColor.Border, RoundedCornerShape(AppRadius.md)) else Modifier)
             .clickable(enabled = active, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -96,6 +99,7 @@ private fun ActionButtonPreview() {
             ActionButton(text = "신청하기", onClick = {})
             ActionButton(text = "다시 시도", onClick = {})
             ActionButton(text = "신청하기", loadingText = "신청하는 중", loading = true, onClick = {})
+            ActionButton(text = "홈으로", outlined = true, onClick = {})
             ActionButton(text = "신청하기", enabled = false, onClick = {})
         }
     }
