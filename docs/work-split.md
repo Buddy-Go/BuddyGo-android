@@ -272,7 +272,7 @@
 - [x] `ApplicantsTab.kt`
 - [x] `ConfirmedTab.kt`
 - [x] `ParticipantManageState.kt`, `ParticipantManageViewModel.kt`
-- [ ] 수락·거절·마감 동작 (`service-rules.md` 5번)
+- [x] 수락·거절·마감 동작 (`service-rules.md` 5번)
 
 ---
 
@@ -343,7 +343,7 @@
   - [x] 13-P 참여 · 모임 3건 · 필터 숨김
   - [x] 13-P2 참여 · 빈 상태
 - [x] `ReviewPendingCard.kt` ← 13-R 평가 대기 카드 (기한 비교)
-- [ ] `ActivityState.kt`, `ActivityViewModel.kt`
+- [x] `ActivityState.kt`, `ActivityViewModel.kt`
 
 ---
 
