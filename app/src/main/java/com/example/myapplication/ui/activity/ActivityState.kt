@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.activity
 
+import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.MeetingRole
+import com.example.myapplication.data.model.MeetingStatus
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -145,3 +148,95 @@ fun ReviewPendingItem.dueText(now: Long, timeZone: TimeZone = TimeZone.getDefaul
     val days = calendarDaysBetween(now, reviewDueAt, timeZone)
     return if (days <= 0) ReviewDueText("$ended · 오늘까지", isUrgent = true) else ReviewDueText("$ended · ${days}일 남음", isUrgent = false)
 }
+
+// ---------- 저장소의 모임 목록 → 활동 내역 ----------
+
+// TODO(임시): 아래 두 값은 서버 설정값이다 (service-rules 5장 데드라인, 11장 평가 기한).
+// 서버가 '내 활동' 조회에서 마감·평가 기한 시각을 직접 내려주면 이 계산을 지운다.
+private const val DEADLINE_BEFORE_START_MILLIS = 90 * 60_000L
+private const val REVIEW_WINDOW_MILLIS = 3 * 24 * 60 * 60_000L
+
+fun buildActivityState(meetings: List<Meeting>, myId: String, now: Long, selectedTab: ActivityTab = ActivityTab.HOST): ActivityState {
+    val hosted = meetings.filter { it.roleOf(myId) == MeetingRole.HOST }.map { m ->
+        HostedMeetingItem(
+            meetingId = m.id,
+            title = m.title,
+            startAt = m.startAtMillis,
+            confirmedCount = m.confirmedCount,
+            capacity = m.capacity,
+            status = m.status.toHostedStatus(),
+            pendingApplicantCount = m.pendingIds.size,
+            deadlineAt = if (m.status == MeetingStatus.RECRUITING) m.startAtMillis - DEADLINE_BEFORE_START_MILLIS else null,
+        )
+    }
+    val joined = meetings.mapNotNull { m ->
+        val status = when (m.roleOf(myId)) {
+            MeetingRole.PENDING -> JoinedStatus.PENDING
+            MeetingRole.CONFIRMED -> when (m.status) {
+                MeetingStatus.ENDED -> JoinedStatus.ATTENDED // TODO(임시): 체크인 결과(노쇼)가 모델에 생기면 나눈다
+                MeetingStatus.CANCELED -> JoinedStatus.CANCELLED
+                else -> JoinedStatus.CONFIRMED
+            }
+            else -> return@mapNotNull null
+        }
+        JoinedMeetingItem(
+            meetingId = m.id,
+            title = m.title,
+            startAt = m.startAtMillis,
+            placeName = m.place.name,
+            distanceKm = m.distanceMeters?.let { it / 1000.0 },
+            status = status,
+        )
+    }
+    // 끝난 모임 중 내가 호스트·확정이었고 평가 기한이 남은 것
+    val reviewPending = meetings.filter { m ->
+        m.status == MeetingStatus.ENDED &&
+            m.roleOf(myId).let { it == MeetingRole.HOST || it == MeetingRole.CONFIRMED } &&
+            now < m.endAtMillis + REVIEW_WINDOW_MILLIS
+    }.map { m -> ReviewPendingItem(m.id, m.title, endedAt = m.endAtMillis, reviewDueAt = m.endAtMillis + REVIEW_WINDOW_MILLIS) }
+
+    return ActivityState(
+        joinedTotal = joined.count { it.status == JoinedStatus.ATTENDED },
+        hostedTotal = hosted.size,
+        reviewPending = reviewPending,
+        selectedTab = selectedTab,
+        hosted = hosted,
+        joined = joined,
+        now = now,
+    )
+}
+
+private fun MeetingStatus.toHostedStatus(): HostedStatus = when (this) {
+    MeetingStatus.RECRUITING -> HostedStatus.RECRUITING
+    MeetingStatus.CLOSED -> HostedStatus.CLOSED
+    MeetingStatus.IN_PROGRESS -> HostedStatus.IN_PROGRESS
+    MeetingStatus.ENDED -> HostedStatus.ENDED
+    MeetingStatus.CANCELED -> HostedStatus.CANCELLED
+}
+
+// ---------- 미리보기·테스트용 예시 (13-H·13-P 디자인과 비슷하게, 헬스만) ----------
+
+private const val S_MIN = 60_000L
+private const val S_HOUR = 60 * S_MIN
+private const val S_DAY = 24 * S_HOUR
+
+internal fun sampleActivityState(now: Long) = ActivityState(
+    joinedTotal = 27,
+    hostedTotal = 9,
+    now = now,
+    reviewPending = listOf(
+        ReviewPendingItem("p1", "등·이두 같이 치실 분", endedAt = now - 2 * S_DAY, reviewDueAt = now + 5 * S_DAY),
+    ),
+    hosted = listOf(
+        HostedMeetingItem("h1", "퇴근 후 가슴·팔 같이 치실 분", now + 7 * S_HOUR, 2, 3, HostedStatus.RECRUITING, pendingApplicantCount = 2, deadlineAt = now + 5 * S_HOUR + 30 * S_MIN),
+        HostedMeetingItem("h2", "하체 데이 스쿼트 같이 해요", now + 3 * S_DAY, 3, 3, HostedStatus.CLOSED),
+        HostedMeetingItem("h3", "어깨 오버헤드 프레스 루틴", now + 7 * S_DAY, 1, 3, HostedStatus.RECRUITING, pendingApplicantCount = 1, deadlineAt = now + 6 * S_DAY),
+        HostedMeetingItem("h4", "등·이두 같이 치실 분", now - 2 * S_DAY, 3, 3, HostedStatus.ENDED),
+        HostedMeetingItem("h5", "아침 가슴 운동", now - 9 * S_DAY, 2, 2, HostedStatus.ENDED),
+    ),
+    joined = listOf(
+        JoinedMeetingItem("j1", "벤치 80kg 도전 같이 해요", now + S_DAY, "스포애니 합정점", 0.8, JoinedStatus.CONFIRMED),
+        JoinedMeetingItem("j2", "퇴근 후 등 운동", now - 3 * S_DAY, "에이블짐 망원점", 3.0, JoinedStatus.ATTENDED),
+        JoinedMeetingItem("j3", "주말 하체 루틴", now - 4 * S_DAY, "스포애니 합정점", null, JoinedStatus.NO_SHOW),
+    ),
+)

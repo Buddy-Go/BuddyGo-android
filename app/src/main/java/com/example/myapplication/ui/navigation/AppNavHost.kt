@@ -163,9 +163,14 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             // 10 모임 개설
             composable(Routes.MEETING_CREATE) {
                 MeetingCreateScreen(
-                    viewModel = viewModel { MeetingCreateViewModel(userRepository) },
+                    viewModel = viewModel { MeetingCreateViewModel(userRepository, meetingRepository) },
                     onClose = { navController.popBackStack() },
                     onPlaceClick = { navController.navigate(Routes.PLACE_SEARCH) },
+                    onCreated = { meetingId ->
+                        navController.navigate(Routes.meetingDetail(meetingId)) {
+                            popUpTo(Routes.MEETING_CREATE) { inclusive = true }
+                        }
+                    },
                 )
             }
             composable(Routes.PLACE_SEARCH) { TempScreen("10g 장소 검색") }
@@ -215,7 +220,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             // 13~14 활동 내역 · 마이페이지
             composable(Routes.ACTIVITY) {
                 ActivityScreen(
-                    viewModel = viewModel { ActivityViewModel() },
+                    viewModel = viewModel { ActivityViewModel(meetingRepository, userRepository) },
                     onReviewClick = { navController.navigate(Routes.REVIEW_LIST) }, // TODO: meetingId 넘기기 (12번 route 합의 후)
                     onMeetingClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
                     onCreateClick = { navController.navigate(Routes.MEETING_CREATE) },
