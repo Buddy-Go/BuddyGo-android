@@ -11,8 +11,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.auth.LoginScreen
 import com.example.myapplication.ui.common.BottomNavBar
+import com.example.myapplication.ui.record.RecordScreen
 import com.example.myapplication.ui.record.SignUpInfoScreen
 import com.example.myapplication.ui.record.SignUpProfileScreen
 
@@ -79,7 +81,14 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             composable(
                 Routes.RECORD,
                 listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
-            ) { TempScreen("2c~2e 종목 기록") }
+            ) { entry ->
+                // 헬스(2c)만 만들어 두었고, 러닝(2d)·등산(2e)은 각 PR에서 이 화면에 연결한다.
+                if (entry.arguments?.getString(Routes.ARG_SPORT) == Sport.HEALTH.name) {
+                    RecordScreen(onBack = { navController.popBackStack() })
+                } else {
+                    TempScreen("2d~2e 종목 기록")
+                }
+            }
 
             // 3~4 탐색 · 조건 설정 · 알림
             composable(Routes.EXPLORE) { TempScreen("3 탐색") }
