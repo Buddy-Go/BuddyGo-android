@@ -15,6 +15,7 @@ import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.auth.LoginScreen
 import com.example.myapplication.ui.common.BottomNavBar
 import com.example.myapplication.ui.explore.ExploreScreen
+import com.example.myapplication.ui.explore.filter.FilterScreen
 import com.example.myapplication.ui.record.RecordScreen
 import com.example.myapplication.ui.record.SignUpInfoScreen
 import com.example.myapplication.ui.record.SignUpProfileScreen
@@ -95,7 +96,13 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onMeetingClick = { navController.navigate(Routes.meetingDetail(it)) },
                 )
             }
-            composable(Routes.FILTER) { TempScreen("4a~4c 조건 설정") }
+            composable(Routes.FILTER) {
+                FilterScreen(
+                    onClose = { navController.popBackStack() },
+                    onApplied = { navController.popBackStack() },
+                    onLocationClick = { navController.navigate(Routes.LOCATION_SEARCH) },
+                )
+            }
             composable(Routes.LOCATION_SEARCH) { TempScreen("4g 위치 검색") }
             composable(Routes.NOTIFICATION) { TempScreen("3-6 알림 목록") }
 

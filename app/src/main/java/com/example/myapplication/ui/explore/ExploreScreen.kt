@@ -40,6 +40,7 @@ import com.example.myapplication.BuildConfig
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.filter.searchTitle
 import com.example.myapplication.ui.record.SportIcon
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
@@ -185,7 +186,7 @@ private fun SearchBar(state: ExploreState, onClick: () -> Unit, modifier: Modifi
             Spacer(Modifier.width(AppSpace.xl))
             Column(Modifier.weight(1f)) {
                 Text(
-                    "오늘 · ${state.sportChip?.let(::sportLabel) ?: "모든 운동"}",
+                    searchTitle(state.filter, System.currentTimeMillis()),
                     fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary,
                 )
                 Text(
