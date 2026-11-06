@@ -86,7 +86,9 @@ app/
 │   │       └─ FilterIcons.kt                   조건 설정 전용 아이콘
 │   │
 │   ├─ notification/                        ← 3-6 알림 목록
-│   │   └─ NotificationScreen.kt            [화면] ← 3-6, 3-6-2 빈 상태
+│   │   ├─ NotificationScreen.kt            [화면] ← 3-6, 3-6-2 빈 상태
+│   │   ├─ NotificationViewModel.kt         [상태] 불러오기 · 읽음 · 모두 읽음
+│   │   └─ NotificationRules.kt             [규칙] 오늘/이전 묶기 · 상대 시간 · 이동 경로
 │   │
 │   ├─ meeting/                             ← 5번 모임 상세, 6번 참가 신청,
 │   │   │                                      7번 참가자 관리, 8번 공지, 9번 체크인, 10번 모임 개설
