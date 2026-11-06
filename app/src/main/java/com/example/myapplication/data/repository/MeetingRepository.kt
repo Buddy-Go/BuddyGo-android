@@ -30,6 +30,11 @@ interface MeetingRepository {
     // 호스트: 개설·취소·삭제 (service-rules 4장). 개설은 새 모임 id를 돌려준다.
     // 시작 시각·정원 검사 같은 규칙 판정은 서버가 하고, 어기면 failure로 돌아온다.
     suspend fun createMeeting(meeting: Meeting): Result<String>
+
+    // 호스트: 모임 수정 (service-rules 4장). 바뀐 값을 담은 Meeting 전체를 보낸다.
+    // 확정 참가자(호스트 제외)가 있으면 서버는 제목·설명·상세주소만 반영하고 나머지는 무시한다.
+    // 진행중이 된 뒤이거나, 시작이 지금부터 1시간 30분 안이 되는 일시 변경은 failure로 돌아온다.
+    suspend fun updateMeeting(meetingId: String, meeting: Meeting): Result<Unit>
     suspend fun cancelMeeting(meetingId: String, reason: String): Result<Unit>
     suspend fun deleteMeeting(meetingId: String): Result<Unit>
 }

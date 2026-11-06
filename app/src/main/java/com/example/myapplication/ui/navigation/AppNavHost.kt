@@ -195,6 +195,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onWriteNotice = { navController.navigate(Routes.noticeEdit(meetingId)) },
                     onOpenNotices = { navController.navigate(Routes.noticeList(meetingId)) },
                     onOpenNotice = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
+                    onEditMeeting = { navController.navigate(Routes.meetingEdit(meetingId)) },
                     // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
                     onAddRecord = { sport -> navController.navigate(Routes.record(sport)) },
                 )
@@ -283,6 +284,16 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                             popUpTo(Routes.MEETING_CREATE) { inclusive = true }
                         }
                     },
+                )
+            }
+            composable(Routes.MEETING_EDIT, meetingArgs()) { entry ->
+                val meetingId = entry.meetingId()
+                MeetingCreateScreen(
+                    viewModel = viewModel(key = "edit-$meetingId") { MeetingCreateViewModel(userRepository, meetingRepository, editMeetingId = meetingId) },
+                    onClose = { navController.popBackStack() },
+                    onPlaceClick = {},
+                    onCreated = {},
+                    onUpdated = { navController.popBackStack() },
                 )
             }
             composable(Routes.PLACE_SEARCH) { TempScreen("10g 장소 검색") }

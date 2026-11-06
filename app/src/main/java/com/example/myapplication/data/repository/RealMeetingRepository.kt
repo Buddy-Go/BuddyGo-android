@@ -17,6 +17,7 @@ class RealMeetingRepository : MeetingRepository {
     override suspend fun accept(meetingId: String, requestId: String): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun reject(meetingId: String, requestId: String): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun createMeeting(meeting: Meeting): Result<String> = TODO("서버 연결 후 구현")
+    override suspend fun updateMeeting(meetingId: String, meeting: Meeting): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun cancelMeeting(meetingId: String, reason: String): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun deleteMeeting(meetingId: String): Result<Unit> = TODO("서버 연결 후 구현")
 }

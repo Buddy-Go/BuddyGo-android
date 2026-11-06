@@ -92,6 +92,7 @@ fun MeetingDetailScreen(
     onWriteNotice: () -> Unit,                  // 호스트: 공지 작성(8a)
     onOpenNotices: () -> Unit,                  // 호스트: 공지 목록(8d)
     onOpenNotice: (noticeId: String) -> Unit,   // 호스트: 공지 상세(8f)
+    onEditMeeting: () -> Unit,                  // 호스트: 모임 수정
     modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
     onAppliedHandled: () -> Unit = {},
@@ -162,7 +163,7 @@ fun MeetingDetailScreen(
                 onToggleFavorite = viewModel::onToggleFavorite,
                 onPlaceClick = { viewModel.onOpenSheet(DetailSheet.PLACE) },
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
-                onHostAction = viewModel::onHostAction,
+                onHostAction = { action -> if (action == HostAction.EDIT) onEditMeeting() else viewModel.onHostAction(action) },
                 onManageParticipants = onManageParticipants,
                 onWriteNotice = onWriteNotice,
                 onOpenNotices = onOpenNotices,

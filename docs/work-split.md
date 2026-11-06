@@ -95,7 +95,7 @@
 - [x] `data/repository/` interface 확정 (`MeetingRepository`, `UserRepository`)
 - [x] `ui/navigation/Routes.kt` 전체 경로 목록
 - [x] `ui/navigation/AppNavHost.kt` 경로와 화면 연결
-- [ ] 문진곤과 모델·interface 합의 완료
+- [x] 문진곤과 모델·interface 합의 완료 (`docs/contract-agreement.md`에 확정)
 
 ##### 부품 (`ui/common/`)
 - [x] `UiState.kt` 로딩/성공/에러
@@ -241,7 +241,7 @@
   - [ ] 10g-3 장소 확인 · 헬스
   - [ ] 10g-4 집결지 지정 · 러닝
 - [ ] `MeetingCreateState.kt`, `MeetingCreateViewModel.kt`
-- [ ] 수정 동작 (`service-rules.md` 4번)
+- [x] 수정 동작 (`service-rules.md` 4번) — 개설 화면을 수정 모드로 재사용, 확정 참가자가 있으면 제목·설명·상세주소만
 
 ---
 

@@ -183,10 +183,10 @@ class MeetingDetailViewModel(
         _state.update { it.copy(hostSection = hostSectionStateOf(meeting, orderedConfirmedNames(meeting, names), latest)) }
     }
 
-    // ⋯ 메뉴 항목: 수정은 아직 화면이 없어 안내만 한다.
+    // ⋯ 메뉴 항목. 수정은 화면이 수정 화면으로 이동하므로 여기서는 할 일이 없다.
     fun onHostAction(action: HostAction) {
         when (action) {
-            HostAction.EDIT -> _state.update { it.copy(message = "모임 수정은 아직 준비 중이에요") }
+            HostAction.EDIT -> Unit
             HostAction.CANCEL -> _state.update { it.copy(hostDialog = HostDialog.CANCEL) }
             HostAction.DELETE -> _state.update { it.copy(hostDialog = HostDialog.DELETE) }
         }

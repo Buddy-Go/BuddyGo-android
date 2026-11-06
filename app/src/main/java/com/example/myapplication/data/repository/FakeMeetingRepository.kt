@@ -5,6 +5,7 @@ import com.example.myapplication.data.mock.MockUsers
 import com.example.myapplication.data.model.CHECK_IN_RADIUS_METERS
 import com.example.myapplication.data.model.CheckInOutOfRangeException
 import com.example.myapplication.data.model.CheckInResult
+import com.example.myapplication.data.model.DEADLINE_BEFORE_START_MINUTES
 import com.example.myapplication.data.model.GeoPoint
 import com.example.myapplication.data.model.JoinRequest
 import com.example.myapplication.data.model.Meeting
@@ -146,6 +147,41 @@ class FakeMeetingRepository(
             status = MeetingStatus.RECRUITING,
         )
         return Result.success(id)
+    }
+
+    // 서버처럼 규칙을 판정한다 (4장): 진행중이 되기 전까지만, 확정 참가자(호스트 제외)가 있으면 제목·설명·상세주소만 바뀐다.
+    // 잠기지 않았을 때 일시를 바꾸면 시작이 지금부터 데드라인(90분) 이후여야 하고, 정원은 확정 인원보다 작을 수 없다.
+    override suspend fun updateMeeting(meetingId: String, meeting: Meeting): Result<Unit> {
+        val current = meetings.firstOrNull { it.id == meetingId }
+            ?: return Result.failure(NoSuchElementException(meetingId))
+        if (current.status != MeetingStatus.RECRUITING && current.status != MeetingStatus.CLOSED) {
+            return Result.failure(IllegalStateException("진행중이 되면 수정할 수 없어요"))
+        }
+        val locked = current.confirmedCount > 1
+        val place = current.place.copy(detailAddress = meeting.place.detailAddress)
+        if (locked) {
+            return update(meetingId) { it.copy(title = meeting.title, description = meeting.description, place = place) }
+        }
+        if (meeting.startAtMillis != current.startAtMillis &&
+            meeting.startAtMillis - nowMillis() < DEADLINE_BEFORE_START_MINUTES * 60_000L
+        ) {
+            return Result.failure(IllegalArgumentException("시작은 지금부터 1시간 30분 이후만 고를 수 있어요"))
+        }
+        if (meeting.capacity < current.confirmedCount) {
+            return Result.failure(IllegalArgumentException("정원은 확정 인원보다 작을 수 없어요"))
+        }
+        return update(meetingId) {
+            it.copy(
+                title = meeting.title,
+                description = meeting.description,
+                criteria = meeting.criteria,
+                place = meeting.place,
+                startAtMillis = meeting.startAtMillis,
+                durationMinutes = meeting.durationMinutes,
+                capacity = meeting.capacity,
+                genderLimit = meeting.genderLimit,
+            )
+        }
     }
 
     // 취소하면 대기 신청도 모두 거절된다. 사유는 서버가 확정자에게 알림으로 보낸다 (4장)
