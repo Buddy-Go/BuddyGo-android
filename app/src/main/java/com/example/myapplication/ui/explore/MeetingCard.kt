@@ -63,6 +63,7 @@ fun criteriaChipText(meeting: Meeting): String = when (val c = meeting.criteria)
 
 // 3-After 목록 카드 / 3-3-After 떠 있는 카드.
 // selected는 목록에서 선택된 모임(라임 테두리), showCriteriaChip은 떠 있는 카드에서만 켠다.
+// showPlaceName은 시트 제목에 장소명이 이미 있을 때(3-5) 끈다.
 @Composable
 fun MeetingCard(
     meeting: Meeting,
@@ -71,6 +72,7 @@ fun MeetingCard(
     modifier: Modifier = Modifier,
     selected: Boolean = false,
     showCriteriaChip: Boolean = false,
+    showPlaceName: Boolean = true,
     nowMillis: Long = System.currentTimeMillis(),
 ) {
     val shape = RoundedCornerShape(AppRadius.lg)
@@ -103,7 +105,7 @@ fun MeetingCard(
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             Text(
-                "${meeting.place.name} · ${formatStartTime(meeting.startAtMillis, nowMillis)}",
+                formatPlaceAndTime(meeting, nowMillis, showPlaceName),
                 color = AppColor.TextSecondary, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {

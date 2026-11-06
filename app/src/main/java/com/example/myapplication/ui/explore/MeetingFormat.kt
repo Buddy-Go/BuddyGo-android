@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.explore
 
+import com.example.myapplication.data.model.Meeting
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -13,6 +14,22 @@ fun formatDistance(meters: Int?): String? = when {
         val tenths = (meters + 50) / 100 // 반올림해 0.1km 단위
         if (tenths % 10 == 0) "${tenths / 10}km" else "${tenths / 10}.${tenths % 10}km"
     }
+}
+
+// 카드 둘째 줄: "장소명 상세주소 · 시각". 같은 지번 안에서는 호스트가 적은 상세주소로 구분한다. (service-rules 2장)
+// showPlaceName이 false면 장소명을 빼고 상세주소만 쓴다. (같은 지번 시트는 제목에 장소명이 있다, 3-5)
+fun formatPlaceAndTime(
+    meeting: Meeting,
+    nowMillis: Long,
+    showPlaceName: Boolean = true,
+    timeZone: TimeZone = TimeZone.getDefault(),
+): String {
+    val place = listOfNotNull(
+        meeting.place.name.takeIf { showPlaceName && it.isNotBlank() },
+        meeting.place.detailAddress?.takeIf { it.isNotBlank() },
+    ).joinToString(" ")
+    val time = formatStartTime(meeting.startAtMillis, nowMillis, timeZone)
+    return if (place.isEmpty()) time else "$place · $time"
 }
 
 // "오늘 오전 7:00", "내일 오후 7:30", 그 밖에는 "11월 8일 오전 9:00"
