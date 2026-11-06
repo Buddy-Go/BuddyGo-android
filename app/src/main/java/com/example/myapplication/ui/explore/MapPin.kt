@@ -52,6 +52,16 @@ private val MixedGray = Color(0xFF9CA3AF)
 private val DimmedGray = Color(0xFF5B6270)
 private val DimmedMixedGray = Color(0xFF9EA3AB)
 
+// 핀 배경색과 아이콘·글자색. Compose 핀과 지도에 올리는 비트맵 핀이 같이 쓴다.
+internal fun pinBackgroundColor(style: PinStyle): Color = when (style.look) {
+    PinLook.Selected -> AppColor.Accent
+    PinLook.Dimmed -> if (style.sport == null) DimmedMixedGray else DimmedGray
+    PinLook.Default -> style.sport?.let { toneOf(it).solid } ?: MixedGray
+}
+
+internal fun pinContentColor(style: PinStyle): Color =
+    if (style.look == PinLook.Selected) AppColor.TextPrimary else Color.White
+
 // 핀은 종목 아이콘만 보여 주고, 같은 지번에 모임이 여럿이면 "+모임 수"를 붙인다.
 @Composable
 fun MapPin(
@@ -60,12 +70,8 @@ fun MapPin(
     modifier: Modifier = Modifier,
     hasFavorite: Boolean = false,
 ) {
-    val background = when (style.look) {
-        PinLook.Selected -> AppColor.Accent
-        PinLook.Dimmed -> if (style.sport == null) DimmedMixedGray else DimmedGray
-        PinLook.Default -> style.sport?.let { toneOf(it).solid } ?: MixedGray
-    }
-    val content = if (style.look == PinLook.Selected) AppColor.TextPrimary else Color.White
+    val background = pinBackgroundColor(style)
+    val content = pinContentColor(style)
     Box(modifier) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(
