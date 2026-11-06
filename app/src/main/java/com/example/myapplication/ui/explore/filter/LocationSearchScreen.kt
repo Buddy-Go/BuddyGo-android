@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.myapplication.ui.common.ActionButton
 import com.example.myapplication.ui.explore.SearchIcon
+import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
@@ -59,7 +60,7 @@ fun LocationSearchScreen(
     val state by viewModel.state.collectAsState()
     Column(modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(32.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.Center) {
                 ChevronLeftIcon(AppColor.TextPrimary)
             }
             Spacer(Modifier.width(AppSpace.xl))
@@ -95,7 +96,7 @@ fun LocationSearchScreen(
                         },
                         trailing = {
                             if (selected) CheckMarkIcon(AppColor.AccentStrong)
-                            else Box(Modifier.size(32.dp).clip(CircleShape).clickable { viewModel.onRemoveRecent(name) }, contentAlignment = Alignment.Center) {
+                            else Box(Modifier.size(32.dp).clip(CircleShape).iconButton("$name 최근 검색 삭제") { viewModel.onRemoveRecent(name) }, contentAlignment = Alignment.Center) {
                                 CloseIcon(AppColor.TextDisabled, size = 18.dp)
                             }
                         },
@@ -136,7 +137,7 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onClear: () -
             )
         }
         if (query.isNotEmpty()) {
-            Box(Modifier.size(24.dp).clip(CircleShape).background(AppColor.TextDisabled).clickable(onClick = onClear), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(24.dp).clip(CircleShape).background(AppColor.TextDisabled).iconButton("검색어 지우기", onClear), contentAlignment = Alignment.Center) {
                 CloseIcon(AppColor.Surface, size = 14.dp)
             }
         }

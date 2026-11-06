@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -145,7 +146,7 @@ private fun TopOverlay(
             SearchBar(state, onClick = onSearchClick, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(AppSpace.md))
             Surface(
-                modifier = Modifier.size(52.dp).clip(CircleShape).clickable(onClick = onNotificationClick),
+                modifier = Modifier.size(52.dp).clip(CircleShape).iconButton(notificationLabel(state.hasUnreadNotifications), onNotificationClick),
                 shape = CircleShape, color = AppColor.Surface, shadowElevation = 4.dp,
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -182,7 +183,7 @@ private fun TopOverlay(
 @Composable
 private fun SearchBar(state: ExploreState, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier.height(52.dp).clip(RoundedCornerShape(26.dp)).clickable(onClick = onClick),
+        modifier = modifier.height(52.dp).clip(RoundedCornerShape(26.dp)).clickable(onClickLabel = "조건 설정 열기", role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(26.dp), color = AppColor.Surface, shadowElevation = 4.dp,
     ) {
         Row(Modifier.padding(horizontal = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {
@@ -208,7 +209,7 @@ private fun SearchBar(state: ExploreState, onClick: () -> Unit, modifier: Modifi
 @Composable
 private fun FilterChip(selected: Boolean, onClick: () -> Unit, content: @Composable () -> Unit) {
     Surface(
-        modifier = Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).clickable(onClick = onClick),
+        modifier = Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).selectableItem(selected, onClick),
         shape = RoundedCornerShape(18.dp),
         color = if (selected) AppColor.Accent else AppColor.Surface,
         shadowElevation = 3.dp,
@@ -225,7 +226,7 @@ private fun FilterChip(selected: Boolean, onClick: () -> Unit, content: @Composa
 @Composable
 private fun ResearchButton(highlighted: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier.height(44.dp).clip(RoundedCornerShape(22.dp)).clickable(onClick = onClick),
+        modifier = modifier.height(44.dp).clip(RoundedCornerShape(22.dp)).clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(22.dp),
         color = if (highlighted) AppColor.Accent else AppColor.Surface,
         shadowElevation = 6.dp,

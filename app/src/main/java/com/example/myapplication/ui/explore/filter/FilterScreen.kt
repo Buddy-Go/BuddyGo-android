@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.ActionButton
+import com.example.myapplication.ui.explore.iconButton
+import com.example.myapplication.ui.explore.selectableItem
 import com.example.myapplication.ui.explore.sportLabel
 import com.example.myapplication.ui.record.SportIcon
 import com.example.myapplication.ui.theme.AppColor
@@ -144,7 +146,7 @@ private fun FilterContent(
             Modifier.fillMaxWidth().padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.size(32.dp).clip(CircleShape).clickable(onClick = onClose), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(32.dp).clip(CircleShape).iconButton("조건 설정 닫기", onClose), contentAlignment = Alignment.Center) {
                 CloseIcon(AppColor.TextPrimary)
             }
             Spacer(Modifier.width(AppSpace.xl))
@@ -200,7 +202,7 @@ private fun SectionTitle(text: String) =
 private fun SportCard(sport: Sport, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(AppRadius.lg)
     Surface(
-        modifier = modifier.height(84.dp).clip(shape).clickable(onClick = onClick),
+        modifier = modifier.height(84.dp).clip(shape).selectableItem(selected, onClick),
         shape = shape,
         color = if (selected) AppColor.AccentSoft else AppColor.Surface,
         border = BorderStroke(if (selected) 1.5.dp else 1.dp, if (selected) AppColor.Accent else AppColor.Border),
@@ -227,7 +229,7 @@ private fun DateRow(state: FilterState, onSelectDate: (Long) -> Unit, onOpenDate
                         .width(48.dp).height(60.dp)
                         .clip(RoundedCornerShape(AppRadius.pill))
                         .background(if (selected) AppColor.Accent else AppColor.Surface)
-                        .clickable { onSelectDate(option.startOfDayMillis) },
+                        .selectableItem(selected, { onSelectDate(option.startOfDayMillis) }),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
@@ -239,7 +241,7 @@ private fun DateRow(state: FilterState, onSelectDate: (Long) -> Unit, onOpenDate
         Spacer(Modifier.width(AppSpace.md))
         // 달력: 5일 밖의 날짜를 고를 때 쓴다.
         Box(
-            Modifier.size(40.dp).clip(CircleShape).clickable(onClick = onOpenDatePicker),
+            Modifier.size(40.dp).clip(CircleShape).iconButton("날짜 직접 고르기", onOpenDatePicker),
             contentAlignment = Alignment.Center,
         ) { CalendarIcon(AppColor.TextPrimary) }
     }
@@ -264,7 +266,7 @@ private fun TimeRow(
                     timeRangeLabel(range), color = AppColor.AccentStrong, fontSize = 15.sp,
                     fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f),
                 )
-                Box(Modifier.size(28.dp).clip(CircleShape).clickable(onClick = onClearTimeRange), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(28.dp).clip(CircleShape).iconButton("시간 범위 지우기", onClearTimeRange), contentAlignment = Alignment.Center) {
                     CloseIcon(AppColor.TextSecondary, size = 18.dp)
                 }
             }
@@ -277,7 +279,7 @@ private fun TimeRow(
                             .weight(1f).fillMaxSize()
                             .clip(RoundedCornerShape(AppRadius.sm))
                             .background(if (selected) AppColor.Surface else AppColor.ChipNeutralBg)
-                            .clickable { onToggleSlot(slot) },
+                            .selectableItem(selected, { onToggleSlot(slot) }),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -291,7 +293,7 @@ private fun TimeRow(
         }
         Spacer(Modifier.width(AppSpace.md))
         Box(
-            Modifier.size(40.dp).clip(CircleShape).clickable(onClick = onOpenTimeRange),
+            Modifier.size(40.dp).clip(CircleShape).iconButton("시간 범위 설정", onOpenTimeRange),
             contentAlignment = Alignment.Center,
         ) { ClockIcon(if (range != null) AppColor.AccentStrong else AppColor.TextPrimary) }
     }

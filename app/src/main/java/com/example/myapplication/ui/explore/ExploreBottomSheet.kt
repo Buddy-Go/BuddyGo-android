@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -75,7 +76,9 @@ fun ExploreBottomSheet(
     ) {
         Column(Modifier.fillMaxSize()) {
             Box(
-                Modifier.fillMaxWidth().clickable { onSetExpanded(!state.sheetExpanded) }.padding(vertical = AppSpace.xl),
+                Modifier.fillMaxWidth()
+                    .clickable(onClickLabel = if (state.sheetExpanded) "목록 내리기" else "목록 올리기", role = Role.Button) { onSetExpanded(!state.sheetExpanded) }
+                    .padding(vertical = AppSpace.xl),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(Modifier.width(40.dp).height(4.dp).clip(CircleShape).background(AppColor.Border))
