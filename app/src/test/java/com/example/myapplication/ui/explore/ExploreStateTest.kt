@@ -173,4 +173,21 @@ class ExploreStateTest {
         val loading = ExploreState(meetings = UiState.Loading)
         assertEquals(loading, loading.withFavoriteToggled("1"))
     }
+
+    @Test
+    fun 찜_값을_정해서_넣으면_실패했을_때_원래_값으로_되돌릴_수_있다() {
+        val state = stateOf(meeting("1"), meeting("2"))
+        val liked = state.withFavoriteToggled("1")
+        val reverted = liked.withFavoriteSet("1", false)
+        val byId = (reverted.meetings as UiState.Success).data.associateBy { it.id }
+        assertFalse(byId.getValue("1").isFavorite)
+        assertFalse(byId.getValue("2").isFavorite)
+    }
+
+    @Test
+    fun 없는_모임의_찜은_아무것도_바꾸지_않는다() {
+        val state = stateOf(meeting("1"))
+        assertEquals(state, state.withFavoriteToggled("없는 id"))
+        assertEquals(state, state.withFavoriteSet("없는 id", true))
+    }
 }

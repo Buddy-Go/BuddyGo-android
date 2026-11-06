@@ -58,12 +58,18 @@ data class ExploreState(
         selectedPinKey = null,
     )
 
-    // TODO(임시) 서버에 찜 호출이 생기기 전까지 화면 안에서만 바꾼다.
+    // 찜을 켜거나 끈다. 서버 응답을 기다리지 않고 먼저 화면에 보여 준다.
     fun withFavoriteToggled(meetingId: String): ExploreState {
+        val current = (meetings as? UiState.Success)?.data?.firstOrNull { it.id == meetingId } ?: return this
+        return withFavoriteSet(meetingId, !current.isFavorite)
+    }
+
+    // 찜 값을 정해서 넣는다. 서버 저장이 실패하면 이 함수로 원래 값으로 되돌린다.
+    fun withFavoriteSet(meetingId: String, favorite: Boolean): ExploreState {
         val current = meetings as? UiState.Success ?: return this
         return copy(
             meetings = UiState.Success(
-                current.data.map { if (it.id == meetingId) it.copy(isFavorite = !it.isFavorite) else it },
+                current.data.map { if (it.id == meetingId) it.copy(isFavorite = favorite) else it },
             ),
         )
     }

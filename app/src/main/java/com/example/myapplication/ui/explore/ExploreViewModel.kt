@@ -68,7 +68,16 @@ class ExploreViewModel(
         load()
     }
 
-    fun onToggleFavorite(meetingId: String) = _state.update { it.withFavoriteToggled(meetingId) }
+    // 찜: 먼저 화면에 반영하고 서버에 저장한다. 저장에 실패하면 원래 값으로 되돌린다.
+    fun onToggleFavorite(meetingId: String) {
+        val before = (_state.value.meetings as? UiState.Success)?.data?.firstOrNull { it.id == meetingId }?.isFavorite ?: return
+        _state.update { it.withFavoriteSet(meetingId, !before) }
+        viewModelScope.launch {
+            repository.setFavorite(meetingId, !before).onFailure {
+                _state.update { state -> state.withFavoriteSet(meetingId, before) }
+            }
+        }
+    }
 
     fun onToggleFavoriteOnly() = _state.update { it.copy(favoriteOnly = !it.favoriteOnly, selectedPinKey = null) }
 }
