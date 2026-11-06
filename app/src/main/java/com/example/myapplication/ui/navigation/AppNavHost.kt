@@ -3,8 +3,11 @@ package com.example.myapplication.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,9 +19,16 @@ import com.example.myapplication.ui.auth.LoginScreen
 import com.example.myapplication.ui.common.BottomNavBar
 import com.example.myapplication.ui.explore.ExploreScreen
 import com.example.myapplication.ui.explore.filter.FilterScreen
+import com.example.myapplication.ui.explore.filter.FilterViewModel
+import com.example.myapplication.ui.explore.filter.LocationSearchScreen
 import com.example.myapplication.ui.record.RecordScreen
 import com.example.myapplication.ui.record.SignUpInfoScreen
 import com.example.myapplication.ui.record.SignUpProfileScreen
+
+// 위치 검색(4g)과 조건 설정 사이에 구·동을 주고받는 키. 결과가 없을 때는 NO_RESULT, 해제는 빈 문자열이다.
+private const val KEY_DISTRICT_CURRENT = "district_current"
+private const val KEY_DISTRICT_RESULT = "district_result"
+private const val NO_RESULT = "\u0000none"
 
 // 이름표(Routes)와 실제 화면을 연결한다.
 // 화면을 만든 사람은 해당 줄의 TempScreen(...)을 자기 화면으로 바꾼다.
@@ -96,14 +106,37 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onMeetingClick = { navController.navigate(Routes.meetingDetail(it)) },
                 )
             }
-            composable(Routes.FILTER) {
+            composable(Routes.FILTER) { entry ->
+                val filterViewModel: FilterViewModel = viewModel(entry)
+                // 위치 검색에서 돌아오면 고른 구·동(빈 문자열이면 해제)을 조건에 넣는다.
+                val picked by entry.savedStateHandle.getStateFlow(KEY_DISTRICT_RESULT, NO_RESULT).collectAsState()
+                LaunchedEffect(picked) {
+                    if (picked != NO_RESULT) {
+                        filterViewModel.onSetDistrict(picked)
+                        entry.savedStateHandle[KEY_DISTRICT_RESULT] = NO_RESULT
+                    }
+                }
                 FilterScreen(
                     onClose = { navController.popBackStack() },
                     onApplied = { navController.popBackStack() },
-                    onLocationClick = { navController.navigate(Routes.LOCATION_SEARCH) },
+                    onLocationClick = { current ->
+                        entry.savedStateHandle[KEY_DISTRICT_CURRENT] = current.orEmpty()
+                        navController.navigate(Routes.LOCATION_SEARCH)
+                    },
+                    viewModel = filterViewModel,
                 )
             }
-            composable(Routes.LOCATION_SEARCH) { TempScreen("4g 위치 검색") }
+            composable(Routes.LOCATION_SEARCH) {
+                val filterEntry = navController.previousBackStackEntry
+                LocationSearchScreen(
+                    initialDistrict = filterEntry?.savedStateHandle?.get<String>(KEY_DISTRICT_CURRENT)?.takeIf { it.isNotBlank() },
+                    onBack = { navController.popBackStack() },
+                    onApplied = { district ->
+                        filterEntry?.savedStateHandle?.set(KEY_DISTRICT_RESULT, district.orEmpty())
+                        navController.popBackStack()
+                    },
+                )
+            }
             composable(Routes.NOTIFICATION) { TempScreen("3-6 알림 목록") }
 
             // 5~6 모임 상세 · 참가 신청

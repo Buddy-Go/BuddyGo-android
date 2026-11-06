@@ -153,22 +153,22 @@
 #### 3. 조건 설정 (검색 필터)
 
 ##### `ui/explore/filter/`
-- [ ] `FilterScreen.kt`
-  - [ ] 4a 헬스
-  - [ ] 4a-2 시간 범위 적용
-  - [ ] 4a-3 기준 관계없음
-  - [ ] 4b 러닝
-  - [ ] 4c 등산
-- [ ] `HealthFilterBottomSheet.kt`
-  - [ ] 4d-After 헬스 기준
-  - [ ] 4d-2 헬스 기준 꺼짐
-  - [ ] 4d-3 부위 미선택 시
-- [ ] `DetailConditionBottomSheet.kt` ← 4e 상세 조건
-- [ ] `TimeRangeBottomSheet.kt` ← 4f 시간 범위 설정
-- [ ] `LocationSearchScreen.kt`
-  - [ ] 4g 위치 검색
-  - [ ] 4g-2 검색 결과
-- [ ] `FilterState.kt`, `FilterViewModel.kt`
+- [x] `FilterScreen.kt`
+  - [x] 4a 헬스
+  - [x] 4a-2 시간 범위 적용
+  - [x] 4a-3 기준 관계없음
+  - [x] 4b 러닝
+  - [x] 4c 등산
+- [x] `HealthFilterBottomSheet.kt`
+  - [x] 4d-After 헬스 기준
+  - [x] 4d-2 헬스 기준 꺼짐
+  - [x] 4d-3 부위 미선택 시
+- [x] `DetailConditionBottomSheet.kt` ← 4e 상세 조건
+- [x] `TimeRangeBottomSheet.kt` ← 4f 시간 범위 설정
+- [x] `LocationSearchScreen.kt`
+  - [x] 4g 위치 검색
+  - [x] 4g-2 검색 결과
+- [x] `FilterState.kt`, `FilterViewModel.kt`
 
 ---
 

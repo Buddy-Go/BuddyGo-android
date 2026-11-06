@@ -50,7 +50,7 @@ import com.example.myapplication.ui.theme.MyApplicationTheme
 fun FilterScreen(
     onClose: () -> Unit,
     onApplied: () -> Unit,
-    onLocationClick: () -> Unit,
+    onLocationClick: (currentDistrict: String?) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FilterViewModel = viewModel(),
 ) {
@@ -65,7 +65,7 @@ fun FilterScreen(
         onOpenTimeRange = { viewModel.onOpenSheet(FilterSheet.TIME_RANGE) },
         onClearTimeRange = viewModel::onClearTimeRange,
         onOpenCriteria = { viewModel.onOpenSheet(FilterSheet.CRITERIA) },
-        onLocationClick = onLocationClick,
+        onLocationClick = { onLocationClick(state.draft.district) },
         onOpenDetail = { viewModel.onOpenSheet(FilterSheet.DETAIL) },
         onApply = {
             viewModel.onApply()

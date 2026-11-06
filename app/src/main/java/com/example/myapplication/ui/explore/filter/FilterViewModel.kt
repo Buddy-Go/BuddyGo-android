@@ -83,6 +83,9 @@ class FilterViewModel(
     fun onSetPaceRange(range: IntRange) = change { it.copy(running = it.running.withPaceRange(range)) }
     fun onSetHikingStyle(style: HikingStyle) = change { it.copy(hiking = it.hiking.withStyle(style)) }
 
+    // 위치 검색(4g)에서 돌아오면 고른 구·동을 조건에 넣는다. null이면 위치 조건을 푼다.
+    fun onSetDistrict(district: String?) = change { it.copy(district = district?.takeIf { name -> name.isNotBlank() }) }
+
     // ---- 시간 범위 시트 (4f) ----
 
     fun onSetTimeStart(minute: Int) = change { f -> f.withCustomRange((f.customRange ?: TimeOfDayRange.DEFAULT).withStart(minute)) }
