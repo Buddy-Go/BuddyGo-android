@@ -1,8 +1,7 @@
 package com.example.myapplication.data.model
 
 // 프로필(마이페이지 14, 메이트 프로필 15)에 보이는 숫자와 후기. 매너온도는 User에 있다.
-data class TagCount(val tag: String, val count: Int)
-
+// 태그 한 개(문구와 받은 수)는 Mate.kt의 TagCount를 같이 쓴다.
 data class ProfileStats(
     val receivedReviewCount: Int = 0,
     val hostedMeetingCount: Int = 0,

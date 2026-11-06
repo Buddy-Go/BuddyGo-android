@@ -163,7 +163,7 @@ private fun TopTags(tags: List<TagCount>) {
                     Modifier.clip(CircleShape).background(if (first) AppColor.AccentSoft else AppColor.ChipNeutralBg)
                         .padding(horizontal = AppSpace.xxl, vertical = AppSpace.xl),
                 ) {
-                    Text(t.tag, color = if (first) AppColor.AccentStrong else AppColor.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(t.label, color = if (first) AppColor.AccentStrong else AppColor.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     Spacer(Modifier.width(AppSpace.md))
                     Text(t.count.toString(), color = if (first) AppColor.AccentStrong else AppColor.TextSecondary, fontSize = 14.sp)
                 }

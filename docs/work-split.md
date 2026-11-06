@@ -224,16 +224,16 @@
 #### 1. 모임 개설
 
 ##### `ui/meeting/create/`
-- [ ] `MeetingCreateScreen.kt`
-  - [ ] 10a 헬스
-  - [ ] 10a-2 헬스 기록 숨김
-  - [ ] 10b 러닝
-  - [ ] 10c 등산
-- [ ] `HealthCriteriaBottomSheet.kt`
-  - [ ] 10d-After 헬스 기준
-  - [ ] 10d-2 헬스 기준 기록 숨김
-- [ ] `DescriptionBottomSheet.kt` ← 10e 설명
-- [ ] `TimeBottomSheet.kt` ← 10f 시간 설정
+- [x] `MeetingCreateScreen.kt`
+  - [x] 10a 헬스
+  - [x] 10a-2 헬스 기록 숨김
+  - [x] ~~10b 러닝~~ (범위 제외, 2026-10-30)
+  - [x] ~~10c 등산~~ (범위 제외, 2026-10-30)
+- [x] `HealthCriteriaBottomSheet.kt`
+  - [x] 10d-After 헬스 기준
+  - [x] 10d-2 헬스 기준 기록 숨김
+- [x] `DescriptionBottomSheet.kt` ← 10e 설명
+- [x] `TimeBottomSheet.kt` ← 10f 시간 설정
 - [ ] `PlaceSearchScreen.kt`
   - [ ] 10g 장소 검색
   - [ ] 10g-2 검색 결과
@@ -248,15 +248,15 @@
 #### 2. 호스트 모임 상세 · 취소 · 삭제
 
 ##### `ui/meeting/detail/` (화면 본체는 문찬주 소유, 이 항목들은 별도 파일로 추가)
-- [ ] `HostSection.kt`
-  - [ ] 5a-H-After 모집중
-  - [ ] 5a-H2-After 신청자 없음
-  - [ ] 5a-H4-After 공지 2건
-  - [ ] 5a-H5 마감됨
-- [ ] `MeetingCancelBottomSheet.kt`
-  - [ ] 5a-X2 모임 취소 · 경고
-  - [ ] 5a-X2-2 사유 입력됨
-- [ ] `MeetingDialogs.kt` ← 5a-X3 모임 삭제 확인
+- [x] `HostSection.kt`
+  - [x] 5a-H-After 모집중
+  - [x] 5a-H2-After 신청자 없음
+  - [x] 5a-H4-After 공지 2건
+  - [x] 5a-H5 마감됨
+- [x] `MeetingCancelBottomSheet.kt`
+  - [x] 5a-X2 모임 취소 · 경고
+  - [x] 5a-X2-2 사유 입력됨
+- [x] `MeetingDialogs.kt` ← 5a-X3 모임 삭제 확인
 - [ ] 문찬주의 `MeetingDetailScreen`과 호출 지점 연결 확인
 
 ---
@@ -264,48 +264,48 @@
 #### 3. 참가자 관리 (수락·거절·마감)
 
 ##### `ui/meeting/manage/`
-- [ ] `ParticipantManageScreen.kt`
-  - [ ] 7a 신청 탭
-  - [ ] 7b 확정 탭
-  - [ ] 7c 신청 없음
-  - [ ] 7d 마감 후
-- [ ] `ApplicantsTab.kt`
-- [ ] `ConfirmedTab.kt`
-- [ ] `ParticipantManageState.kt`, `ParticipantManageViewModel.kt`
-- [ ] 수락·거절·마감 동작 (`service-rules.md` 5번)
+- [x] `ParticipantManageScreen.kt`
+  - [x] 7a 신청 탭
+  - [x] 7b 확정 탭
+  - [x] 7c 신청 없음
+  - [x] 7d 마감 후
+- [x] `ApplicantsTab.kt`
+- [x] `ConfirmedTab.kt`
+- [x] `ParticipantManageState.kt`, `ParticipantManageViewModel.kt`
+- [x] 수락·거절·마감 동작 (`service-rules.md` 5번)
 
 ---
 
 #### 4. 공지 · 댓글
 
 ##### `ui/meeting/notice/`
-- [ ] `NoticeEditScreen.kt`
-  - [ ] 8a 공지 작성 · 빈 상태
-  - [ ] 8b 공지 작성 · 입력 중
-  - [ ] 8c 공지 수정 · 기본
-- [ ] `NoticeListScreen.kt`
-  - [ ] 8d 공지 목록 · 호스트
-  - [ ] 8e 공지 목록 · 참가자
-- [ ] `NoticeDetailScreen.kt`
-  - [ ] 8f 공지 상세 · 호스트
-  - [ ] 8g 공지 상세 · 참가자
-  - [ ] 8h 댓글 입력 중
-  - [ ] 8i 댓글 없음
+- [x] `NoticeEditScreen.kt`
+  - [x] 8a 공지 작성 · 빈 상태
+  - [x] 8b 공지 작성 · 입력 중
+  - [x] 8c 공지 수정 · 기본
+- [x] `NoticeListScreen.kt`
+  - [x] 8d 공지 목록 · 호스트
+  - [x] 8e 공지 목록 · 참가자
+- [x] `NoticeDetailScreen.kt`
+  - [x] 8f 공지 상세 · 호스트
+  - [x] 8g 공지 상세 · 참가자
+  - [x] 8h 댓글 입력 중
+  - [x] 8i 댓글 없음
 
 ---
 
 #### 5. 평가 · 매너온도
 
 ##### `ui/mate/review/`
-- [ ] `ReviewListScreen.kt` ← 12a 목록
-- [ ] `MemberReviewScreen.kt`
-  - [ ] 12b-1 판정 미선택 (2/3)
-  - [ ] 12b-2 좋음 선택 (2/3)
-  - [ ] 12b-3 보통 선택 (2/3)
-  - [ ] 12b-4 아쉬움 선택 (3/3 마지막)
-- [ ] `ReviewDoneScreen.kt`
-  - [ ] 12c 평가 완료
-  - [ ] 12c-2 평가 완료 (추가 대상 없음)
+- [x] `ReviewListScreen.kt` ← 12a 목록
+- [x] `MemberReviewScreen.kt`
+  - [x] 12b-1 판정 미선택 (2/3)
+  - [x] 12b-2 좋음 선택 (2/3)
+  - [x] 12b-3 보통 선택 (2/3)
+  - [x] 12b-4 아쉬움 선택 (3/3 마지막)
+- [x] `ReviewDoneScreen.kt`
+  - [x] 12c 평가 완료
+  - [x] 12c-2 평가 완료 (추가 대상 없음)
 - [ ] 매너온도 변화 규칙 (`service-rules.md` 11번)
 
 ---
@@ -313,37 +313,37 @@
 #### 6. 메이트
 
 ##### `ui/mate/`
-- [ ] `MateScreen.kt` (탭 틀)
-- [ ] `MateListTab.kt`
-  - [ ] 11a 메이트 탭
-  - [ ] 11a-2 빈 상태
-- [ ] `WorkedOutTab.kt`
-  - [ ] 11b 함께 운동한 사람 탭
-  - [ ] 11b-2 헬스 필터
-  - [ ] 11b-3 필터 결과 빈 상태
-- [ ] `MateRequestScreen.kt`
-  - [ ] 11c 메이트 신청 2건
-  - [ ] 11c-2 빈 상태
-- [ ] `MateProfileScreen.kt`
-  - [ ] 15a 메이트
-  - [ ] 15b 메이트 아님
-  - [ ] 15c 신청 보냄
-- [ ] `MateState.kt`, `MateViewModel.kt`
+- [x] `MateScreen.kt` (탭 틀)
+- [x] `MateListTab.kt`
+  - [x] 11a 메이트 탭
+  - [x] 11a-2 빈 상태
+- [x] `WorkedOutTab.kt`
+  - [x] 11b 함께 운동한 사람 탭
+  - [x] ~~11b-2 헬스 필터~~ (범위 제외, 2026-10-30)
+  - [x] ~~11b-3 필터 결과 빈 상태~~ (범위 제외, 2026-10-30)
+- [x] `MateRequestScreen.kt`
+  - [x] 11c 메이트 신청 2건
+  - [x] 11c-2 빈 상태
+- [x] `MateProfileScreen.kt`
+  - [x] 15a 메이트
+  - [x] 15b 메이트 아님
+  - [x] 15c 신청 보냄
+- [x] `MateState.kt`, `MateViewModel.kt`
 
 ---
 
 #### 7. 활동 내역
 
 ##### `ui/activity/`
-- [ ] `ActivityScreen.kt` (탭 틀)
-- [ ] `HostActivityTab.kt`
-  - [ ] 13-H 호스트 · 모임 6건 · 필터 노출
-  - [ ] 13-H2 호스트 · 빈 상태
-- [ ] `JoinedActivityTab.kt`
-  - [ ] 13-P 참여 · 모임 3건 · 필터 숨김
-  - [ ] 13-P2 참여 · 빈 상태
-- [ ] `ReviewPendingCard.kt` ← 13-R 평가 대기 카드 (기한 비교)
-- [ ] `ActivityState.kt`, `ActivityViewModel.kt`
+- [x] `ActivityScreen.kt` (탭 틀)
+- [x] `HostActivityTab.kt`
+  - [x] 13-H 호스트 · 모임 6건 · 필터 노출
+  - [x] 13-H2 호스트 · 빈 상태
+- [x] `JoinedActivityTab.kt`
+  - [x] 13-P 참여 · 모임 3건 · 필터 숨김
+  - [x] 13-P2 참여 · 빈 상태
+- [x] `ReviewPendingCard.kt` ← 13-R 평가 대기 카드 (기한 비교)
+- [x] `ActivityState.kt`, `ActivityViewModel.kt`
 
 ---
 

@@ -22,9 +22,9 @@ object MockNotifications {
         meetingId = "m1", createdAtMillis = BASE - 30 * MINUTE, isRead = false,
     )
     val unreadNotice = Notification(
-        id = "n2", type = NotificationType.NOTICE_WRITTEN, subject = "북한산 둘레길 같이 가요",
-        message = "호스트가 공지를 올렸어요 · 집합 장소 변경",
-        meetingId = "m4", noticeId = "notice1", createdAtMillis = BASE - HOUR, isRead = false,
+        id = "n2", type = NotificationType.NOTICE_WRITTEN, subject = "하체 데이",
+        message = "호스트가 공지를 올렸어요 · 스쿼트 랙 예약했어요",
+        meetingId = "m3", noticeId = "n3", // FakeNoticeRepository의 예시 공지 createdAtMillis = BASE - HOUR, isRead = false,
     )
     val readMate = Notification(
         id = "n3", type = NotificationType.MATE_REQUESTED, subject = "서연",
