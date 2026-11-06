@@ -120,8 +120,8 @@
 ##### `ui/record/`
 - [x] `SignUpInfoScreen.kt`
   - [x] 2a 정보 입력
-- [ ] `SignUpProfileScreen.kt`
-  - [ ] 2b 프로필 설정
+- [x] `SignUpProfileScreen.kt`
+  - [x] 2b 프로필 설정
 - [ ] `RecordScreen.kt`
   - [ ] 2c 헬스
   - [ ] 2c-2 헬스 하체·어깨
