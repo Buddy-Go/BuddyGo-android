@@ -368,4 +368,53 @@ class MeetingDetailRulesTest {
         val unknown = bottomActionOf(femaleOnly, MeetingRole.NONE, me, millis(9, 8, 0), null)!!
         assertEquals("내 성별을 모르면 막지 않는다", DetailAction.APPLY, unknown.action)
     }
+
+    // ---- 나가기 ----
+
+    private fun leave(m: Meeting, role: MeetingRole, now: Long) = leavePlanOf(m, role, now)
+
+    @Test
+    fun 모집중에_확정된_사람은_영향_없이_나갈_수_있다() {
+        val plan = leave(meeting(), MeetingRole.CONFIRMED, millis(9, 8, 0))!!
+        assertEquals("나가도 매너온도에는 영향이 없어요", plan.message)
+        assertFalse(plan.warnsCancel)
+    }
+
+    @Test
+    fun 데드라인_전_마감이면_마감이_풀리고_매너온도가_내려간다고_알린다() {
+        val m = meeting(MeetingStatus.CLOSED, start = millis(9, 8, 7), confirmed = 6) // 데드라인 5:30
+        val plan = leave(m, MeetingRole.CONFIRMED, millis(9, 8, 5, 29))!!
+        assertTrue(plan.message.contains("마감이 풀려"))
+        assertTrue(plan.message.contains("매너온도"))
+        assertFalse(plan.warnsCancel)
+    }
+
+    @Test
+    fun 데드라인_후_마감이면_모임이_취소된다고_꼭_알린다() {
+        val m = meeting(MeetingStatus.CLOSED, start = millis(9, 8, 7), confirmed = 6)
+        val plan = leave(m, MeetingRole.CONFIRMED, millis(9, 8, 5, 30))!!
+        assertTrue("정의서: '지금 나가면 모임이 취소돼요'를 안내해야 한다", plan.message.contains("지금 나가면 모임이 취소돼요"))
+        assertTrue(plan.warnsCancel)
+    }
+
+    @Test
+    fun 데드라인_경계는_데드라인_시각부터_후로_본다() {
+        val m = meeting(MeetingStatus.CLOSED, start = millis(9, 8, 7), confirmed = 6)
+        assertFalse(leave(m, MeetingRole.CONFIRMED, deadlineMillis(m) - 1)!!.warnsCancel)
+        assertTrue(leave(m, MeetingRole.CONFIRMED, deadlineMillis(m))!!.warnsCancel)
+    }
+
+    @Test
+    fun 진행중_이후나_취소된_모임에는_나가기가_없다() {
+        assertNull(leave(meeting(MeetingStatus.IN_PROGRESS), MeetingRole.CONFIRMED, millis(9, 8, 8)))
+        assertNull(leave(meeting(MeetingStatus.ENDED), MeetingRole.CONFIRMED, millis(9, 9, 0)))
+        assertNull(leave(meeting(MeetingStatus.CANCELED), MeetingRole.CONFIRMED, millis(9, 8, 0)))
+    }
+
+    @Test
+    fun 확정된_참가자가_아니면_나가기가_없다() {
+        assertNull("호스트에게는 나가기가 없다", leave(meeting(), MeetingRole.HOST, millis(9, 8, 0)))
+        assertNull(leave(meeting(), MeetingRole.NONE, millis(9, 8, 0)))
+        assertNull("대기 중에는 신청 취소가 따로 있다", leave(meeting(), MeetingRole.PENDING, millis(9, 8, 0)))
+    }
 }

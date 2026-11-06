@@ -45,6 +45,7 @@ class MeetingDetailViewModelTest {
         private val favoriteError: Throwable? = null,
         private val cancelError: Throwable? = null,
         private val checkInError: Throwable? = null,
+        private val leaveError: Throwable? = null,
         private val delegate: MeetingRepository = FakeMeetingRepository(),
     ) : MeetingRepository by delegate {
         override suspend fun getMeeting(meetingId: String): Result<Meeting> =
@@ -53,6 +54,8 @@ class MeetingDetailViewModelTest {
             favoriteError?.let { Result.failure(it) } ?: delegate.setFavorite(meetingId, favorite)
         override suspend fun cancelApplication(meetingId: String): Result<Unit> =
             cancelError?.let { Result.failure(it) } ?: delegate.cancelApplication(meetingId)
+        override suspend fun leave(meetingId: String): Result<Unit> =
+            leaveError?.let { Result.failure(it) } ?: delegate.leave(meetingId)
         override suspend fun checkIn(meetingId: String, latitude: Double, longitude: Double): Result<CheckInResult> =
             checkInError?.let { Result.failure(it) } ?: delegate.checkIn(meetingId, latitude, longitude)
     }
@@ -251,5 +254,66 @@ class MeetingDetailViewModelTest {
         vm.onCheckInLocation(mountain)
         assertEquals(mountain, LastKnownLocation.point.value)
         LastKnownLocation.clear()
+    }
+
+    // ---- 나가기 ----
+
+    private val closedId = MockMeetings.closed.id // 마감 · 내가 확정
+
+    @Test
+    fun 확정된_참가자에게는_나가기_메뉴가_있다() {
+        // 목데이터의 마감 모임은 시작이 한참 뒤라 데드라인 전이다.
+        assertTrue(vm(closedId).state.value.leavePlan != null)
+        assertNull("호스트는 나가기가 없다", vm(MockMeetings.hosted.id).state.value.leavePlan)
+        assertNull("신청하지 않았으면 없다", vm(MockMeetings.recruiting.id).state.value.leavePlan)
+    }
+
+    @Test
+    fun 나가기를_누르면_확인창이_뜨고_닫을_수_있다() {
+        val vm = vm(closedId)
+        vm.onLeaveClick()
+        assertEquals(vm.state.value.leavePlan, vm.state.value.leaveDialog)
+        vm.onLeaveDismiss()
+        assertNull(vm.state.value.leaveDialog)
+    }
+
+    @Test
+    fun 나갈_수_없는_사람이_나가기를_눌러도_창이_뜨지_않는다() {
+        val vm = vm(MockMeetings.recruiting.id)
+        vm.onLeaveClick()
+        assertNull(vm.state.value.leaveDialog)
+    }
+
+    @Test
+    fun 나가기에_성공하면_내_역할이_없어지고_안내가_뜬다() {
+        val vm = vm(closedId)
+        assertEquals(MeetingRole.CONFIRMED, vm.state.value.role)
+        vm.onLeaveClick()
+        vm.onLeaveConfirm()
+        assertNull(vm.state.value.leaveDialog)
+        assertEquals("모임에서 나갔어요", vm.state.value.notice)
+        assertEquals(MeetingRole.NONE, vm.state.value.role)
+        assertEquals("확정 인원이 하나 줄었다", 1, vm.state.value.loaded!!.confirmedCount)
+        assertEquals("마감이 풀려 모집중이 됐다", com.example.myapplication.data.model.MeetingStatus.RECRUITING, vm.state.value.loaded!!.status)
+        assertNull("더 이상 나가기가 없다", vm.state.value.leavePlan)
+        assertFalse(vm.state.value.submitting)
+    }
+
+    @Test
+    fun 나가기에_실패하면_역할이_그대로이고_안내한다() {
+        val vm = vm(closedId, FailingMeetings(leaveError = IOException()))
+        vm.onLeaveClick()
+        vm.onLeaveConfirm()
+        assertEquals(MeetingRole.CONFIRMED, vm.state.value.role)
+        assertEquals("나가지 못했어요. 다시 시도해주세요.", vm.state.value.message)
+        assertNull(vm.state.value.leaveDialog)
+        assertFalse(vm.state.value.submitting)
+    }
+
+    @Test
+    fun 확인창이_없는데_나가기를_확인해도_아무_일도_없다() {
+        val vm = vm(closedId)
+        vm.onLeaveConfirm()
+        assertEquals(MeetingRole.CONFIRMED, vm.state.value.role)
     }
 }

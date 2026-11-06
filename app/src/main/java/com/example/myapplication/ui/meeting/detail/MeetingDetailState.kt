@@ -22,6 +22,7 @@ data class MeetingDetailState(
     val message: String? = null,           // 사용자에게 한 번 보여 줄 안내(실패 등)
     val openSheet: DetailSheet? = null,
     val notice: String? = null,              // 한 번 보여 줄 성공 안내(체크인 등)
+    val leaveDialog: LeavePlan? = null,      // 나가기 확인창. null이면 닫혀 있다
     val checkIn: CheckInPrompt? = null,      // 체크인 확인창(9a, 9b). null이면 닫혀 있다
     val checkInPoint: GeoPoint? = null,      // 체크인 확인창에서 잰 내 위치. 체크인을 보낼 때 쓴다
 ) {
@@ -36,6 +37,9 @@ data class MeetingDetailState(
 
     // 장소 시트의 '내 위치에서 N'에 쓰는 거리. 탐색 카드와 같은 값이다.
     val distanceMeters: Int? get() = loaded?.let { meetingDistanceMeters(it, myLocation) }
+
+    // 지금 이 사람에게 ⋮ 메뉴에 보여 줄 '나가기'가 있는지와 그 확인창 내용 (없으면 null)
+    val leavePlan: LeavePlan? get() = loaded?.let { leavePlanOf(it, role, nowMillis) }
 
     fun withFavorite(favorite: Boolean): MeetingDetailState {
         val m = loaded ?: return this

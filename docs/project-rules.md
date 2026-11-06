@@ -102,6 +102,12 @@ app/
 │   │   │   ├─ MeetingCancelBottomSheet.kt  [시트] ← 5a-X2, 5a-X2-2
 │   │   │   ├─ MeetingDialogs.kt            [다이얼로그] ← 5a-X3 삭제 확인 (문진곤)
 │   │   │   ├─ CheckInDialogs.kt            [다이얼로그] ← 9a·9b 체크인 확인 (문찬주)
+│   │   │   ├─ LeaveDialog.kt               [다이얼로그] 나가기 확인 (문찬주, 5장 '나가기')
+│   │   │   ├─ CheckInRules.kt              체크인 확인창 상태·문구 규칙 (문찬주)
+│   │   │   ├─ MeetingDetailRules.kt        상세 화면 문구·하단 버튼·나가기 규칙 (문찬주)
+│   │   │   ├─ CriteriaSheetRules.kt        기준 시트의 내 기록 비교 규칙 (문찬주)
+│   │   │   ├─ ApplyRules.kt                신청 화면 규칙 (문찬주)
+│   │   │   └─ PlaceMiniMap.kt              장소 시트의 작은 지도 (문찬주)
 │   │   │   ├─ ApplyScreen.kt               [화면] ← 6a, 6b
 │   │   │   ├─ ApplyState.kt                한마디, 제출 중·실패, 비어 있을 때 확인창
 │   │   │   └─ ApplyViewModel.kt

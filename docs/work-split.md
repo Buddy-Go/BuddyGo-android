@@ -194,7 +194,7 @@
   - [x] 9a 체크인 확인
   - [ ] 9b 체크인 확인 · 범위 밖
 - [x] 9c 진행중 · 체크인 완료 (`MeetingDetailScreen.kt` 안)
-- [ ] 나가기(참가자) 동작 (`service-rules.md` 5번)
+- [x] 나가기(참가자) 동작 (`service-rules.md` 5번)
 - [x] `MeetingDetailState.kt`, `MeetingDetailViewModel.kt`
 
 ---
