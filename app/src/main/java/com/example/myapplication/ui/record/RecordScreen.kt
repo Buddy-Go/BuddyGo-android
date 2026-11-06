@@ -7,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,7 +47,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.myapplication.data.model.BodyPart
+import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.ActionButton
@@ -69,25 +75,60 @@ fun skillLevelLabel(level: SkillLevel): String = when (level) {
     SkillLevel.ADVANCED -> "고급"
 }
 
-// 2c 종목 기록 · 헬스 (2c, 2c-2, 2c-5). 러닝(2d)·등산(2e)은 별도 PR에서 이 화면에 추가한다.
+// 종목 기록: 종목(sport)에 따라 헬스(2c, 2c-2, 2c-5), 러닝(2d), 등산(2e)을 보여 준다.
 @Composable
 fun RecordScreen(
+    sport: Sport,
     onBack: () -> Unit = {},
-    viewModel: RecordViewModel = viewModel(),
+    viewModel: RecordViewModel = viewModel(key = sport.name, factory = viewModelFactory { initializer { RecordViewModel(sport) } }),
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
-    HealthRecordContent(
-        state = state,
-        onBack = onBack,
-        onTogglePart = viewModel::onTogglePart,
-        onStepBench = viewModel::onStepBench,
-        onStepPullUp = viewModel::onStepPullUp,
-        onStepSquat = viewModel::onStepSquat,
-        onStepOverhead = viewModel::onStepOverhead,
-        onSelectArm = viewModel::onSelectArm,
-        onSave = viewModel::onSave,
-    )
+    when (sport) {
+        Sport.HEALTH -> HealthRecordContent(
+            state = state,
+            onBack = onBack,
+            onTogglePart = viewModel::onTogglePart,
+            onStepBench = viewModel::onStepBench,
+            onStepPullUp = viewModel::onStepPullUp,
+            onStepSquat = viewModel::onStepSquat,
+            onStepOverhead = viewModel::onStepOverhead,
+            onSelectArm = viewModel::onSelectArm,
+            onSave = viewModel::onSave,
+        )
+        Sport.RUNNING -> RunningRecordContent(state, onBack, viewModel::onSelectPace, viewModel::onSave)
+        Sport.HIKING -> HikingRecordContent(state, onBack, viewModel::onSelectHiking, viewModel::onSave)
+    }
+}
+
+// 세 종목이 같이 쓰는 틀: 위쪽 줄(뒤로 가기·제목·단계) + 내용(스크롤) + 아래 버튼 줄
+// caption이 있으면 버튼 위에 회색 안내 글자를 보여 준다. 건너뛰기는 저장 없이 돌아간다.
+@Composable
+private fun RecordFrame(
+    title: String,
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    caption: String? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(Modifier.fillMaxSize().background(AppColor.Surface)) {
+        SignUpHeader(step = 2, total = 3, onBack = onBack, title = title)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = AppSpace.x4),
+            content = content,
+        )
+        HorizontalDivider(color = AppColor.Border)
+        if (caption != null) {
+            Text(caption, color = AppColor.TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xxl))
+        }
+        Row(Modifier.fillMaxWidth().padding(AppSpace.x4), horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
+            ActionButton(text = "건너뛰기", onClick = onBack, outlined = true, modifier = Modifier.width(100.dp))
+            ActionButton(text = "저장", onClick = onSave, modifier = Modifier.weight(1f))
+        }
+    }
 }
 
 @Composable
@@ -103,14 +144,7 @@ private fun HealthRecordContent(
     onSave: () -> Unit,
 ) {
     var guide by remember { mutableStateOf<Guide?>(null) }
-    Column(Modifier.fillMaxSize().background(AppColor.Surface)) {
-        SignUpHeader(step = 2, total = 3, onBack = onBack, title = "헬스 기록")
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = AppSpace.x4),
-        ) {
+    RecordFrame(title = "헬스 기록", onBack = onBack, onSave = onSave) {
             Spacer(Modifier.height(AppSpace.x4))
             Text("어떤 부위를\n주로 하세요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(AppSpace.xl))
@@ -140,13 +174,6 @@ private fun HealthRecordContent(
                 }
             }
             Spacer(Modifier.height(AppSpace.x5))
-        }
-        HorizontalDivider(color = AppColor.Border)
-        Row(Modifier.fillMaxWidth().padding(AppSpace.x4), horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
-            // 건너뛰기: 이 화면에서 바꾼 내용을 저장하지 않고 돌아간다.
-            ActionButton(text = "건너뛰기", onClick = onBack, outlined = true, modifier = Modifier.width(100.dp))
-            ActionButton(text = "저장", onClick = onSave, modifier = Modifier.weight(1f))
-        }
     }
     when (guide) {
         Guide.OneRm -> OneRmGuideBottomSheet(onDismiss = { guide = null })
@@ -307,6 +334,94 @@ fun InfoIcon(color: Color, size: Dp = 20.dp) {
         drawCircle(color, sw * .65f, Offset(this.size.width / 2, this.size.height * .30f))
     }
 }
+
+// 2d 종목 기록 · 러닝
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RunningRecordContent(state: RecordState, onBack: () -> Unit, onSelectPace: (Int) -> Unit, onSave: () -> Unit) {
+    RecordFrame(
+        title = "러닝 기록",
+        onBack = onBack,
+        onSave = onSave,
+        caption = "건너뛰면 러닝 모임에서 내 페이스 기준을 확인할 수 없어요",
+    ) {
+        Spacer(Modifier.height(AppSpace.x4))
+        Text("평소 어떻게\n달리세요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(AppSpace.xl))
+        Text("정확하지 않아도 괜찮아요. 페이스가 맞는 메이트를 찾는 데만 쓰여요", color = AppColor.TextSecondary, fontSize = 15.sp, lineHeight = 22.sp)
+        Spacer(Modifier.height(AppSpace.x5))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("평균 페이스", color = AppColor.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            state.runningPaceSec?.let {
+                Text("${RecordState.paceLabel(it)} / km", color = AppColor.AccentStrong, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.height(AppSpace.xl))
+        Text("3km를 대화하며 달릴 수 있는 속도로 골라주세요.\n가장 빨랐던 기록이 아니에요.", color = AppColor.TextPrimary, fontSize = 15.sp, lineHeight = 23.sp)
+        Spacer(Modifier.height(AppSpace.xxl))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(AppSpace.xl - 2.dp), verticalArrangement = Arrangement.spacedBy(AppSpace.xl - 2.dp)) {
+            RecordState.PACE_OPTIONS.forEach { sec ->
+                val on = sec == state.runningPaceSec
+                val shape = RoundedCornerShape(AppRadius.md)
+                Box(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .clip(shape)
+                        .background(if (on) AppColor.Accent else AppColor.Surface)
+                        .then(if (on) Modifier else Modifier.border(1.dp, AppColor.Border, shape))
+                        .clickable { onSelectPace(sec) }
+                        .padding(horizontal = AppSpace.xxl - 1.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(RecordState.paceLabel(sec), color = AppColor.TextPrimary, fontSize = 18.sp, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal)
+                }
+            }
+        }
+        Spacer(Modifier.height(AppSpace.x5))
+    }
+}
+
+// 2e 종목 기록 · 등산 성향
+@Composable
+private fun HikingRecordContent(state: RecordState, onBack: () -> Unit, onSelect: (HikingStyle) -> Unit, onSave: () -> Unit) {
+    RecordFrame(title = "등산 성향", onBack = onBack, onSave = onSave) {
+        Spacer(Modifier.height(AppSpace.x4))
+        Text("등산은\n어떤 쪽이에요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(AppSpace.x5 + AppSpace.md))
+        Column(verticalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
+            HikingStyle.entries.forEach { style ->
+                val on = style == state.hikingStyle
+                val shape = RoundedCornerShape(AppRadius.lg)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(shape)
+                        .background(if (on) AppColor.AccentSoft else AppColor.Surface)
+                        .border(if (on) 2.dp else 1.dp, if (on) AppColor.Accent else AppColor.Border, shape)
+                        .clickable { onSelect(style) }
+                        .padding(AppSpace.x4),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(hikingStyleLabel(style), color = AppColor.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(AppSpace.md))
+                        Text(hikingStyleDescription(style), color = AppColor.TextSecondary, fontSize = 14.sp, lineHeight = 20.sp)
+                    }
+                    if (on) {
+                        Spacer(Modifier.width(AppSpace.xl))
+                        CheckMark(AppColor.AccentStrong, 24.dp)
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(AppSpace.x5))
+    }
+}
+
+fun hikingStyleLabel(style: HikingStyle): String = if (style == HikingStyle.HOBBY) "취미" else "전문"
+
+fun hikingStyleDescription(style: HikingStyle): String =
+    if (style == HikingStyle.HOBBY) "풍경 보며 쉬어가는 속도로 걸어요. 둘레길·근교 산 위주" else "정해진 페이스로 오르고 장거리 종주도 함께해요"
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable

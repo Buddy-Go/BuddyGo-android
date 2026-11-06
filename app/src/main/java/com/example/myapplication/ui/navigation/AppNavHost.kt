@@ -82,12 +82,8 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 Routes.RECORD,
                 listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
             ) { entry ->
-                // 헬스(2c)만 만들어 두었고, 러닝(2d)·등산(2e)은 각 PR에서 이 화면에 연결한다.
-                if (entry.arguments?.getString(Routes.ARG_SPORT) == Sport.HEALTH.name) {
-                    RecordScreen(onBack = { navController.popBackStack() })
-                } else {
-                    TempScreen("2d~2e 종목 기록")
-                }
+                val sport = Sport.valueOf(entry.arguments?.getString(Routes.ARG_SPORT) ?: Sport.HEALTH.name)
+                RecordScreen(sport = sport, onBack = { navController.popBackStack() })
             }
 
             // 3~4 탐색 · 조건 설정 · 알림
