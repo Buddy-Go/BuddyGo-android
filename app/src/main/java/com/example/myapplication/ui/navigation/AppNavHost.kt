@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myapplication.ui.auth.LoginScreen
 import com.example.myapplication.ui.common.BottomNavBar
+import com.example.myapplication.ui.record.SignUpInfoScreen
 
 // 이름표(Routes)와 실제 화면을 연결한다.
 // 화면을 만든 사람은 해당 줄의 TempScreen(...)을 자기 화면으로 바꾼다.
@@ -56,7 +57,12 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onSignUpClick = { navController.navigate(Routes.SIGN_UP_INFO) },
                 )
             }
-            composable(Routes.SIGN_UP_INFO) { TempScreen("2a 회원가입 정보 입력") }
+            composable(Routes.SIGN_UP_INFO) {
+                SignUpInfoScreen(
+                    onBack = { navController.popBackStack() },
+                    onNext = { navController.navigate(Routes.SIGN_UP_PROFILE) },
+                )
+            }
             composable(Routes.SIGN_UP_PROFILE) { TempScreen("2b 프로필 설정") }
             composable(Routes.RECORD) { TempScreen("2c~2e 종목 기록") }
 
