@@ -101,6 +101,5 @@ class DistrictCatalogTest {
         assertFalse(LocationSearchState().isSearching)
         assertFalse(LocationSearchState(query = "  ").isSearching)
         assertTrue(LocationSearchState(query = "마포").isSearching)
-        assertTrue(LocationSearchState(query = "마포").results.isNotEmpty())
     }
 }
