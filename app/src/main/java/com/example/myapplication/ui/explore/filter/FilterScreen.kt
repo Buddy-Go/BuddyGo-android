@@ -277,11 +277,10 @@ private fun SettingRow(title: String, value: String, onClick: () -> Unit, enable
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
-        Spacer(Modifier.weight(1f))
         Text(
             value, fontSize = 15.sp, textAlign = TextAlign.End,
             color = if (enabled && !value.endsWith("관계없음")) AppColor.TextPrimary else AppColor.TextDisabled,
-            modifier = Modifier.padding(start = AppSpace.xxl, end = AppSpace.md).weight(2f, fill = false),
+            modifier = Modifier.weight(1f).padding(start = AppSpace.xxl, end = AppSpace.md),
         )
         ChevronRightIcon(if (enabled) AppColor.TextSecondary else AppColor.TextDisabled)
     }
