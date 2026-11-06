@@ -18,8 +18,14 @@ class FakeMeetingRepository(
     initial: List<Meeting> = MockMeetings.all,
     private val currentUserId: String = MockUsers.me.id,
     private val nowMillis: () -> Long = System::currentTimeMillis,
+    initialMessages: Map<String, String> = MockMeetings.applicationMessages,
 ) : MeetingRepository {
     private val meetings = initial.toMutableList()
+
+    // 신청할 때 쓴 한마디와 신청 시각. 호스트의 신청 목록(getJoinRequests)에 그대로 보인다. 키는 "모임 id/신청자 id".
+    private val applicationMessages = initialMessages.toMutableMap<String, String?>()
+    private val applicationTimes = mutableMapOf<String, Long>()
+    private fun key(meetingId: String, userId: String) = "$meetingId/$userId"
 
     override suspend fun getMeetings() = Result.success(meetings.toList())
 
@@ -31,11 +37,24 @@ class FakeMeetingRepository(
     override suspend fun setFavorite(meetingId: String, favorite: Boolean): Result<Unit> =
         update(meetingId) { it.copy(isFavorite = favorite) }
 
-    override suspend fun apply(meetingId: String, message: String?): Result<Unit> =
-        update(meetingId) { it.copy(pendingIds = it.pendingIds + currentUserId) }
+    // 모집중인 모임에 아직 신청·확정하지 않았을 때만 된다. 한마디는 비어 있으면 없는 것으로 본다.
+    override suspend fun apply(meetingId: String, message: String?): Result<Unit> {
+        val meeting = meetings.firstOrNull { it.id == meetingId }
+            ?: return Result.failure(NoSuchElementException(meetingId))
+        if (meeting.status != MeetingStatus.RECRUITING) return Result.failure(IllegalStateException("모집중이 아니에요"))
+        if (currentUserId in meeting.pendingIds || currentUserId in meeting.confirmedIds) {
+            return Result.failure(IllegalStateException("이미 신청했거나 참여 중이에요"))
+        }
+        applicationMessages[key(meetingId, currentUserId)] = message?.trim()?.takeIf { it.isNotEmpty() }
+        applicationTimes[key(meetingId, currentUserId)] = nowMillis()
+        return update(meetingId) { it.copy(pendingIds = it.pendingIds + currentUserId) }
+    }
 
-    override suspend fun cancelApplication(meetingId: String): Result<Unit> =
-        update(meetingId) { it.copy(pendingIds = it.pendingIds - currentUserId) }
+    override suspend fun cancelApplication(meetingId: String): Result<Unit> {
+        applicationMessages.remove(key(meetingId, currentUserId))
+        applicationTimes.remove(key(meetingId, currentUserId))
+        return update(meetingId) { it.copy(pendingIds = it.pendingIds - currentUserId) }
+    }
 
     override suspend fun leave(meetingId: String): Result<Unit> =
         update(meetingId) {
@@ -78,6 +97,8 @@ class FakeMeetingRepository(
                     id = "r-$meetingId-$id", meetingId = meetingId, applicantId = user.id,
                     applicantNickname = user.nickname, applicantMannerTemperature = user.mannerTemperature,
                     applicantRecord = user.record,
+                    message = applicationMessages[key(meetingId, id)],
+                    requestedAtMillis = applicationTimes[key(meetingId, id)] ?: 0L,
                 )
             }
         }
@@ -93,17 +114,24 @@ class FakeMeetingRepository(
         }
         return update(meetingId) {
             val applicantId = requestId.substringAfterLast('-')
+            val nickname = MockUsers.all.firstOrNull { user -> user.id == applicantId }?.nickname.orEmpty()
             val accepted = it.copy(
                 pendingIds = it.pendingIds - applicantId,
                 confirmedIds = it.confirmedIds + applicantId,
                 confirmedCount = it.confirmedCount + 1,
+                // 명단이 공개된 모임이면 명단에도 넣는다. 비어 있으면 서버가 명단을 숨기는 모임이라 그대로 둔다.
+                members = if (it.members.isEmpty()) it.members else it.members + MeetingMember(applicantId, nickname),
             )
             if (accepted.isFull) accepted.copy(status = MeetingStatus.CLOSED, pendingIds = emptyList()) else accepted
         }
     }
 
-    override suspend fun reject(meetingId: String, requestId: String): Result<Unit> =
-        update(meetingId) { it.copy(pendingIds = it.pendingIds - requestId.substringAfterLast('-')) }
+    override suspend fun reject(meetingId: String, requestId: String): Result<Unit> {
+        val applicantId = requestId.substringAfterLast('-')
+        applicationMessages.remove(key(meetingId, applicantId))
+        applicationTimes.remove(key(meetingId, applicantId))
+        return update(meetingId) { it.copy(pendingIds = it.pendingIds - applicantId) }
+    }
 
     override suspend fun createMeeting(meeting: Meeting): Result<String> {
         val host = MockUsers.all.firstOrNull { it.id == currentUserId }

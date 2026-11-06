@@ -102,6 +102,12 @@ object MockMeetings {
 
     val all = listOf(recruiting, pending, closed, inProgress, ended, canceled, hosted)
 
+    // 대기 신청의 한마디. 키는 "모임 id/신청자 id". 호스트의 신청 목록(7)에 보인다.
+    val applicationMessages = mapOf(
+        "m7/u2" to "벤치 처음인데 같이 해도 될까요?",
+        "m7/u3" to "자세 봐 드릴 수 있어요. 3대 400 정도 합니다.",
+    )
+
     // 빈 목록
     val empty: List<Meeting> = emptyList()
 }
