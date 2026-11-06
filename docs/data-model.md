@@ -31,7 +31,9 @@
 - `pendingIds`는 호스트에게는 전체, 참가자에게는 본인 것만 내려온다.
 - `criteria.Health.hostRecord`가 `null`이면 호스트가 기록을 숨긴 것이다.
 - 종료 시각은 `endAtMillis`(= 시작 + 진행 시간)로 계산한다.
-- 기준 일치 판정(맞음/일부만/안 맞음)은 서버가 계산한다. 모델에는 아직 없고, 5i 화면을 만들 때 응답 필드로 추가한다.
+- `criteriaJudgement`: 기준 일치 판정(맞음/일부만/안 맞음)은 서버가 계산해 담아 준다. `PARTIAL`이면 범위 밖 부위가 `outOfRangeParts`에 담긴다. `null`이면 판정 문구를 보여 주지 않는다. (service-rules 8장)
+- `members`: 확정 참가자의 닉네임과 체크인 여부. 명단이 공개되지 않는 사람에게는 서버가 비워서 내려준다. 체크인 수는 `checkedInCount`.
+- `hostReviewCount`: 호스트가 받은 후기 수 (모임 상세의 '후기 32').
 
 ## Repository interface
 
