@@ -64,7 +64,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 )
             }
             composable(Routes.SIGN_UP_PROFILE) { TempScreen("2b 프로필 설정") }
-            composable(Routes.RECORD) { TempScreen("2c~2e 종목 기록") }
+            composable(
+                Routes.RECORD,
+                listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
+            ) { TempScreen("2c~2e 종목 기록") }
 
             // 3~4 탐색 · 조건 설정 · 알림
             composable(Routes.EXPLORE) { TempScreen("3 탐색") }

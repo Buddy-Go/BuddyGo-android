@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.model.SignUpDraft
 import com.example.myapplication.data.model.User
 
 interface UserRepository {
@@ -8,6 +9,9 @@ interface UserRepository {
     suspend fun getUser(userId: String): Result<User>
 
     // 회원가입 중복 검사 (service-rules 1장). true = 사용할 수 있음
+    // 회원가입 요청. 성공하면 가입된 사용자를 돌려준다.
+    suspend fun signUp(draft: SignUpDraft): Result<User>
+
     suspend fun isNicknameAvailable(nickname: String): Result<Boolean>
     suspend fun isEmailAvailable(email: String): Result<Boolean>
 }

@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.navigation
 
+import com.example.myapplication.data.model.Sport
+
 // 화면 이름은 여기에만 정의하고, 코드에서는 상수와 함수로만 쓴다. (project-rules 7번)
 // 화면 사이에는 ID(meetingId, userId 등)만 넘기고, 나머지 데이터는 도착한 화면이 불러온다.
 // 바텀시트와 다이얼로그는 route로 만들지 않는다.
@@ -8,12 +10,13 @@ object Routes {
     const val ARG_MEETING_ID = "meetingId"
     const val ARG_USER_ID = "userId"
     const val ARG_NOTICE_ID = "noticeId"
+    const val ARG_SPORT = "sport" // Sport enum의 이름 (HEALTH, RUNNING, HIKING)
 
     // 1~2 로그인 · 회원가입 · 종목 기록
     const val LOGIN = "login"
     const val SIGN_UP_INFO = "sign_up_info"
     const val SIGN_UP_PROFILE = "sign_up_profile"
-    const val RECORD = "record"
+    const val RECORD = "record/{$ARG_SPORT}"
 
     // 3~4 탐색 · 조건 설정 · 알림
     const val EXPLORE = "explore"
@@ -57,6 +60,7 @@ object Routes {
     val bottomTabs = listOf(EXPLORE, ACTIVITY, MEETING_CREATE, MATE, MYPAGE)
 
     // 인자가 있는 화면으로 이동할 때 쓴다.
+    fun record(sport: Sport) = "record/${sport.name}"
     fun meetingDetail(meetingId: String) = "meeting/$meetingId"
     fun apply(meetingId: String) = "meeting/$meetingId/apply"
     fun participantManage(meetingId: String) = "meeting/$meetingId/manage"
