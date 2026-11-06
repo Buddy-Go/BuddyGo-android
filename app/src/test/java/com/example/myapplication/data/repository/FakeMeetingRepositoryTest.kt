@@ -234,6 +234,8 @@ class FakeMeetingRepositoryUpdateTest {
     @Test
     fun 없는_모임이면_실패한다() {
         assertTrue(runBlocking { repo(MockMeetings.hosted).updateMeeting("없는 id", MockMeetings.hosted) }.isFailure)
+    }
+}
 
 // 신청 → 호스트의 신청 목록 → 수락·거절이 이어지는지 (6a → 7)
 class FakeMeetingRepositoryApplyFlowTest {
