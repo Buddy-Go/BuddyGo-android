@@ -11,6 +11,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -97,7 +98,7 @@ fun KakaoMapView(
         }
     }
 
-    val density = LocalContext.current.resources.displayMetrics.density
+    val density = LocalDensity.current.density
     LaunchedEffect(kakaoMap, topPadding, bottomPadding) {
         kakaoMap?.setPadding(0, (topPadding.value * density).toInt(), 0, (bottomPadding.value * density).toInt())
     }
