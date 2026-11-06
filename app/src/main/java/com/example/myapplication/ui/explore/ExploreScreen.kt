@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,6 +60,20 @@ fun ExploreScreen(
     viewModel: ExploreViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    // 내 위치: 권한이 있으면 바로 가져오고, 없으면 이번 실행에서 한 번만 묻는다. 거절하면 위치 없이 쓴다.
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+        if (grants.values.any { it }) fetchMyLocation(context, viewModel::onMyLocation)
+    }
+    LaunchedEffect(Unit) {
+        when {
+            hasLocationPermission(context) -> fetchMyLocation(context, viewModel::onMyLocation)
+            !viewModel.state.value.locationAsked -> {
+                viewModel.onLocationAsked()
+                permissionLauncher.launch(LocationPermissions)
+            }
+        }
+    }
     // 화면이 다시 보일 때마다 읽지 않은 알림 여부를 새로 확인한다.
     LaunchedEffect(Unit) { viewModel.refreshNotifications() }
     // 앱 키가 없으면 지도를 시작하지 않는다. (local.properties의 KAKAO_NATIVE_APP_KEY)

@@ -71,6 +71,12 @@ class ExploreViewModel(
     // 종목 칩: 하나만 고르고 다시 누르면 해제. 종목이 바뀌면 이전 종목의 기준은 지워진다.
     fun onToggleSportChip(sport: Sport) = FilterStore.update { it.withSport(if (it.sport == sport) null else sport) }
 
+    // 내 위치를 받았다. 위치를 못 얻었으면(null) 이전 값을 지우지 않는다.
+    fun onMyLocation(location: GeoPoint?) = _state.update { it.copy(myLocation = location ?: it.myLocation) }
+
+    // 위치 권한은 앱을 켜고 한 번만 묻는다. 거절해도 화면을 열 때마다 다시 묻지 않는다.
+    fun onLocationAsked() = _state.update { it.copy(locationAsked = true) }
+
     fun onCameraMoved() = _state.update { it.withCameraMoved() }
 
     // TODO(임시) 지도 범위를 서버에 넘기는 호출이 정해지면 영역을 같이 보낸다.
