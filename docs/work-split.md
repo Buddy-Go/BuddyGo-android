@@ -140,7 +140,7 @@
 - [ ] `ExploreScreen.kt`
   - [x] 3-After 지도 + 바텀시트
   - [x] 3-2-After 지도 전체 (시트 내림)
-  - [ ] 3-3-After 핀 선택
+  - [x] 3-3-After 핀 선택
   - [x] 3-5 같은 장소 모임 여러 개 (+n 핀 선택)
   - [ ] 16e 부분 로딩
 - [x] `ExploreBottomSheet.kt`
