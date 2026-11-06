@@ -10,6 +10,22 @@ enum class MeetingRole { HOST, CONFIRMED, PENDING, NONE }
 
 enum class BodyPart { CHEST, BACK, LEGS, SHOULDER, ARM }
 
+// 서버가 계산해서 모임 상세에 담아 주는 기준 일치 판정 (service-rules 8장)
+enum class CriteriaMatchResult { MATCH, PARTIAL, MISMATCH }
+
+// result가 MATCH면 모두 맞음, PARTIAL이면 outOfRangeParts에 범위 밖인 부위가 담긴다. (헬스만 해당)
+data class CriteriaJudgement(
+    val result: CriteriaMatchResult,
+    val outOfRangeParts: List<BodyPart> = emptyList(),
+)
+
+// 모임에 확정된 참가자 한 명. 체크인했는지는 진행중부터 의미가 있다. (7장)
+data class MeetingMember(
+    val userId: String,
+    val nickname: String,
+    val checkedIn: Boolean = false,
+)
+
 data class MeetingPlace(
     val name: String = "",
     val address: String = "",
@@ -56,6 +72,11 @@ data class Meeting(
     val status: MeetingStatus = MeetingStatus.RECRUITING,
     val distanceMeters: Int? = null, // 내 위치에서의 거리 (서버 계산)
     val isFavorite: Boolean = false, // 내가 찜했는지
+    val hostReviewCount: Int = 0,    // 호스트가 받은 후기 수 (모임 상세의 '후기 32')
+    // 판정할 수 있는 부위가 없거나 화면에 표시하지 않기로 했으면 null (8장)
+    val criteriaJudgement: CriteriaJudgement? = null,
+    // 확정 참가자 명단. 참가자에게 공개되지 않는 시점에는 서버가 비워서 내려준다. (5장 '참가자 명단 공개')
+    val members: List<MeetingMember> = emptyList(),
 ) {
     val sport: Sport
         get() = when (criteria) {
@@ -66,6 +87,9 @@ data class Meeting(
 
     // 종료 시각 = 시작 + 진행 시간
     val endAtMillis: Long get() = startAtMillis + durationMinutes * 60_000L
+
+    // 체크인한 참가자 수 (진행중 화면의 '체크인 5')
+    val checkedInCount: Int get() = members.count { it.checkedIn }
 
     // 마감 = 확정이 정원과 같음
     val isFull: Boolean get() = capacity > 0 && confirmedCount >= capacity

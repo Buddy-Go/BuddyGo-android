@@ -1,10 +1,13 @@
 package com.example.myapplication.data.mock
 
 import com.example.myapplication.data.model.BodyPart
+import com.example.myapplication.data.model.CriteriaJudgement
+import com.example.myapplication.data.model.CriteriaMatchResult
 import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
+import com.example.myapplication.data.model.MeetingMember
 import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.MeetingStatus
 
@@ -29,8 +32,9 @@ object MockMeetings {
 
     // 모집중 · 내 역할 없음 (호스트 u3)
     val recruiting = Meeting(
-        id = "m1", title = "가슴·팔 같이 하실 분", hostId = "u3", hostNickname = "지훈", hostMannerTemperature = 41.0f,
+        id = "m1", title = "가슴·팔 같이 하실 분", hostId = "u3", hostNickname = "지훈", hostMannerTemperature = 41.0f, hostReviewCount = 18,
         criteria = MeetingCriteria.Health(setOf(BodyPart.CHEST, BodyPart.ARM), MockUsers.hostA.record),
+        criteriaJudgement = CriteriaJudgement(CriteriaMatchResult.PARTIAL, listOf(BodyPart.CHEST)),
         place = gym, startAtMillis = BASE + 24 * HOUR, durationMinutes = 90, capacity = 3,
         confirmedIds = emptyList(), confirmedCount = 1, description = "벤치 위주로 해요.",
         status = MeetingStatus.RECRUITING, distanceMeters = 450,
@@ -38,8 +42,9 @@ object MockMeetings {
 
     // 모집중 · 내가 신청해서 대기 중
     val pending = Meeting(
-        id = "m2", title = "저녁 한강 러닝", hostId = "u4", hostNickname = "유나", hostMannerTemperature = 37.0f,
+        id = "m2", title = "저녁 한강 러닝", hostId = "u4", hostNickname = "유나", hostMannerTemperature = 37.0f, hostReviewCount = 7,
         criteria = MeetingCriteria.Running(distanceKm = 5f, hostPaceSec = 345),
+        criteriaJudgement = CriteriaJudgement(CriteriaMatchResult.MATCH),
         place = park, startAtMillis = BASE + 30 * HOUR, durationMinutes = 60, capacity = 4,
         confirmedCount = 2, pendingIds = listOf("u1"),
         status = MeetingStatus.RECRUITING, distanceMeters = 1200, isFavorite = true,
@@ -51,6 +56,8 @@ object MockMeetings {
         criteria = MeetingCriteria.Health(setOf(BodyPart.LEGS), MockUsers.hostA.record),
         place = gym, startAtMillis = BASE + 48 * HOUR, durationMinutes = 120, capacity = 2,
         confirmedIds = listOf("u3", "u1"), confirmedCount = 2,
+        hostReviewCount = 18, criteriaJudgement = CriteriaJudgement(CriteriaMatchResult.MISMATCH),
+        members = listOf(MeetingMember("u3", "지훈"), MeetingMember("u1", "민준")),
         genderLimit = GenderLimit.MALE_ONLY, status = MeetingStatus.CLOSED, distanceMeters = 450,
     )
 
@@ -60,6 +67,8 @@ object MockMeetings {
         criteria = MeetingCriteria.Hiking(HikingStyle.HOBBY),
         place = mountain, startAtMillis = BASE - HOUR, durationMinutes = 240, capacity = 3,
         confirmedIds = listOf("u4", "u1"), confirmedCount = 2,
+        hostReviewCount = 7, criteriaJudgement = CriteriaJudgement(CriteriaMatchResult.MATCH),
+        members = listOf(MeetingMember("u4", "유나", checkedIn = true), MeetingMember("u1", "민준")),
         status = MeetingStatus.IN_PROGRESS, distanceMeters = 9000,
     )
 
@@ -69,6 +78,8 @@ object MockMeetings {
         criteria = MeetingCriteria.Running(distanceKm = 3f, hostPaceSec = 345),
         place = park, startAtMillis = BASE - 72 * HOUR, durationMinutes = 60, capacity = 3,
         confirmedIds = listOf("u4", "u1", "u2"), confirmedCount = 3,
+        hostReviewCount = 7, criteriaJudgement = CriteriaJudgement(CriteriaMatchResult.MATCH),
+        members = listOf(MeetingMember("u4", "유나", true), MeetingMember("u1", "민준", true), MeetingMember("u2", "서연", false)),
         status = MeetingStatus.ENDED,
     )
 
