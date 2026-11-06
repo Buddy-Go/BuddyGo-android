@@ -175,7 +175,7 @@
 #### 4. 모임 상세 (참가자 시점) · 신청 · 체크인
 
 ##### `ui/meeting/detail/`
-- [ ] `MeetingDetailScreen.kt` 화면 본체 (소유: 문찬주)
+- [x] `MeetingDetailScreen.kt` 화면 본체 (소유: 문찬주)
   - [x] 5a 모집중
   - [x] 5g 헬스 모집중
   - [x] 5l 신청 대기중
@@ -237,9 +237,9 @@
 - [x] `PlaceSearchScreen.kt`
   - [x] 10g 장소 검색
   - [x] 10g-2 검색 결과
-- [ ] `PlaceConfirmScreen.kt`
+- [x] `PlaceConfirmScreen.kt`
   - [x] 10g-3 장소 확인 · 헬스
-  - [ ] 10g-4 집결지 지정 · 러닝
+  - [x] 10g-4 집결지 지정 · 러닝 — 범위 밖: 2026-10-30 범위 변경으로 헬스 모임만 개설해 만들지 않음
 - [x] `MeetingCreateState.kt`, `MeetingCreateViewModel.kt`
 - [x] 수정 동작 (`service-rules.md` 4번) — 개설 화면을 수정 모드로 재사용, 확정 참가자가 있으면 제목·설명·상세주소만
 
