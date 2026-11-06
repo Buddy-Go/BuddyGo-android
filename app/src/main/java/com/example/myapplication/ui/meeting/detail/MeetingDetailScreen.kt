@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -57,7 +59,10 @@ import com.example.myapplication.ui.explore.HeartIcon
 import com.example.myapplication.ui.explore.filter.ChevronLeftIcon
 import com.example.myapplication.ui.explore.filter.ChevronRightIcon
 import com.example.myapplication.ui.explore.filter.genderLabel
+import com.example.myapplication.ui.explore.LocationPermissions
 import com.example.myapplication.ui.explore.favoriteLabel
+import com.example.myapplication.ui.explore.fetchMyLocation
+import com.example.myapplication.ui.explore.hasLocationPermission
 import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.explore.sportLabel
 import com.example.myapplication.ui.record.SportIcon
@@ -72,7 +77,6 @@ fun MeetingDetailScreen(
     meetingId: String,
     onBack: () -> Unit,
     onApply: () -> Unit,
-    onCheckIn: () -> Unit,
     onReview: () -> Unit,
     onAddRecord: (Sport) -> Unit,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
@@ -92,6 +96,23 @@ fun MeetingDetailScreen(
         state.message?.let {
             toast.show(it, ToastType.Error)
             viewModel.onMessageShown()
+        }
+    }
+
+    // 체크인: 위치 권한을 확인해 내 위치를 가져오고, 모임 장소와의 거리로 확인창(9a, 9b)을 보여 준다.
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+        if (grants.values.any { it }) fetchMyLocation(context, viewModel::onCheckInLocation) else viewModel.onCheckInLocation(null)
+    }
+    fun startCheckIn() {
+        viewModel.onCheckInStart()
+        if (hasLocationPermission(context)) fetchMyLocation(context, viewModel::onCheckInLocation)
+        else permissionLauncher.launch(LocationPermissions)
+    }
+    // 체크인 성공 같은 안내는 초록 토스트로 한 번 보여 준다.
+    LaunchedEffect(state.notice) {
+        state.notice?.let {
+            toast.show(it, ToastType.Success)
+            viewModel.onNoticeShown()
         }
     }
 
@@ -122,11 +143,20 @@ fun MeetingDetailScreen(
                     when (action) {
                         DetailAction.APPLY -> onApply()
                         DetailAction.CANCEL_APPLICATION -> viewModel.onCancelApplication()
-                        DetailAction.CHECK_IN -> onCheckIn()
+                        DetailAction.CHECK_IN -> startCheckIn()
                         DetailAction.REVIEW -> onReview()
                         DetailAction.NONE -> Unit
                     }
                 },
+            )
+        }
+        // 9a·9b 체크인 확인창
+        state.checkIn?.let { prompt ->
+            CheckInDialog(
+                dialog = prompt,
+                onRefresh = ::startCheckIn,
+                onConfirm = viewModel::onCheckInConfirm,
+                onDismiss = viewModel::onCheckInDismiss,
             )
         }
         // 5e 장소 시트, 5f·5h 기준 시트

@@ -242,7 +242,9 @@ fun bottomActionOf(
     myGender: com.example.myapplication.data.model.Gender? = null,
 ): BottomAction? {
     if (role == MeetingRole.HOST) return null
-    val iCheckedIn = meeting.members.any { it.userId == myUserId && it.checkedIn }
+    val myMember = meeting.members.firstOrNull { it.userId == myUserId }
+    val iCheckedIn = myMember?.checkedIn == true
+    val myCheckInAt = myMember?.checkedInAtMillis
     return when (meeting.status) {
         MeetingStatus.RECRUITING -> when (role) {
             // 성별 조건이 안 맞으면 서버가 막는다. 미리 알려 줘서 헛걸음을 줄인다. (5장)
@@ -259,10 +261,10 @@ fun bottomActionOf(
         }
         MeetingStatus.CLOSED ->
             if (role == MeetingRole.CONFIRMED && nowMillis >= meeting.startAtMillis - CHECK_IN_OPENS_BEFORE_MINUTES * MINUTE)
-                checkInAction(meeting, iCheckedIn, nowMillis)
+                checkInAction(meeting, iCheckedIn, nowMillis, myCheckInAt)
             else BottomAction(DetailAction.NONE, "모임 마감", enabled = false)
         MeetingStatus.IN_PROGRESS ->
-            if (role == MeetingRole.CONFIRMED) checkInAction(meeting, iCheckedIn, nowMillis)
+            if (role == MeetingRole.CONFIRMED) checkInAction(meeting, iCheckedIn, nowMillis, myCheckInAt)
             else BottomAction(DetailAction.NONE, "진행중인 모임", enabled = false)
         MeetingStatus.ENDED ->
             if (role == MeetingRole.CONFIRMED && iCheckedIn)
@@ -273,11 +275,11 @@ fun bottomActionOf(
 }
 
 // 체크인은 한 번만 할 수 있고, 시작 10분 전부터 시작 후 10분까지만 열린다. (7장)
-private fun checkInAction(meeting: Meeting, alreadyCheckedIn: Boolean, nowMillis: Long): BottomAction {
+private fun checkInAction(meeting: Meeting, alreadyCheckedIn: Boolean, nowMillis: Long, checkedInAtMillis: Long?): BottomAction {
     val opens = meeting.startAtMillis - CHECK_IN_OPENS_BEFORE_MINUTES * MINUTE
     val closes = meeting.startAtMillis + CHECK_IN_CLOSES_AFTER_MINUTES * MINUTE
     return when {
-        alreadyCheckedIn -> BottomAction(DetailAction.NONE, "체크인 완료", enabled = false)
+        alreadyCheckedIn -> BottomAction(DetailAction.NONE, "체크인 완료", checkedInAtMillis?.let { formatCheckInTime(it) }, enabled = false)
         nowMillis < opens -> BottomAction(DetailAction.NONE, "체크인하기", "시작 10분 전부터 할 수 있어요", enabled = false)
         nowMillis > closes -> BottomAction(DetailAction.NONE, "체크인하기", "체크인 시간이 지났어요", enabled = false)
         else -> BottomAction(DetailAction.CHECK_IN, "체크인하기")

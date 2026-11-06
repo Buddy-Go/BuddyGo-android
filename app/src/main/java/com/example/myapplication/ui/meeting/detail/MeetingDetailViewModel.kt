@@ -7,6 +7,9 @@ import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.data.model.CheckInOutOfRangeException
+import com.example.myapplication.data.model.distanceMeters
+import com.example.myapplication.ui.explore.GeoPoint
 import com.example.myapplication.ui.explore.LastKnownLocation
 import java.io.IOException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,6 +79,47 @@ class MeetingDetailViewModel(
 
     // 안내를 보여 준 뒤 지운다.
     fun onMessageShown() = _state.update { it.copy(message = null) }
+    fun onNoticeShown() = _state.update { it.copy(notice = null) }
+
+    // ---- 체크인 (9a, 9b, 9c) ----
+
+    // 체크인하기를 눌렀다. 화면이 위치 권한을 확인해 내 위치를 가져오고 onCheckInLocation으로 알려 준다.
+    fun onCheckInStart() = _state.update { it.copy(checkIn = CheckInPrompt.Locating) }
+
+    // 내 위치를 받았다. 못 얻었으면(null) 안내하고, 얻었으면 모임 장소와의 거리를 재서 9a/9b를 보여 준다.
+    fun onCheckInLocation(point: GeoPoint?) {
+        val meeting = _state.value.loaded ?: return
+        if (_state.value.checkIn == null) return // 그 사이 사용자가 창을 닫았다
+        if (point == null) {
+            _state.update { it.copy(checkIn = CheckInPrompt.NoLocation, checkInPoint = null) }
+            return
+        }
+        LastKnownLocation.set(point)
+        val meters = distanceMeters(point, meeting.place.latitude, meeting.place.longitude)
+        _state.update { it.copy(checkIn = CheckInPrompt.Ready(meters), checkInPoint = point, myLocation = point) }
+    }
+
+    // 확인창의 '체크인'. 범위 안일 때만 서버에 보낸다. 서버가 잰 거리가 범위 밖이면 그 거리로 9b를 보여 준다.
+    fun onCheckInConfirm() {
+        val s = _state.value
+        val ready = s.checkIn as? CheckInPrompt.Ready
+        val point = s.checkInPoint
+        if (ready == null || point == null || !canCheckIn(ready.distanceMeters)) return
+        _state.update { it.copy(checkIn = CheckInPrompt.Submitting(ready.distanceMeters)) }
+        viewModelScope.launch {
+            repository.checkIn(meetingId, point.latitude, point.longitude)
+                .onSuccess {
+                    _state.update { it.copy(checkIn = null, checkInPoint = null, notice = "체크인했어요") }
+                    reloadMeeting()
+                }
+                .onFailure { e ->
+                    val next = if (e is CheckInOutOfRangeException) CheckInPrompt.Ready(e.distanceMeters) else CheckInPrompt.Failed
+                    _state.update { it.copy(checkIn = next) }
+                }
+        }
+    }
+
+    fun onCheckInDismiss() = _state.update { it.copy(checkIn = null, checkInPoint = null) }
 
     fun onOpenSheet(sheet: DetailSheet) = _state.update { it.copy(openSheet = sheet) }
     fun onCloseSheet() = _state.update { it.copy(openSheet = null) }
