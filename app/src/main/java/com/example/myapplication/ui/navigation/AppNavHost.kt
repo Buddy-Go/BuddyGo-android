@@ -23,6 +23,7 @@ import com.example.myapplication.ui.explore.filter.FilterViewModel
 import com.example.myapplication.ui.explore.filter.LocationSearchScreen
 import com.example.myapplication.ui.meeting.detail.ApplyScreen
 import com.example.myapplication.ui.meeting.detail.MeetingDetailScreen
+import com.example.myapplication.ui.notification.NotificationScreen
 import com.example.myapplication.ui.record.RecordScreen
 import com.example.myapplication.ui.record.SignUpInfoScreen
 import com.example.myapplication.ui.record.SignUpProfileScreen
@@ -141,7 +142,12 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     },
                 )
             }
-            composable(Routes.NOTIFICATION) { TempScreen("3-6 알림 목록") }
+            composable(Routes.NOTIFICATION) {
+                NotificationScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpen = { navController.navigate(it) },
+                )
+            }
 
             // 5~6 모임 상세 · 참가 신청
             composable(Routes.MEETING_DETAIL, meetingArgs()) { entry ->
