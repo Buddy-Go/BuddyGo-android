@@ -13,4 +13,10 @@ class FakeUserRepository : UserRepository {
         MockUsers.all.firstOrNull { it.id == userId }
             ?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(userId))
+
+    override suspend fun isNicknameAvailable(nickname: String): Result<Boolean> =
+        Result.success(MockUsers.all.none { it.nickname == nickname.trim() })
+
+    override suspend fun isEmailAvailable(email: String): Result<Boolean> =
+        Result.success(MockUsers.all.none { it.email.equals(email.trim(), ignoreCase = true) })
 }
