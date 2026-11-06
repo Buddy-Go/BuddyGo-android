@@ -135,7 +135,7 @@ private fun FavoriteButton(isFavorite: Boolean, onClick: () -> Unit) {
             .size(32.dp)
             .clip(CircleShape)
             .border(1.dp, AppColor.Border, CircleShape)
-            .clickable(onClick = onClick),
+            .iconButton(favoriteLabel(isFavorite), onClick),
         contentAlignment = Alignment.Center,
     ) {
         HeartIcon(
