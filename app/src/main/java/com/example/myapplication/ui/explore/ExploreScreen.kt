@@ -84,6 +84,8 @@ fun ExploreScreen(
                 onMovedByUser = viewModel::onCameraMoved,
                 onError = { mapFailed = true },
                 modifier = Modifier.fillMaxSize(),
+                topPadding = TopOverlayHeight,
+                bottomPadding = sheetBottomSpace,
             )
         }
 
@@ -106,11 +108,14 @@ fun ExploreScreen(
                 modifier = Modifier.align(Alignment.BottomCenter).padding(AppSpace.xxl),
             )
         } else {
-            ResearchButton(
-                highlighted = state.cameraMoved,
-                onClick = viewModel::onResearch,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = sheetBottomSpace + AppSpace.xxl),
-            )
+            // 핀을 고른 동안(3-3, 3-5)에는 재검색 버튼을 숨긴다.
+            if (state.selectedPin == null) {
+                ResearchButton(
+                    highlighted = state.cameraMoved,
+                    onClick = viewModel::onResearch,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = sheetBottomSpace + AppSpace.xxl),
+                )
+            }
             ExploreBottomSheet(
                 state = state,
                 expandedHeight = sheetHeight,
@@ -238,3 +243,6 @@ private fun MapUnavailable() {
         Text("지도를 불러오지 못했어요", color = AppColor.TextSecondary, fontSize = 15.sp)
     }
 }
+
+// 상태바 아래 검색창과 칩 줄이 차지하는 높이(대략). 지도 중심 계산에만 쓴다.
+private val TopOverlayHeight = 168.dp

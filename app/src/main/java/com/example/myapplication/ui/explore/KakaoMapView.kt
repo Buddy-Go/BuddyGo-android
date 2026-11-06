@@ -11,6 +11,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -43,6 +45,8 @@ fun KakaoMapView(
     onMovedByUser: () -> Unit,
     onError: () -> Unit,
     modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp,    // 검색창·칩이 덮는 높이
+    bottomPadding: Dp = 0.dp, // 시트가 덮는 높이. 두 값으로 지도 중심이 가려지지 않은 영역의 가운데가 된다.
 ) {
     val context = LocalContext.current
     val lifecycleOwner = context as? LifecycleOwner
@@ -91,6 +95,11 @@ fun KakaoMapView(
             kakaoMap = null
             mapView.finish()
         }
+    }
+
+    val density = LocalContext.current.resources.displayMetrics.density
+    LaunchedEffect(kakaoMap, topPadding, bottomPadding) {
+        kakaoMap?.setPadding(0, (topPadding.value * density).toInt(), 0, (bottomPadding.value * density).toInt())
     }
 
     // 같은 모양의 핀 비트맵은 한 번만 그린다.
