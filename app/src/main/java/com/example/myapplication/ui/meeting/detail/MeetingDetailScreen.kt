@@ -75,6 +75,8 @@ fun MeetingDetailScreen(
     onCheckIn: () -> Unit,
     onReview: () -> Unit,
     onAddRecord: (Sport) -> Unit,
+    justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
+    onAppliedHandled: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: MeetingDetailViewModel = viewModel(
         key = meetingId,
@@ -90,6 +92,15 @@ fun MeetingDetailScreen(
         state.message?.let {
             toast.show(it, ToastType.Error)
             viewModel.onMessageShown()
+        }
+    }
+
+    // 신청을 마치고 돌아오면 모임 정보를 새로 받아 '신청 검토중'으로 바꾸고 알려 준다.
+    LaunchedEffect(justApplied) {
+        if (justApplied) {
+            viewModel.onApplied()
+            toast.show("신청했어요. 호스트가 수락하면 알려드릴게요", ToastType.Success)
+            onAppliedHandled()
         }
     }
 

@@ -21,6 +21,7 @@ import com.example.myapplication.ui.explore.ExploreScreen
 import com.example.myapplication.ui.explore.filter.FilterScreen
 import com.example.myapplication.ui.explore.filter.FilterViewModel
 import com.example.myapplication.ui.explore.filter.LocationSearchScreen
+import com.example.myapplication.ui.meeting.detail.ApplyScreen
 import com.example.myapplication.ui.meeting.detail.MeetingDetailScreen
 import com.example.myapplication.ui.record.RecordScreen
 import com.example.myapplication.ui.record.SignUpInfoScreen
@@ -30,6 +31,8 @@ import com.example.myapplication.ui.record.SignUpProfileScreen
 private const val KEY_DISTRICT_CURRENT = "district_current"
 private const val KEY_DISTRICT_RESULT = "district_result"
 private const val NO_RESULT = "\u0000none"
+// 신청 화면(6)이 끝나면 모임 상세에 알리는 키
+private const val KEY_APPLIED = "applied"
 
 // 이름표(Routes)와 실제 화면을 연결한다.
 // 화면을 만든 사람은 해당 줄의 TempScreen(...)을 자기 화면으로 바꾼다.
@@ -143,8 +146,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             // 5~6 모임 상세 · 참가 신청
             composable(Routes.MEETING_DETAIL, meetingArgs()) { entry ->
                 val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
+                val applied by entry.savedStateHandle.getStateFlow(KEY_APPLIED, false).collectAsState()
                 MeetingDetailScreen(
                     meetingId = meetingId,
+                    justApplied = applied,
+                    onAppliedHandled = { entry.savedStateHandle[KEY_APPLIED] = false },
                     onBack = { navController.popBackStack() },
                     onApply = { navController.navigate(Routes.apply(meetingId)) },
                     // TODO(임시) 체크인(9번)을 만들면 연결한다.
@@ -154,7 +160,20 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onAddRecord = { sport -> navController.navigate(Routes.record(sport)) },
                 )
             }
-            composable(Routes.APPLY, meetingArgs()) { TempScreen("6 참가 신청") }
+            composable(Routes.APPLY, meetingArgs()) { entry ->
+                val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
+                ApplyScreen(
+                    meetingId = meetingId,
+                    onClose = { navController.popBackStack() },
+                    onApplied = {
+                        // 모임 상세가 신청 결과를 다시 불러오도록 알리고 돌아간다.
+                        navController.previousBackStackEntry?.savedStateHandle?.set(KEY_APPLIED, true)
+                        navController.popBackStack()
+                    },
+                    // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
+                    onEditRecord = { sport -> navController.navigate(Routes.record(sport)) },
+                )
+            }
 
             // 7 참가자 관리
             composable(Routes.PARTICIPANT_MANAGE, meetingArgs()) { TempScreen("7 참가자 관리") }

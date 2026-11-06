@@ -102,7 +102,9 @@ app/
 │   │   │   ├─ MeetingCancelBottomSheet.kt  [시트] ← 5a-X2, 5a-X2-2
 │   │   │   ├─ MeetingDialogs.kt            [다이얼로그] ← 5a-X3 삭제 확인 (문진곤)
 │   │   │   ├─ CheckInDialogs.kt            [다이얼로그] ← 9a·9b 체크인 확인 (문찬주)
-│   │   │   └─ ApplyScreen.kt               [화면] ← 6a, 6b
+│   │   │   ├─ ApplyScreen.kt               [화면] ← 6a, 6b
+│   │   │   ├─ ApplyState.kt                한마디, 제출 중·실패, 비어 있을 때 확인창
+│   │   │   └─ ApplyViewModel.kt
 │   │   ├─ manage/                          호스트 전용
 │   │   │   ├─ ParticipantManageScreen.kt   [화면] ← 7a, 7b, 7c, 7d 제목 + 탭 바
 │   │   │   ├─ ParticipantManageState.kt    선택된 탭, 신청·확정 수

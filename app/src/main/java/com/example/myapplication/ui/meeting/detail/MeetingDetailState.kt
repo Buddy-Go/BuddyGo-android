@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.meeting.detail
 
 import com.example.myapplication.data.model.ExerciseRecord
+import com.example.myapplication.data.model.Gender
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.ui.common.UiState
@@ -13,6 +14,7 @@ enum class DetailSheet { PLACE, CRITERIA }
 data class MeetingDetailState(
     val meeting: UiState<Meeting> = UiState.Loading,
     val myUserId: String = "",
+    val myGender: Gender? = null,
     val myLocation: GeoPoint? = null,        // 탐색에서 알아낸 내 위치. 장소 시트의 거리 계산에 쓴다
     val myRecord: ExerciseRecord? = null,   // 기준 시트에서 내 기록과 비교할 때 쓴다
     val nowMillis: Long = 0L,
@@ -27,7 +29,7 @@ data class MeetingDetailState(
 
     // 지금 하단에 보여 줄 큰 버튼 (호스트이거나 모임을 못 불러왔으면 null)
     val bottomAction: BottomAction?
-        get() = loaded?.let { bottomActionOf(it, role, myUserId, nowMillis) }
+        get() = loaded?.let { bottomActionOf(it, role, myUserId, nowMillis, myGender) }
 
     // 장소 시트의 '내 위치에서 N'에 쓰는 거리. 탐색 카드와 같은 값이다.
     val distanceMeters: Int? get() = loaded?.let { meetingDistanceMeters(it, myLocation) }

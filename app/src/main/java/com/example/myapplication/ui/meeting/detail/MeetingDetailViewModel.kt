@@ -2,9 +2,8 @@ package com.example.myapplication.ui.meeting.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.repository.FakeMeetingRepository
-import com.example.myapplication.data.repository.FakeUserRepository
 import com.example.myapplication.data.repository.MeetingRepository
+import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
@@ -18,9 +17,8 @@ import kotlinx.coroutines.launch
 
 class MeetingDetailViewModel(
     private val meetingId: String,
-    // TODO(임시) 서버 연결 전까지 Fake를 쓴다.
-    private val repository: MeetingRepository = FakeMeetingRepository(),
-    private val userRepository: UserRepository = FakeUserRepository(),
+    private val repository: MeetingRepository = Repositories.meetings,
+    private val userRepository: UserRepository = Repositories.users,
     nowMillis: Long = System.currentTimeMillis(),
 ) : ViewModel() {
     private val _state = MutableStateFlow(MeetingDetailState(nowMillis = nowMillis, myLocation = LastKnownLocation.point.value))
@@ -35,7 +33,7 @@ class MeetingDetailViewModel(
         viewModelScope.launch {
             // 내가 누구인지 알아야 역할(호스트·확정·대기)을 판단할 수 있다.
             val me = userRepository.getCurrentUser().getOrNull()
-            _state.update { it.copy(myUserId = me?.id.orEmpty(), myRecord = me?.record) }
+            _state.update { it.copy(myUserId = me?.id.orEmpty(), myGender = me?.gender, myRecord = me?.record) }
             val result = repository.getMeeting(meetingId)
             _state.update {
                 it.copy(
@@ -69,6 +67,11 @@ class MeetingDetailViewModel(
                 .onFailure { _state.update { s -> s.copy(message = "신청을 취소하지 못했어요. 다시 시도해주세요.") } }
             _state.update { it.copy(submitting = false) }
         }
+    }
+
+    // 신청 화면에서 신청을 마치고 돌아왔다: 화면은 그대로 두고 모임 정보만 새로 받는다.
+    fun onApplied() {
+        viewModelScope.launch { reloadMeeting() }
     }
 
     // 안내를 보여 준 뒤 지운다.

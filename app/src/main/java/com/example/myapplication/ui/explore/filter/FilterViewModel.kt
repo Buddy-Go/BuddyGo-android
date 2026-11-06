@@ -7,9 +7,8 @@ import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.model.Sport
-import com.example.myapplication.data.repository.FakeMeetingRepository
-import com.example.myapplication.data.repository.FakeUserRepository
 import com.example.myapplication.data.repository.MeetingRepository
+import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,9 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FilterViewModel(
-    // TODO(임시) 서버 연결 전까지 Fake를 쓴다.
-    private val repository: MeetingRepository = FakeMeetingRepository(),
-    private val userRepository: UserRepository = FakeUserRepository(),
+    private val repository: MeetingRepository = Repositories.meetings,
+    private val userRepository: UserRepository = Repositories.users,
     nowMillis: Long = System.currentTimeMillis(),
 ) : ViewModel() {
     // 지금 적용된 조건에서 시작한다.
