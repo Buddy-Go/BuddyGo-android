@@ -234,13 +234,13 @@
   - [x] 10d-2 헬스 기준 기록 숨김
 - [x] `DescriptionBottomSheet.kt` ← 10e 설명
 - [x] `TimeBottomSheet.kt` ← 10f 시간 설정
-- [ ] `PlaceSearchScreen.kt`
-  - [ ] 10g 장소 검색
-  - [ ] 10g-2 검색 결과
+- [x] `PlaceSearchScreen.kt`
+  - [x] 10g 장소 검색
+  - [x] 10g-2 검색 결과
 - [ ] `PlaceConfirmScreen.kt`
-  - [ ] 10g-3 장소 확인 · 헬스
+  - [x] 10g-3 장소 확인 · 헬스
   - [ ] 10g-4 집결지 지정 · 러닝
-- [ ] `MeetingCreateState.kt`, `MeetingCreateViewModel.kt`
+- [x] `MeetingCreateState.kt`, `MeetingCreateViewModel.kt`
 - [x] 수정 동작 (`service-rules.md` 4번) — 개설 화면을 수정 모드로 재사용, 확정 참가자가 있으면 제목·설명·상세주소만
 
 ---
@@ -257,7 +257,7 @@
   - [x] 5a-X2 모임 취소 · 경고
   - [x] 5a-X2-2 사유 입력됨
 - [x] `MeetingDialogs.kt` ← 5a-X3 모임 삭제 확인
-- [ ] 문찬주의 `MeetingDetailScreen`과 호출 지점 연결 확인
+- [x] 문찬주의 `MeetingDetailScreen`과 호출 지점 연결 확인
 
 ---
 
@@ -306,7 +306,7 @@
 - [x] `ReviewDoneScreen.kt`
   - [x] 12c 평가 완료
   - [x] 12c-2 평가 완료 (추가 대상 없음)
-- [ ] 매너온도 변화 규칙 (`service-rules.md` 11번)
+- [x] 매너온도 변화 규칙 (`service-rules.md` 11번) — 점수는 정의서가 미정이라 임시값, `data/model/MannerRules.kt` 한 곳
 
 ---
 
@@ -349,7 +349,7 @@
 
 #### 8. 연결 점검 (문찬주와 함께)
 
-- [ ] 문찬주의 신청 데이터가 내 수락·거절 화면(7번)에 나오는지
-- [ ] 알림 탭 이동이 내 공지 상세(8g)와 메이트 신청(11c)으로 가는지
+- [x] 문찬주의 신청 데이터가 내 수락·거절 화면(7번)에 나오는지
+- [x] 알림 탭 이동이 내 공지 상세(8g)와 메이트 신청(11c)으로 가는지
 - [ ] 활동 내역의 평가 대기 카드(13-R)가 평가 목록(12a)으로 이어지는지
-- [ ] 호스트 영역이 문찬주의 모임 상세 안에 정상 표시되는지
+- [x] 호스트 영역이 문찬주의 모임 상세 안에 정상 표시되는지

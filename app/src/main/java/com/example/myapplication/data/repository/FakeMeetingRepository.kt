@@ -133,7 +133,11 @@ class FakeMeetingRepository(
         return update(meetingId) { it.copy(pendingIds = it.pendingIds - applicantId) }
     }
 
+    // 서버처럼 시작이 지금부터 데드라인(1시간 30분) 이후여야 개설할 수 있다. (service-rules 4장)
     override suspend fun createMeeting(meeting: Meeting): Result<String> {
+        if (meeting.startAtMillis - nowMillis() < DEADLINE_BEFORE_START_MINUTES * 60_000L) {
+            return Result.failure(IllegalArgumentException("시작은 지금부터 1시간 30분 이후만 고를 수 있어요"))
+        }
         val host = MockUsers.all.firstOrNull { it.id == currentUserId }
         val id = "new-${meetings.size + 1}"
         meetings += meeting.copy(

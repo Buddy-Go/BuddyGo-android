@@ -35,6 +35,8 @@ import com.example.myapplication.ui.mate.MateScreen
 import com.example.myapplication.ui.mate.MateViewModel
 import com.example.myapplication.ui.meeting.create.MeetingCreateScreen
 import com.example.myapplication.ui.meeting.create.MeetingCreateViewModel
+import com.example.myapplication.ui.meeting.create.PlaceSearchScreen
+import com.example.myapplication.ui.meeting.create.PlaceConfirmScreen
 import com.example.myapplication.ui.meeting.detail.ApplyScreen
 import com.example.myapplication.ui.meeting.detail.MeetingDetailScreen
 import com.example.myapplication.ui.meeting.manage.ParticipantManageScreen
@@ -296,8 +298,19 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onUpdated = { navController.popBackStack() },
                 )
             }
-            composable(Routes.PLACE_SEARCH) { TempScreen("10g 장소 검색") }
-            composable(Routes.PLACE_CONFIRM) { TempScreen("10g-3~4 장소 확인·집결지") }
+            composable(Routes.PLACE_SEARCH) {
+                PlaceSearchScreen(
+                    onBack = { navController.popBackStack() },
+                    onSelected = { navController.navigate(Routes.PLACE_CONFIRM) },
+                )
+            }
+            composable(Routes.PLACE_CONFIRM) {
+                PlaceConfirmScreen(
+                    onBack = { navController.popBackStack() },
+                    // 설정하면 장소 검색까지 닫고 개설 화면으로 돌아간다.
+                    onConfirmed = { navController.popBackStack(Routes.MEETING_CREATE, inclusive = false) },
+                )
+            }
 
             // 11, 15 메이트
             composable(Routes.MATE) {
