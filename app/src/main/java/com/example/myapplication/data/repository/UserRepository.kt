@@ -1,5 +1,7 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.model.ProfileStats
+import com.example.myapplication.data.model.ReceivedReview
 import com.example.myapplication.data.model.SignUpDraft
 import com.example.myapplication.data.model.User
 
@@ -14,4 +16,14 @@ interface UserRepository {
 
     suspend fun isNicknameAvailable(nickname: String): Result<Boolean>
     suspend fun isEmailAvailable(email: String): Result<Boolean>
+
+    // 프로필 숫자(받은 후기 수, 개설한 모임 수, 많이 받은 태그)와 받은 후기(최신순)
+    suspend fun getProfileStats(userId: String): Result<ProfileStats>
+    suspend fun getReceivedReviews(userId: String): Result<List<ReceivedReview>>
+
+    // 마이페이지 알림 설정: 켜져 있으면 true. 끄면 전체 알림을 받지 않는다. (service-rules 12장)
+    suspend fun isNotificationEnabled(): Result<Boolean>
+    suspend fun setNotificationEnabled(enabled: Boolean): Result<Unit>
+
+    suspend fun logout(): Result<Unit>
 }

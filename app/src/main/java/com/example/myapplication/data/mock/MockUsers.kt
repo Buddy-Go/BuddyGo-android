@@ -3,8 +3,12 @@ package com.example.myapplication.data.mock
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.Gender
 import com.example.myapplication.data.model.HikingStyle
+import com.example.myapplication.data.model.ProfileStats
+import com.example.myapplication.data.model.ReceivedReview
+import com.example.myapplication.data.model.ReviewVerdict
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.TagCount
 import com.example.myapplication.data.model.User
 
 object MockUsers {
@@ -40,4 +44,21 @@ object MockUsers {
     )
 
     val all = listOf(me, noRecord, hostA, hostB)
+
+    // 내 프로필 숫자와 받은 후기 (마이페이지 14)
+    val meStats = ProfileStats(
+        receivedReviewCount = 32, hostedMeetingCount = 9,
+        topTags = listOf(TagCount("시간 잘 지킴", 21), TagCount("잘 이끌어줌", 14), TagCount("또 하고 싶어요", 11)),
+    )
+    val meReviews = listOf(
+        ReceivedReview(
+            id = "rv1", reviewerNickname = "서연", sport = Sport.HIKING, verdict = ReviewVerdict.GOOD,
+            comment = "시간 딱 맞춰 오시고 초보도 잘 챙겨주셨어요!", tags = listOf("시간 잘 지킴"),
+            createdAtMillis = 1_788_220_800_000L,
+        ),
+        ReceivedReview(
+            id = "rv2", reviewerNickname = "지훈", sport = Sport.HEALTH, verdict = ReviewVerdict.NORMAL,
+            comment = null, createdAtMillis = 1_787_000_000_000L,
+        ),
+    )
 }
