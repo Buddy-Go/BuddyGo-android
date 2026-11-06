@@ -21,6 +21,9 @@ data class MeetingDetailState(
     val submitting: Boolean = false,       // 신청 취소 같은 요청을 보내는 중
     val message: String? = null,           // 사용자에게 한 번 보여 줄 안내(실패 등)
     val openSheet: DetailSheet? = null,
+    val notice: String? = null,              // 한 번 보여 줄 성공 안내(체크인 등)
+    val checkIn: CheckInPrompt? = null,      // 체크인 확인창(9a, 9b). null이면 닫혀 있다
+    val checkInPoint: GeoPoint? = null,      // 체크인 확인창에서 잰 내 위치. 체크인을 보낼 때 쓴다
 ) {
     val loaded: Meeting? get() = (meeting as? UiState.Success)?.data
 

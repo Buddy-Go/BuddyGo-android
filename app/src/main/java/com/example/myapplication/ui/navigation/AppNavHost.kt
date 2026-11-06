@@ -153,8 +153,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onAppliedHandled = { entry.savedStateHandle[KEY_APPLIED] = false },
                     onBack = { navController.popBackStack() },
                     onApply = { navController.navigate(Routes.apply(meetingId)) },
-                    // TODO(임시) 체크인(9번)을 만들면 연결한다.
-                    onCheckIn = {},
                     onReview = { navController.navigate(Routes.REVIEW_LIST) },
                     // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
                     onAddRecord = { sport -> navController.navigate(Routes.record(sport)) },

@@ -2,6 +2,8 @@ package com.example.myapplication.ui.meeting.detail
 
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.mock.MockMeetings
+import com.example.myapplication.data.model.CheckInOutOfRangeException
+import com.example.myapplication.data.model.CheckInResult
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.data.repository.FakeMeetingRepository
@@ -42,6 +44,7 @@ class MeetingDetailViewModelTest {
         private val getError: Throwable? = null,
         private val favoriteError: Throwable? = null,
         private val cancelError: Throwable? = null,
+        private val checkInError: Throwable? = null,
         private val delegate: MeetingRepository = FakeMeetingRepository(),
     ) : MeetingRepository by delegate {
         override suspend fun getMeeting(meetingId: String): Result<Meeting> =
@@ -50,6 +53,8 @@ class MeetingDetailViewModelTest {
             favoriteError?.let { Result.failure(it) } ?: delegate.setFavorite(meetingId, favorite)
         override suspend fun cancelApplication(meetingId: String): Result<Unit> =
             cancelError?.let { Result.failure(it) } ?: delegate.cancelApplication(meetingId)
+        override suspend fun checkIn(meetingId: String, latitude: Double, longitude: Double): Result<CheckInResult> =
+            checkInError?.let { Result.failure(it) } ?: delegate.checkIn(meetingId, latitude, longitude)
     }
 
     private fun vm(id: String, repo: MeetingRepository = FakeMeetingRepository()) =
@@ -143,5 +148,108 @@ class MeetingDetailViewModelTest {
     @Test
     fun 내_기록을_불러와_기준_시트에서_비교할_수_있다() {
         assertEquals(80, vm(MockMeetings.recruiting.id).state.value.myRecord?.benchPressKg)
+    }
+
+    // ---- 체크인 ----
+
+    private val mountainId = MockMeetings.inProgress.id // 북한산 입구 37.6586, 127.0114
+    private val mountain = GeoPoint(37.6586, 127.0114)
+
+    @Test
+    fun 체크인하기를_누르면_위치를_가져오는_중이다() {
+        val vm = vm(mountainId)
+        vm.onCheckInStart()
+        assertEquals(CheckInPrompt.Locating, vm.state.value.checkIn)
+    }
+
+    @Test
+    fun 위치를_못_얻으면_위치_안내를_보여_준다() {
+        val vm = vm(mountainId)
+        vm.onCheckInStart()
+        vm.onCheckInLocation(null)
+        assertEquals(CheckInPrompt.NoLocation, vm.state.value.checkIn)
+    }
+
+    @Test
+    fun 모임_장소_근처이면_체크인할_수_있는_거리를_보여_준다() {
+        val vm = vm(mountainId)
+        vm.onCheckInStart()
+        vm.onCheckInLocation(mountain)
+        assertEquals(CheckInPrompt.Ready(0), vm.state.value.checkIn)
+    }
+
+    @Test
+    fun 멀면_거리와_함께_범위_밖으로_보여_주고_체크인을_보내지_않는다() {
+        val repo = FakeMeetingRepository()
+        val vm = vm(mountainId, repo)
+        vm.onCheckInStart()
+        vm.onCheckInLocation(GeoPoint(37.6586 + 0.003, 127.0114))
+        val ready = vm.state.value.checkIn as CheckInPrompt.Ready
+        assertTrue(ready.distanceMeters in 300..360)
+        vm.onCheckInConfirm()
+        assertEquals("범위 밖이면 보내지 않아 그대로다", ready, vm.state.value.checkIn)
+        assertEquals(1, vm.state.value.loaded!!.checkedInCount)
+    }
+
+    @Test
+    fun 체크인에_성공하면_창이_닫히고_완료_안내와_체크인_수가_바뀐다() {
+        val vm = vm(mountainId)
+        vm.onCheckInStart()
+        vm.onCheckInLocation(mountain)
+        vm.onCheckInConfirm()
+        assertNull(vm.state.value.checkIn)
+        assertEquals("체크인했어요", vm.state.value.notice)
+        assertEquals(2, vm.state.value.loaded!!.checkedInCount)
+        assertEquals("체크인 완료", vm.state.value.bottomAction?.title)
+        vm.onNoticeShown()
+        assertNull(vm.state.value.notice)
+    }
+
+    @Test
+    fun 서버가_범위_밖이라고_하면_서버가_잰_거리로_다시_보여_준다() {
+        val vm = vm(mountainId, FailingMeetings(checkInError = CheckInOutOfRangeException(77)))
+        vm.onCheckInStart()
+        vm.onCheckInLocation(mountain) // 앱이 잰 거리는 0m라 보내지만 서버는 77m라고 답한다
+        vm.onCheckInConfirm()
+        assertEquals(CheckInPrompt.Ready(77), vm.state.value.checkIn)
+        assertFalse(canCheckIn(77))
+    }
+
+    @Test
+    fun 체크인을_보내지_못하면_실패_안내를_보여_준다() {
+        val vm = vm(mountainId, FailingMeetings(checkInError = IOException("offline")))
+        vm.onCheckInStart()
+        vm.onCheckInLocation(mountain)
+        vm.onCheckInConfirm()
+        assertEquals(CheckInPrompt.Failed, vm.state.value.checkIn)
+    }
+
+    @Test
+    fun 확인창을_닫으면_체크인_상태가_지워진다() {
+        val vm = vm(mountainId)
+        vm.onCheckInStart()
+        vm.onCheckInLocation(mountain)
+        vm.onCheckInDismiss()
+        assertNull(vm.state.value.checkIn)
+        assertNull(vm.state.value.checkInPoint)
+    }
+
+    @Test
+    fun 창을_닫은_뒤에_늦게_온_위치는_무시한다() {
+        val vm = vm(mountainId)
+        vm.onCheckInStart()
+        vm.onCheckInDismiss()
+        vm.onCheckInLocation(mountain)
+        assertNull(vm.state.value.checkIn)
+    }
+
+    @Test
+    fun 위치를_받으면_마지막_내_위치로_저장한다() {
+        LastKnownLocation.clear()
+        val vm = vm(mountainId)
+        vm.onCheckInStart()
+        vm.onCheckInLocation(mountain)
+        assertEquals(mountain, LastKnownLocation.point.value)
+        LastKnownLocation.clear()
     }
 }

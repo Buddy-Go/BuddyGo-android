@@ -176,26 +176,26 @@
 
 ##### `ui/meeting/detail/`
 - [ ] `MeetingDetailScreen.kt` 화면 본체 (소유: 문찬주)
-  - [ ] 5a 모집중
-  - [ ] 5g 헬스 모집중
-  - [ ] 5l 신청 대기중
+  - [x] 5a 모집중
+  - [x] 5g 헬스 모집중
+  - [x] 5l 신청 대기중
   - [ ] 5b 마감
-  - [ ] 5c 진행중
+  - [x] 5c 진행중
   - [ ] 5d 종료
   - [ ] 호스트 영역 호출 지점 연결 (`isHost`일 때 문진곤의 호스트 composable 호출)
-- [ ] `PlaceBottomSheet.kt` ← 5e 장소
-- [ ] `CriteriaBottomSheet.kt`
+- [x] `PlaceBottomSheet.kt` ← 5e 장소
+- [x] `CriteriaBottomSheet.kt`
   - [ ] 5f 등산 기준
-  - [ ] 5h 헬스 기준
-- [ ] `ApplyScreen.kt`
-  - [ ] 6a 신청 작성 · 기준 일치
+  - [x] 5h 헬스 기준
+- [x] `ApplyScreen.kt`
+  - [x] 6a 신청 작성 · 기준 일치
   - [ ] 6b 신청 작성 · 기준 미설정
-- [ ] `CheckInDialogs.kt`
-  - [ ] 9a 체크인 확인
+- [x] `CheckInDialogs.kt`
+  - [x] 9a 체크인 확인
   - [ ] 9b 체크인 확인 · 범위 밖
-- [ ] 9c 진행중 · 체크인 완료 (`MeetingDetailScreen.kt` 안)
+- [x] 9c 진행중 · 체크인 완료 (`MeetingDetailScreen.kt` 안)
 - [ ] 나가기(참가자) 동작 (`service-rules.md` 5번)
-- [ ] `MeetingDetailState.kt`, `MeetingDetailViewModel.kt`
+- [x] `MeetingDetailState.kt`, `MeetingDetailViewModel.kt`
 
 ---
 
