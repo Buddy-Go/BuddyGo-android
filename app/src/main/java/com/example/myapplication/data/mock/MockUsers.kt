@@ -29,7 +29,7 @@ object MockUsers {
         id = "u3", name = "박지훈", nickname = "지훈", email = "jihoon@gmail.com",
         gender = Gender.MALE, mannerTemperature = 41.0f,
         preferredSports = listOf(Sport.HEALTH),
-        record = ExerciseRecord(benchPressKg = 90, pullUpCount = 10, squatKg = 120),
+        record = ExerciseRecord(benchPressKg = 90, pullUpCount = 10, squatKg = 120, armLevel = SkillLevel.INTERMEDIATE),
     )
 
     val hostB = User(

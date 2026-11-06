@@ -21,6 +21,7 @@ import com.example.myapplication.ui.explore.ExploreScreen
 import com.example.myapplication.ui.explore.filter.FilterScreen
 import com.example.myapplication.ui.explore.filter.FilterViewModel
 import com.example.myapplication.ui.explore.filter.LocationSearchScreen
+import com.example.myapplication.ui.meeting.detail.MeetingDetailScreen
 import com.example.myapplication.ui.record.RecordScreen
 import com.example.myapplication.ui.record.SignUpInfoScreen
 import com.example.myapplication.ui.record.SignUpProfileScreen
@@ -140,7 +141,17 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             composable(Routes.NOTIFICATION) { TempScreen("3-6 알림 목록") }
 
             // 5~6 모임 상세 · 참가 신청
-            composable(Routes.MEETING_DETAIL, meetingArgs()) { TempScreen("5 모임 상세") }
+            composable(Routes.MEETING_DETAIL, meetingArgs()) { entry ->
+                val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
+                MeetingDetailScreen(
+                    meetingId = meetingId,
+                    onBack = { navController.popBackStack() },
+                    onApply = { navController.navigate(Routes.apply(meetingId)) },
+                    // TODO(임시) 체크인(9번)을 만들면 연결한다.
+                    onCheckIn = {},
+                    onReview = { navController.navigate(Routes.REVIEW_LIST) },
+                )
+            }
             composable(Routes.APPLY, meetingArgs()) { TempScreen("6 참가 신청") }
 
             // 7 참가자 관리
