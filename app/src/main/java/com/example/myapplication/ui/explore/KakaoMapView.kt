@@ -122,15 +122,14 @@ fun KakaoMapView(
         if (options.isNotEmpty()) layer.addLabels(options)
     }
 
-    // 처음 핀이 생기면 가장 가까운 핀으로, 핀을 고르면 그 핀으로 카메라를 옮긴다.
-    var centered by remember { mutableStateOf(false) }
-    LaunchedEffect(kakaoMap, pins.isNotEmpty()) {
+    // 보여 줄 핀이 달라지면(처음 불러올 때, 종목·찜·조건을 바꿨을 때) 가장 가까운 핀으로 카메라를 옮긴다.
+    // 핀을 고르거나 찜을 눌러도 가장 가까운 핀이 그대로면 움직이지 않아 사용자가 보던 위치를 지키고,
+    // 핀이 하나도 없으면 그 자리에 둔다.
+    val nearestKey = pins.firstOrNull()?.key
+    LaunchedEffect(kakaoMap, nearestKey) {
         val map = kakaoMap ?: return@LaunchedEffect
         val first = pins.firstOrNull() ?: return@LaunchedEffect
-        if (!centered) {
-            map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(first.latitude, first.longitude)))
-            centered = true
-        }
+        map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(first.latitude, first.longitude)))
     }
     LaunchedEffect(kakaoMap, selectedKey) {
         val map = kakaoMap ?: return@LaunchedEffect
