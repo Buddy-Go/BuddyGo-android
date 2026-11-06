@@ -7,6 +7,7 @@ import com.example.myapplication.data.model.Meeting
 class RealMeetingRepository : MeetingRepository {
     override suspend fun getMeetings(): Result<List<Meeting>> = TODO("서버 연결 후 구현")
     override suspend fun getMeeting(meetingId: String): Result<Meeting> = TODO("서버 연결 후 구현")
+    override suspend fun setFavorite(meetingId: String, favorite: Boolean): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun apply(meetingId: String, message: String?): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun cancelApplication(meetingId: String): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun leave(meetingId: String): Result<Unit> = TODO("서버 연결 후 구현")

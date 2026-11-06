@@ -19,6 +19,9 @@ class FakeMeetingRepository(
             ?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(meetingId))
 
+    override suspend fun setFavorite(meetingId: String, favorite: Boolean): Result<Unit> =
+        update(meetingId) { it.copy(isFavorite = favorite) }
+
     override suspend fun apply(meetingId: String, message: String?): Result<Unit> =
         update(meetingId) { it.copy(pendingIds = it.pendingIds + currentUserId) }
 
