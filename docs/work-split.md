@@ -107,7 +107,7 @@
 - [x] `FullScreenError.kt` ← 16f 네트워크 없음, 16g 서버 오류
 - [x] `AppToast.kt` ← 16j 성공/경고/실패
 - [x] `CriteriaSummaryRow.kt` ← 5i 맞음/일부만/안 맞음
-- [ ] `ConfirmDialog.kt` 다이얼로그 공통 틀
+- [x] `ConfirmDialog.kt` 다이얼로그 공통 틀
 
 ---
 
