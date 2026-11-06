@@ -4,6 +4,9 @@ import com.example.myapplication.data.mock.MockMeetings
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.MeetingStatus
+import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.MeetingCriteria
+import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.ui.common.UiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -118,5 +121,54 @@ class ExploreStateTest {
         assertTrue(state.visibleMeetings.all { it.status == MeetingStatus.RECRUITING })
         assertTrue(state.pins.any { it.isMultiple })
         assertFalse(state.pins.any { it.meetings.any { m -> m.status != MeetingStatus.RECRUITING } })
+    }
+
+    @Test
+    fun 종목_칩을_고르면_그_종목만_나온다() {
+        val hiking = meeting("h").copy(criteria = MeetingCriteria.Hiking(HikingStyle.HOBBY))
+        val running = meeting("r").copy(criteria = MeetingCriteria.Running(5f, 360))
+        val state = stateOf(hiking, running).copy(sportChip = Sport.RUNNING)
+        assertEquals(listOf("r"), state.visibleMeetings.map { it.id })
+    }
+
+    @Test
+    fun 종목_칩과_찜_칩은_함께_적용된다() {
+        val a = meeting("a", favorite = true).copy(criteria = MeetingCriteria.Hiking(HikingStyle.HOBBY))
+        val b = meeting("b").copy(criteria = MeetingCriteria.Hiking(HikingStyle.HOBBY))
+        val c = meeting("c", favorite = true).copy(criteria = MeetingCriteria.Running(5f, 360))
+        val state = stateOf(a, b, c).copy(sportChip = Sport.HIKING, favoriteOnly = true)
+        assertEquals(listOf("a"), state.visibleMeetings.map { it.id })
+    }
+
+    @Test
+    fun 지도를_움직이면_재검색_버튼이_뜬다() {
+        assertFalse(ExploreState().cameraMoved)
+        assertTrue(ExploreState().withCameraMoved().cameraMoved)
+    }
+
+    @Test
+    fun 재검색하면_위치_조건이_풀리고_다른_조건은_유지된다() {
+        val before = stateOf(meeting("1"), selected = "서교동 1-1", favoriteOnly = true)
+            .copy(cameraMoved = true, hasLocationCondition = true, sportChip = Sport.HEALTH)
+        val after = before.afterResearch()
+        assertFalse(after.cameraMoved)
+        assertFalse(after.hasLocationCondition)
+        assertNull("재검색하면 핀 선택도 풀린다", after.selectedPinKey)
+        assertTrue(after.favoriteOnly)
+        assertEquals(Sport.HEALTH, after.sportChip)
+    }
+
+    @Test
+    fun 찜을_누르면_그_모임만_뒤집힌다() {
+        val state = stateOf(meeting("1"), meeting("2", favorite = true)).withFavoriteToggled("1").withFavoriteToggled("2")
+        val byId = (state.meetings as UiState.Success).data.associateBy { it.id }
+        assertTrue(byId.getValue("1").isFavorite)
+        assertFalse(byId.getValue("2").isFavorite)
+    }
+
+    @Test
+    fun 불러오기_전에는_찜을_눌러도_바뀌지_않는다() {
+        val loading = ExploreState(meetings = UiState.Loading)
+        assertEquals(loading, loading.withFavoriteToggled("1"))
     }
 }

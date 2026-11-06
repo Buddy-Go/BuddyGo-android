@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.explore
 
 import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.UiState
 
 data class ExploreState(
@@ -8,12 +9,20 @@ data class ExploreState(
     val sheetExpanded: Boolean = true,   // 3-After(올림) / 3-2-After(내림)
     val selectedPinKey: String? = null,
     val favoriteOnly: Boolean = false,   // 상단 '찜' 칩
+    val sportChip: Sport? = null,        // 상단 종목 칩. 하나만 고르고, 다시 누르면 해제
+    // 사용자가 지도를 움직인 뒤 '이 지역 재검색'을 보여 주기 위한 표시
+    val cameraMoved: Boolean = false,
+    // 위치 조건(구·동)이 걸려 있으면 검색 영역이 고정된다. 조건 설정(4번) 화면이 생기면 이 값을 채운다.
+    val hasLocationCondition: Boolean = false,
 ) {
     // 지도와 리스트에 보이는 모임: 모집중만, 찜 칩이 켜져 있으면 찜한 모임만, 거리순
     val visibleMeetings: List<Meeting>
         get() {
             val all = (meetings as? UiState.Success)?.data.orEmpty().onlyRecruiting()
-            return (if (favoriteOnly) all.filter { it.isFavorite } else all).sortedByDistance()
+            return all
+                .filter { sportChip == null || it.sport == sportChip }
+                .filter { !favoriteOnly || it.isFavorite }
+                .sortedByDistance()
         }
 
     val pins: List<PinGroup> get() = visibleMeetings.groupIntoPins()
@@ -32,4 +41,20 @@ data class ExploreState(
         get() = selectedPin?.takeIf { it.isMultiple }?.meetings?.first()?.place?.name
 
     fun isSelected(pin: PinGroup) = pin.key == selectedPinKey
+
+    // 지도를 움직이면 '이 지역 재검색'이 나타난다. 위치 조건이 있어도 결과는 그대로이고 버튼만 보인다.
+    fun withCameraMoved() = copy(cameraMoved = true)
+
+    // 재검색: 위치 조건이 풀리고 지도 범위 기준이 된다. 다른 조건(종목·찜)은 유지한다. (2장)
+    fun afterResearch() = copy(cameraMoved = false, hasLocationCondition = false, selectedPinKey = null)
+
+    // TODO(임시) 서버에 찜 호출이 생기기 전까지 화면 안에서만 바꾼다.
+    fun withFavoriteToggled(meetingId: String): ExploreState {
+        val current = meetings as? UiState.Success ?: return this
+        return copy(
+            meetings = UiState.Success(
+                current.data.map { if (it.id == meetingId) it.copy(isFavorite = !it.isFavorite) else it },
+            ),
+        )
+    }
 }

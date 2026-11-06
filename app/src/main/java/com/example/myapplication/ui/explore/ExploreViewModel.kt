@@ -2,6 +2,7 @@ package com.example.myapplication.ui.explore
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.FakeMeetingRepository
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.ui.common.ErrorType
@@ -47,6 +48,20 @@ class ExploreViewModel(
     fun onClearPin() = _state.update { it.copy(selectedPinKey = null) }
 
     fun onSetSheetExpanded(expanded: Boolean) = _state.update { it.copy(sheetExpanded = expanded) }
+
+    fun onToggleSportChip(sport: Sport) = _state.update {
+        it.copy(sportChip = if (it.sportChip == sport) null else sport, selectedPinKey = null)
+    }
+
+    fun onCameraMoved() = _state.update { it.withCameraMoved() }
+
+    // TODO(임시) 지도 범위를 서버에 넘기는 호출이 정해지면 영역을 같이 보낸다.
+    fun onResearch() {
+        _state.update { it.afterResearch() }
+        load()
+    }
+
+    fun onToggleFavorite(meetingId: String) = _state.update { it.withFavoriteToggled(meetingId) }
 
     fun onToggleFavoriteOnly() = _state.update { it.copy(favoriteOnly = !it.favoriteOnly, selectedPinKey = null) }
 }
