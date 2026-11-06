@@ -113,7 +113,9 @@ data class AvatarRow(val initials: List<String>, val extra: Int)
 
 fun avatarRowOf(meeting: Meeting, shown: Int = 3): AvatarRow? {
     if (meeting.members.isEmpty()) return null
-    val names = meeting.members.map { it.nickname.take(1) }
+    // 종료된 모임은 실제로 참여한(체크인한) 사람만 보인다. 노쇼는 제외. (service-rules 11장)
+    val shownMembers = if (meeting.status == MeetingStatus.ENDED) meeting.members.filter { it.checkedIn } else meeting.members
+    val names = shownMembers.map { it.nickname.take(1) }
     return AvatarRow(names.take(shown), (names.size - shown).coerceAtLeast(0))
 }
 

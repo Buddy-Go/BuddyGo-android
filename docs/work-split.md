@@ -142,7 +142,7 @@
   - [x] 3-2-After 지도 전체 (시트 내림)
   - [x] 3-3-After 핀 선택
   - [x] 3-5 같은 장소 모임 여러 개 (+n 핀 선택)
-  - [ ] 16e 부분 로딩
+  - [x] 16e 부분 로딩
 - [x] `ExploreBottomSheet.kt`
 - [x] `MapPin.kt` ← 3-4 핀 색 체계 (기본 vs 선택)
 - [x] `MeetingCard.kt`
@@ -179,20 +179,20 @@
   - [x] 5a 모집중
   - [x] 5g 헬스 모집중
   - [x] 5l 신청 대기중
-  - [ ] 5b 마감
+  - [x] 5b 마감
   - [x] 5c 진행중
-  - [ ] 5d 종료
+  - [x] 5d 종료
   - [ ] 호스트 영역 호출 지점 연결 (`isHost`일 때 문진곤의 호스트 composable 호출)
 - [x] `PlaceBottomSheet.kt` ← 5e 장소
 - [x] `CriteriaBottomSheet.kt`
-  - [ ] 5f 등산 기준
+  - [x] 5f 등산 기준
   - [x] 5h 헬스 기준
 - [x] `ApplyScreen.kt`
   - [x] 6a 신청 작성 · 기준 일치
-  - [ ] 6b 신청 작성 · 기준 미설정
+  - [x] 6b 신청 작성 · 기준 미설정
 - [x] `CheckInDialogs.kt`
   - [x] 9a 체크인 확인
-  - [ ] 9b 체크인 확인 · 범위 밖
+  - [x] 9b 체크인 확인 · 범위 밖
 - [x] 9c 진행중 · 체크인 완료 (`MeetingDetailScreen.kt` 안)
 - [x] 나가기(참가자) 동작 (`service-rules.md` 5번)
 - [x] `MeetingDetailState.kt`, `MeetingDetailViewModel.kt`
@@ -204,7 +204,7 @@
 ##### `ui/notification/`
 - [ ] `NotificationScreen.kt`
   - [x] 3-6 알림 목록
-  - [ ] 3-6-2 알림 목록 · 빈 상태
+  - [x] 3-6-2 알림 목록 · 빈 상태
   - [x] 탭 이동: 체크인 → 모임 상세 체크인 / 공지 → 공지 상세(8g) / 메이트 신청 → 메이트 신청(11c) (이동 연결 완료, 8g·11c 화면은 담당 구간 구현 대기)
 
 ##### `ui/mypage/`

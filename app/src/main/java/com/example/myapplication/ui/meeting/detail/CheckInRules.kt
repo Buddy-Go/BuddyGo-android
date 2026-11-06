@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.meeting.detail
 
 import com.example.myapplication.data.model.CHECK_IN_RADIUS_METERS
+import com.example.myapplication.ui.explore.formatDistance
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -16,6 +17,9 @@ sealed interface CheckInPrompt {
 
 // 서버는 모임 장소 50m 안에서만 성공시킨다. 앱도 같은 거리로 확인창의 버튼을 미리 막는다.
 fun canCheckIn(distanceMeters: Int): Boolean = distanceMeters <= CHECK_IN_RADIUS_METERS
+
+// 1km가 넘으면 km로 줄여 보인다. (10655m → 10.7km)
+private fun distanceText(meters: Int): String = formatDistance(meters) ?: "${meters}m"
 
 // 확인창에 보이는 글자. distanceLine이 있으면 '모임 장소에서 40m' 상자를 보여 준다.
 data class CheckInTexts(
@@ -37,14 +41,14 @@ fun checkInTextsOf(dialog: CheckInPrompt): CheckInTexts = when (dialog) {
     )
     is CheckInPrompt.Ready ->
         if (canCheckIn(dialog.distanceMeters)) CheckInTexts(
-            "체크인할까요?", "지금 체크인할 수 있어요", "모임 장소에서 ${dialog.distanceMeters}m", "체크인", "아니요",
+            "체크인할까요?", "지금 체크인할 수 있어요", "모임 장소에서 ${distanceText(dialog.distanceMeters)}", "체크인", "아니요",
             confirmEnabled = true, canRefresh = true,
         ) else CheckInTexts(
-            "아직 조금 멀어요", "반경 ${CHECK_IN_RADIUS_METERS}m 안에서 체크인할 수 있어요", "모임 장소에서 ${dialog.distanceMeters}m", "체크인", "닫기",
+            "아직 조금 멀어요", "반경 ${CHECK_IN_RADIUS_METERS}m 안에서 체크인할 수 있어요", "모임 장소에서 ${distanceText(dialog.distanceMeters)}", "체크인", "닫기",
             confirmEnabled = false, canRefresh = true,
         )
     is CheckInPrompt.Submitting -> CheckInTexts(
-        "체크인하는 중이에요", null, "모임 장소에서 ${dialog.distanceMeters}m", "체크인 중", "닫기", confirmEnabled = false, canRefresh = false,
+        "체크인하는 중이에요", null, "모임 장소에서 ${distanceText(dialog.distanceMeters)}", "체크인 중", "닫기", confirmEnabled = false, canRefresh = false,
     )
     CheckInPrompt.Failed -> CheckInTexts(
         "체크인하지 못했어요", "잠시 후 다시 시도해주세요", null, "다시 시도", "닫기", confirmEnabled = true, canRefresh = false,
