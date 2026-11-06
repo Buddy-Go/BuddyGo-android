@@ -26,4 +26,10 @@ interface MeetingRepository {
     suspend fun getJoinRequests(meetingId: String): Result<List<JoinRequest>>
     suspend fun accept(meetingId: String, requestId: String): Result<Unit>
     suspend fun reject(meetingId: String, requestId: String): Result<Unit>
+
+    // 호스트: 개설·취소·삭제 (service-rules 4장). 개설은 새 모임 id를 돌려준다.
+    // 시작 시각·정원 검사 같은 규칙 판정은 서버가 하고, 어기면 failure로 돌아온다.
+    suspend fun createMeeting(meeting: Meeting): Result<String>
+    suspend fun cancelMeeting(meetingId: String, reason: String): Result<Unit>
+    suspend fun deleteMeeting(meetingId: String): Result<Unit>
 }

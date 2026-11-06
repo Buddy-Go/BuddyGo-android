@@ -12,7 +12,7 @@ import com.example.myapplication.data.model.MeetingMember
 import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.distanceMeters
 
-// 목데이터로 응답한다. 서버 규칙은 흉내 내지 않고, 신청·취소 정도만 메모리에서 반영한다.
+// 목데이터로 응답한다. 서버 규칙은 신청·취소, 수락 시 자동 마감, 개설·취소·삭제 정도만 메모리에서 흉내 낸다.
 class FakeMeetingRepository(
     initial: List<Meeting> = MockMeetings.all,
     private val currentUserId: String = MockUsers.me.id,
@@ -83,18 +83,55 @@ class FakeMeetingRepository(
         return Result.success(requests)
     }
 
-    override suspend fun accept(meetingId: String, requestId: String): Result<Unit> =
-        update(meetingId) {
+    // 수락으로 정원이 차면 바로 마감되고 남은 대기 신청은 모두 거절된다 (service-rules 5장)
+    override suspend fun accept(meetingId: String, requestId: String): Result<Unit> {
+        val meeting = meetings.firstOrNull { it.id == meetingId }
+            ?: return Result.failure(NoSuchElementException(meetingId))
+        if (meeting.status != MeetingStatus.RECRUITING || meeting.isFull) {
+            return Result.failure(IllegalStateException("모집중이 아니에요"))
+        }
+        return update(meetingId) {
             val applicantId = requestId.substringAfterLast('-')
-            it.copy(
+            val accepted = it.copy(
                 pendingIds = it.pendingIds - applicantId,
                 confirmedIds = it.confirmedIds + applicantId,
                 confirmedCount = it.confirmedCount + 1,
             )
+            if (accepted.isFull) accepted.copy(status = MeetingStatus.CLOSED, pendingIds = emptyList()) else accepted
         }
+    }
 
     override suspend fun reject(meetingId: String, requestId: String): Result<Unit> =
         update(meetingId) { it.copy(pendingIds = it.pendingIds - requestId.substringAfterLast('-')) }
+
+    override suspend fun createMeeting(meeting: Meeting): Result<String> {
+        val host = MockUsers.all.firstOrNull { it.id == currentUserId }
+        val id = "new-${meetings.size + 1}"
+        meetings += meeting.copy(
+            id = id,
+            hostId = currentUserId,
+            hostNickname = host?.nickname.orEmpty(),
+            hostMannerTemperature = host?.mannerTemperature ?: 0f,
+            confirmedIds = listOf(currentUserId),
+            confirmedCount = 1,
+            pendingIds = emptyList(),
+            status = MeetingStatus.RECRUITING,
+        )
+        return Result.success(id)
+    }
+
+    // 취소하면 대기 신청도 모두 거절된다. 사유는 서버가 확정자에게 알림으로 보낸다 (4장)
+    override suspend fun cancelMeeting(meetingId: String, reason: String): Result<Unit> =
+        update(meetingId) { it.copy(status = MeetingStatus.CANCELED, pendingIds = emptyList()) }
+
+    // 삭제는 호스트 말고 확정된 사람이 없을 때만 된다 (5a-X3)
+    override suspend fun deleteMeeting(meetingId: String): Result<Unit> {
+        val meeting = meetings.firstOrNull { it.id == meetingId }
+            ?: return Result.failure(NoSuchElementException(meetingId))
+        if (meeting.confirmedCount > 1) return Result.failure(IllegalStateException("확정된 메이트가 있어요"))
+        meetings.remove(meeting)
+        return Result.success(Unit)
+    }
 
     private fun update(meetingId: String, change: (Meeting) -> Meeting): Result<Unit> {
         val index = meetings.indexOfFirst { it.id == meetingId }
