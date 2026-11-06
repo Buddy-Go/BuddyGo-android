@@ -49,7 +49,7 @@ object Routes {
     const val MATE_PROFILE = "mate/profile/{$ARG_USER_ID}"
 
     // 12 메이트 평가
-    const val REVIEW_LIST = "review"
+    const val REVIEW_LIST = "review/{$ARG_MEETING_ID}"
     const val MEMBER_REVIEW = "review/{$ARG_MEETING_ID}/{$ARG_USER_ID}"
     const val REVIEW_DONE = "review_done"
 
@@ -71,5 +71,6 @@ object Routes {
     fun noticeEdit(meetingId: String, noticeId: String? = null) =
         "meeting/$meetingId/notice_edit" + if (noticeId != null) "?$ARG_NOTICE_ID=$noticeId" else ""
     fun mateProfile(userId: String) = "mate/profile/$userId"
+    fun reviewList(meetingId: String) = "review/$meetingId"
     fun memberReview(meetingId: String, userId: String) = "review/$meetingId/$userId"
 }
