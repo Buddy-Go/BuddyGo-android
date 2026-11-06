@@ -54,7 +54,7 @@ import com.example.myapplication.ui.theme.AppSpace
 
 // 회원가입 3단계(2a, 2b, 2c~)가 같이 쓰는 위쪽 줄: 뒤로 가기 + 제목 + '단계 / 전체' + 진행 막대
 @Composable
-fun SignUpHeader(step: Int, total: Int, onBack: () -> Unit, modifier: Modifier = Modifier) {
+fun SignUpHeader(step: Int, total: Int, onBack: () -> Unit, modifier: Modifier = Modifier, title: String = "회원가입") {
     Column(modifier) {
         Row(
             modifier = Modifier
@@ -71,7 +71,7 @@ fun SignUpHeader(step: Int, total: Int, onBack: () -> Unit, modifier: Modifier =
                 }
             }
             Spacer(Modifier.width(AppSpace.md))
-            Text("회원가입", color = AppColor.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+            Text(title, color = AppColor.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
             Text("$step / $total", color = AppColor.TextDisabled, fontSize = 15.sp, modifier = Modifier.padding(end = AppSpace.md))
         }
         Row(Modifier.fillMaxWidth().height(3.dp).background(AppColor.SurfaceMuted)) {
