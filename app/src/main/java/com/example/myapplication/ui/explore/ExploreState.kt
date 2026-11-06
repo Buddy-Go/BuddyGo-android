@@ -36,13 +36,8 @@ data class ExploreState(
     val hasLocationCondition: Boolean get() = filter.district != null
 
     // 내 위치를 알면 거리를 그 위치에서 다시 잰다. 모르면 목록이 가져온 거리(서버 계산)를 그대로 쓴다.
-    private fun withMyDistance(meeting: Meeting): Meeting {
-        val me = myLocation ?: return meeting
-        val place = meeting.place
-        // 좌표가 없는(0, 0) 모임은 거리를 잴 수 없어 가져온 값을 그대로 둔다.
-        if (place.latitude == 0.0 && place.longitude == 0.0) return meeting
-        return meeting.copy(distanceMeters = distanceMeters(me, place.latitude, place.longitude))
-    }
+    private fun withMyDistance(meeting: Meeting): Meeting =
+        meeting.copy(distanceMeters = meetingDistanceMeters(meeting, myLocation))
 
     val pins: List<PinGroup> get() = visibleMeetings.groupIntoPins()
 

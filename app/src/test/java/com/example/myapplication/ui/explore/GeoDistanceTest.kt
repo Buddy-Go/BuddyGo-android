@@ -63,6 +63,24 @@ class GeoDistanceTest {
     }
 
     @Test
+    fun 모임_거리는_내_위치가_있을_때만_다시_잰다() {
+        val m = meeting("1", 37.5551, 126.8978, 777)
+        assertEquals(777, meetingDistanceMeters(m, null))
+        assertTrue(meetingDistanceMeters(m, hongdae)!! in 2_000..2_500)
+        assertEquals("좌표가 없으면 가져온 값", 777, meetingDistanceMeters(meeting("2", 0.0, 0.0, 777), hongdae))
+        assertEquals(null, meetingDistanceMeters(meeting("3", 0.0, 0.0, null), hongdae))
+    }
+
+    @Test
+    fun 마지막_내_위치를_저장하고_지울_수_있다() {
+        LastKnownLocation.clear()
+        assertEquals(null, LastKnownLocation.point.value)
+        LastKnownLocation.set(hongdae)
+        assertEquals(hongdae, LastKnownLocation.point.value)
+        LastKnownLocation.clear()
+    }
+
+    @Test
     fun 좌표가_없는_모임은_가져온_거리를_그대로_둔다() {
         val state = stateOf(hongdae, meeting("1", 0.0, 0.0, 500))
         assertEquals(500, state.visibleMeetings.single().distanceMeters)

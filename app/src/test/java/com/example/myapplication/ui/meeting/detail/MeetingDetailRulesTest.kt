@@ -324,4 +324,24 @@ class MeetingDetailRulesTest {
         assertEquals("취소된 모임", a.title)
         assertFalse(a.enabled)
     }
+
+    // ---- 장소 시트 ----
+
+    @Test
+    fun 전체_주소는_도로명_주소_뒤에_상세주소를_붙인다() {
+        val m = meeting().copy(place = MeetingPlace(address = "서울 마포구 양화로 100", detailAddress = "3층"))
+        assertEquals("서울 마포구 양화로 100 3층", fullAddress(m))
+        assertEquals("서울 마포구 양화로 100", fullAddress(meeting().copy(place = MeetingPlace(address = "서울 마포구 양화로 100"))))
+        assertEquals("상세주소가 비어 있으면 붙이지 않는다", "서울 마포구 양화로 100", fullAddress(meeting().copy(place = MeetingPlace(address = "서울 마포구 양화로 100", detailAddress = " "))))
+    }
+
+    @Test
+    fun 길찾기_링크는_이름과_좌표를_담고_공백을_인코딩한다() {
+        val m = meeting().copy(place = MeetingPlace(name = "한강공원 망원지구", latitude = 37.5551, longitude = 126.8978))
+        val url = routeUrl(m)
+        assertTrue(url.startsWith("https://map.kakao.com/link/to/"))
+        assertTrue(url.endsWith(",37.5551,126.8978"))
+        assertFalse("공백이 그대로 남지 않는다", url.contains(' '))
+        assertTrue(url.contains("%20"))
+    }
 }

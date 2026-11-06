@@ -8,6 +8,8 @@ import com.example.myapplication.data.repository.FakeMeetingRepository
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.GeoPoint
+import com.example.myapplication.ui.explore.LastKnownLocation
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -125,5 +127,21 @@ class MeetingDetailViewModelTest {
         assertEquals(DetailSheet.PLACE, vm.state.value.openSheet)
         vm.onCloseSheet()
         assertNull(vm.state.value.openSheet)
+    }
+
+    @Test
+    fun 탐색에서_알아낸_내_위치로_장소_시트의_거리를_다시_잰다() {
+        LastKnownLocation.clear()
+        val noLocation = vm(MockMeetings.recruiting.id)
+        assertEquals("위치를 모르면 가져온 거리", MockMeetings.recruiting.distanceMeters, noLocation.state.value.distanceMeters)
+        LastKnownLocation.set(GeoPoint(37.5551, 126.8978))
+        val withLocation = vm(MockMeetings.recruiting.id)
+        assertTrue(withLocation.state.value.distanceMeters!! in 2_000..2_500)
+        LastKnownLocation.clear()
+    }
+
+    @Test
+    fun 내_기록을_불러와_기준_시트에서_비교할_수_있다() {
+        assertEquals(80, vm(MockMeetings.recruiting.id).state.value.myRecord?.benchPressKg)
     }
 }

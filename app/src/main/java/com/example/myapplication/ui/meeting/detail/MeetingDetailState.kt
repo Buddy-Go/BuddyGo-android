@@ -1,8 +1,11 @@
 package com.example.myapplication.ui.meeting.detail
 
+import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.GeoPoint
+import com.example.myapplication.ui.explore.meetingDistanceMeters
 
 // 모임 상세 위에 뜨는 시트 (5e 장소, 5f·5h 기준)
 enum class DetailSheet { PLACE, CRITERIA }
@@ -10,6 +13,8 @@ enum class DetailSheet { PLACE, CRITERIA }
 data class MeetingDetailState(
     val meeting: UiState<Meeting> = UiState.Loading,
     val myUserId: String = "",
+    val myLocation: GeoPoint? = null,        // 탐색에서 알아낸 내 위치. 장소 시트의 거리 계산에 쓴다
+    val myRecord: ExerciseRecord? = null,   // 기준 시트에서 내 기록과 비교할 때 쓴다
     val nowMillis: Long = 0L,
     val submitting: Boolean = false,       // 신청 취소 같은 요청을 보내는 중
     val message: String? = null,           // 사용자에게 한 번 보여 줄 안내(실패 등)
@@ -23,6 +28,9 @@ data class MeetingDetailState(
     // 지금 하단에 보여 줄 큰 버튼 (호스트이거나 모임을 못 불러왔으면 null)
     val bottomAction: BottomAction?
         get() = loaded?.let { bottomActionOf(it, role, myUserId, nowMillis) }
+
+    // 장소 시트의 '내 위치에서 N'에 쓰는 거리. 탐색 카드와 같은 값이다.
+    val distanceMeters: Int? get() = loaded?.let { meetingDistanceMeters(it, myLocation) }
 
     fun withFavorite(favorite: Boolean): MeetingDetailState {
         val m = loaded ?: return this

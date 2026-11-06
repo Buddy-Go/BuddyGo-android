@@ -8,6 +8,7 @@ import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.LastKnownLocation
 import java.io.IOException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,7 @@ class MeetingDetailViewModel(
     private val userRepository: UserRepository = FakeUserRepository(),
     nowMillis: Long = System.currentTimeMillis(),
 ) : ViewModel() {
-    private val _state = MutableStateFlow(MeetingDetailState(nowMillis = nowMillis))
+    private val _state = MutableStateFlow(MeetingDetailState(nowMillis = nowMillis, myLocation = LastKnownLocation.point.value))
     val state: StateFlow<MeetingDetailState> = _state.asStateFlow()
 
     init {
@@ -34,7 +35,7 @@ class MeetingDetailViewModel(
         viewModelScope.launch {
             // 내가 누구인지 알아야 역할(호스트·확정·대기)을 판단할 수 있다.
             val me = userRepository.getCurrentUser().getOrNull()
-            _state.update { it.copy(myUserId = me?.id.orEmpty()) }
+            _state.update { it.copy(myUserId = me?.id.orEmpty(), myRecord = me?.record) }
             val result = repository.getMeeting(meetingId)
             _state.update {
                 it.copy(
