@@ -7,8 +7,6 @@ import androidx.compose.ui.unit.dp
 object AppColor {
     val Accent = Color(0xFFA3E635)
     // TODO: 16j 캡션의 AccentSoft 값을 스크린샷에서 추정한 값. 확정되면 교체한다.
-    val AccentSoft = Color(0xFFF0FBDD)
-    val ChipNeutralBg = Color(0xFFF4F4F5) // 16j 캡션 값
     val AccentStrong = Color(0xFF4D7C0F)
     val Surface = Color(0xFFFFFFFF)
     val SurfaceMuted = Color(0xFFF7F7F8)
@@ -18,8 +16,6 @@ object AppColor {
     val Border = Color(0xFFE4E4E7)
     // 16번 프레임 캡션 값
     // 16i 캡션 값
-    val DestructiveSoftBg = Color(0xFFFDECEC)
-    val DestructiveText = Color(0xFFB3261E)
     val SkeletonBase = Color(0xFFEBECEE)
     val SkeletonShimmer = Color(0xFFF4F4F5)
     val IconMuted = Color(0xFF71717A)
