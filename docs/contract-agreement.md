@@ -37,31 +37,33 @@
 - `Notification`: `subject`(굵게 보이는 앞부분)를 추가했다. 화면은 `subject + message`로 그린다. `message`가 "님"으로 시작하면 붙여 쓰고(서연님이 …) 아니면 한 칸 띄운다.
 - 새 모델: `CheckInResult`, `ProfileStats`, `TagCount`, `ReceivedReview`, `GeoPoint`.
 
-## 3. 같이 정할 것
+## 3. 정한 것
 
-- [ ] **알림 `subject`**: 서버가 알림을 만들 때 굵게 보일 앞부분(모임 제목, 상대 닉네임)을 따로 내려줄 수 있는가. 안 되면 앱이 문장을 쪼개야 한다.
-- [ ] **알림 탭 이동 경로**: 아래 경로의 인자가 문진곤 화면과 맞는가.
-  - 공지 알림 → `Routes.noticeDetail(meetingId, noticeId)` (8g)
+2026-11-06 사용자(문찬주) 판단으로 아래처럼 확정했다. 서버 연결 때 이 약속을 기준으로 맞춘다.
+
+- [x] **알림 `subject`**: 서버가 알림마다 굵게 보일 앞부분(`subject`, 모임 제목이나 상대 닉네임)과 뒤 문장(`message`)을 따로 내려준다. 앱은 이어 붙이기만 한다.
+- [x] **알림 탭 이동 경로**: 아래 그대로 확정. 에뮬레이터에서 8g, 11c, 7, 모임 상세 이동을 확인했다.
+  - 공지 알림 → `Routes.noticeDetail(meetingId, noticeId)` (8g). 공지가 없으면 오류 화면(16g)이 나온다.
   - 메이트 신청 알림 → `Routes.MATE_REQUEST` (11c)
   - 메이트 수락·모임 개설·신청 알림 → 모임 상세, 없으면 `Routes.mateProfile(userId)` (15)
   - 모임 종료 알림 → `Routes.REVIEW_LIST` (12a)
-- [ ] **호스트 영역 연결**: 모임 상세에서 `isHost`일 때 부를 composable 이름과 인자(`HostSection.kt`). 지금은 `MeetingDetailScreen.kt`의 임시 자리다.
+- [x] **호스트 영역 연결**: 끝났다. 모임 상세에서 호스트면 `HostSection.kt` 부품으로 화면을 구성한다. (PR #62)
 - [x] **신청 → 수락·거절이 이어지는 데이터**: Fake에서 이어지도록 고쳤다. 서버도 같은 동작이어야 한다.
   - `apply(meetingId, message)`의 한마디(앞뒤 공백 제거, 비면 없음)와 신청 시각이 `getJoinRequests`의 `JoinRequest`에 그대로 담긴다.
   - 모집중이 아니거나 이미 신청·확정한 모임에 신청하면 실패한다.
   - `accept`는 확정에 넣고, 명단이 공개된 모임이면 `members`에도 넣는다. 정원이 차면 `CLOSED`로 바뀌고 남은 신청은 거절된다.
   - 신청 취소·거절하면 한마디도 지워진다.
   - 수락·거절 알림(JOIN_ACCEPTED, JOIN_REJECTED)은 신청자에게 가야 하는데, Fake는 로그인한 한 사람만 흉내 내서 만들지 않는다. 서버 몫이다.
-- [ ] **프로필 숫자·후기 재사용**: `ProfileStats`, `ReceivedReview`를 메이트 프로필(15)에서 그대로 쓸 것인가.
-- [ ] **종목 이름 함수**: `ui/common/SportLabel.kt`의 `sportLabel()`을 같이 쓴다. 문진곤 화면에서 같은 이름의 함수를 새로 만들지 않는다.
-- [ ] **색 토큰**: `AppTokens.kt`의 `AccentSoft` 등은 스크린샷에서 추정한 값이다. 16번 프레임 캡션 값으로 확정해 공용 파일을 한 번에 고친다.
+- [x] **프로필 숫자·후기 재사용**: 마이페이지(14)는 `ProfileStats`/`ReceivedReview`를, 메이트 프로필(15)은 이미 만든 `MateProfile`을 그대로 쓴다. 두 화면이 같은 `TagCount`(문구 `label`, 받은 수 `count`)를 공유한다. 서버 응답이 정해지면 한 모델로 합친다.
+- [x] **종목 이름 함수**: `ui/common/SportLabel.kt`의 `sportLabel()` 하나만 쓴다. 같은 이름의 함수를 새로 만들지 않는다.
+- [x] **색 토큰**: 현재 `AppTokens.kt` 값으로 확정한다. `AccentSoft`는 `F1FBE0`(흐름 A 값)이다. 16번 프레임 캡션 값과 달라지면 `AppTokens.kt` 한 곳만 고친다.
 
-## 4. 문진곤이 추가할 호출 (이미 약속된 것)
+## 4. 호스트 호출 (추가 완료)
 
-`MeetingRepository`에는 개설·수정·취소, 공지·댓글, 평가를 추가하지 않았다. 그 화면을 만드는 사람이 interface에 추가한다. (`data-model.md`) 호스트의 `getJoinRequests`, `accept`, `reject`는 이미 있다.
+`MeetingRepository`에 개설(`createMeeting`), 수정(`updateMeeting`), 취소(`cancelMeeting`), 삭제(`deleteMeeting`), 신청 목록·수락·거절이 있다. 공지·댓글, 평가, 메이트는 각 화면의 저장소에 있다.
 
-## 5. 합의 방법
+- `updateMeeting(meetingId, meeting)`: 확정 참가자(호스트 제외)가 있으면 서버는 제목·설명·상세주소만 반영한다. 진행중이 된 뒤에는 실패한다. 잠기지 않았을 때 시작을 바꾸면 지금부터 1시간 30분 이후여야 하고, 정원은 확정 인원보다 작을 수 없다. (service-rules 4장)
 
-- 이 문서의 3번 항목을 하나씩 정하고 `[x]`와 결정 내용을 적는다.
-- 모두 정해지면 `work-split.md`의 "문진곤과 모델·interface 합의 완료"를 체크한다.
-- interface를 바꾸는 변경은 화면 작업과 분리한 PR로 올린다. (project-rules)
+## 5. 이 문서를 쓰는 방법
+
+- 새 호출이나 모델 변경은 화면 작업과 분리한 PR로 올리고, 이 문서에 약속을 적는다. (project-rules)

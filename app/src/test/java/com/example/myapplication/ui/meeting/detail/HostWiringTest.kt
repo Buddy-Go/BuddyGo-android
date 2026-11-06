@@ -108,11 +108,11 @@ class HostWiringTest {
     }
 
     @Test
-    fun 수정은_아직_안내만_한다() {
+    fun 수정은_창을_열지_않고_화면이_수정_화면으로_이동한다() {
         val v = vm(MockMeetings.hosted.id)
         v.onHostAction(HostAction.EDIT)
         assertNull(v.state.value.hostDialog)
-        assertNotNull(v.state.value.message)
+        assertNull(v.state.value.message)
     }
 
     @Test

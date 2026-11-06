@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
 import com.example.myapplication.data.model.BodyPart
+import com.example.myapplication.ui.common.ToastType
+import com.example.myapplication.ui.common.ToastState
+import com.example.myapplication.ui.common.ToastHost
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.SkillLevel
@@ -56,11 +60,24 @@ fun MeetingCreateScreen(
     onClose: () -> Unit,
     onPlaceClick: () -> Unit, // 10g 장소 검색 화면으로 이동
     onCreated: (meetingId: String) -> Unit, // 개설 후 5번 모임 상세로
+    onUpdated: () -> Unit = {}, // 수정 후 모임 상세로 돌아간다
 ) {
     val state = viewModel.state
     LaunchedEffect(state.createdMeetingId) {
         state.createdMeetingId?.let(onCreated)
     }
+    LaunchedEffect(state.updated) {
+        if (state.updated) onUpdated()
+    }
+    // 실패 안내는 토스트로 한 번 보여 주고 지운다.
+    val toast = remember { ToastState() }
+    LaunchedEffect(state.errorMessage) {
+        state.errorMessage?.let {
+            viewModel.onErrorShown()
+            toast.show(it, ToastType.Error)
+        }
+    }
+    Box(Modifier.fillMaxSize()) {
     MeetingCreateContent(
         state = state,
         onClose = onClose,
@@ -69,13 +86,21 @@ fun MeetingCreateScreen(
         onCalendarClick = viewModel::onCalendarClick,
         onTimeClick = viewModel::onTimeClick,
         onCriteriaClick = viewModel::onCriteriaClick,
-        onPlaceClick = onPlaceClick,
+        onPlaceClick = if (state.isEditMode) viewModel::onDetailAddressClick else onPlaceClick,
         onCapacityClick = viewModel::onCapacityClick,
         onDescriptionClick = viewModel::onDescriptionClick,
         onSubmit = viewModel::onSubmit,
     )
+    ToastHost(toast, Modifier.align(Alignment.BottomCenter).padding(bottom = 88.dp))
+    }
 
     when (state.openSheet) {
+        CreateSheet.DETAIL_ADDRESS -> DetailAddressBottomSheet(
+            placeName = state.place?.name.orEmpty(),
+            initial = state.place?.detail.orEmpty(),
+            onApply = viewModel::onDetailAddressApply,
+            onDismiss = viewModel::onSheetDismiss,
+        )
         CreateSheet.HEALTH_CRITERIA -> HealthCriteriaBottomSheet(
             initial = state.healthCriteria,
             onApply = viewModel::onHealthCriteriaApply,
@@ -118,7 +143,7 @@ private fun MeetingCreateContent(
             .navigationBarsPadding()
             .imePadding(),
     ) {
-        Header(onClose = onClose)
+        Header(title = if (state.isEditMode) "모임 수정" else "모임 개설", onClose = onClose)
 
         Column(
             modifier = Modifier
@@ -132,6 +157,7 @@ private fun MeetingCreateContent(
                 ),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
+            if (state.lockedCore) LockedNotice()
             TitleSection(title = state.title, onTitleChange = onTitleChange)
             DateTimeSection(
                 state = state,
@@ -141,20 +167,25 @@ private fun MeetingCreateContent(
             )
             DetailCard(
                 rows = listOf(
-                    DetailRow("기준", state.criteriaSummary, onCriteriaClick),
+                    DetailRow("기준", state.criteriaSummary, onCriteriaClick, locked = state.lockedCore),
+                    // 확정 참가자가 있어도 상세주소는 고칠 수 있어 장소 행은 잠그지 않는다.
                     DetailRow("장소", state.placeSummary, onPlaceClick),
-                    DetailRow("정원 · 성별", state.capacitySummary, onCapacityClick),
+                    DetailRow("정원 · 성별", state.capacitySummary, onCapacityClick, locked = state.lockedCore),
                     DetailRow("설명", state.descriptionSummary, onDescriptionClick),
                 ),
             )
         }
 
-        BottomBar(enabled = state.canSubmit && !state.isSubmitting, onSubmit = onSubmit)
+        BottomBar(
+            text = if (state.isEditMode) "수정 완료" else "모임 개설하기",
+            enabled = state.canSubmit && !state.isSubmitting,
+            onSubmit = onSubmit,
+        )
     }
 }
 
 @Composable
-private fun Header(onClose: () -> Unit) {
+private fun Header(title: String, onClose: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -172,7 +203,7 @@ private fun Header(onClose: () -> Unit) {
                 .clickable(onClick = onClose),
         )
         Text(
-            text = "모임 개설",
+            text = title,
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
             color = AppColor.TextPrimary,
@@ -238,6 +269,7 @@ private fun DateTimeSection(
                 DateChip(
                     option = option,
                     selected = index == state.selectedDateIndex,
+                    locked = state.lockedCore,
                     onClick = { onDateSelect(index) },
                 )
             }
@@ -245,7 +277,7 @@ private fun DateTimeSection(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(AppRadius.pill))
-                    .clickable(onClick = onCalendarClick),
+                    .clickable(enabled = !state.lockedCore, onClick = onCalendarClick),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -262,20 +294,21 @@ private fun DateTimeSection(
             value = state.timeSummary,
             onClick = onTimeClick,
             modifier = Modifier.padding(vertical = AppSpace.xxl),
+            locked = state.lockedCore,
         )
     }
 }
 
 @Composable
-private fun DateChip(option: DateOption, selected: Boolean, onClick: () -> Unit) {
+private fun DateChip(option: DateOption, selected: Boolean, locked: Boolean = false, onClick: () -> Unit) {
     val shape = RoundedCornerShape(AppRadius.pill)
     Column(
         modifier = Modifier
             .width(48.dp)
             .height(60.dp)
             .clip(shape)
-            .background(if (selected) AppColor.Accent else Color.Transparent)
-            .clickable(onClick = onClick),
+            .background(if (selected) (if (locked) AppColor.AccentSoft else AppColor.Accent) else Color.Transparent)
+            .clickable(enabled = !locked, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(AppSpace.xxs, Alignment.CenterVertically),
     ) {
@@ -294,7 +327,7 @@ private fun DateChip(option: DateOption, selected: Boolean, onClick: () -> Unit)
     }
 }
 
-private data class DetailRow(val label: String, val value: String?, val onClick: () -> Unit)
+private data class DetailRow(val label: String, val value: String?, val onClick: () -> Unit, val locked: Boolean = false)
 
 @Composable
 private fun DetailCard(rows: List<DetailRow>) {
@@ -313,6 +346,7 @@ private fun DetailCard(rows: List<DetailRow>) {
                 value = row.value,
                 onClick = row.onClick,
                 modifier = Modifier.height(52.dp),
+                locked = row.locked,
             )
         }
     }
@@ -325,11 +359,12 @@ private fun ValueRow(
     value: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    locked: Boolean = false, // 수정 모드에서 확정 참가자가 있으면 바꿀 수 없다
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = !locked, onClick = onClick)
             .then(modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AppSpace.lg),
@@ -345,23 +380,46 @@ private fun ValueRow(
             text = value ?: "미입력",
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = if (value == null) AppColor.TextSecondary else AppColor.TextBody,
+            color = if (value == null || locked) AppColor.TextSecondary else AppColor.TextBody,
             textAlign = TextAlign.End,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        Icon(
-            painter = painterResource(R.drawable.ic_chevron_right),
-            contentDescription = null,
-            tint = AppColor.IconMuted,
-            modifier = Modifier.size(18.dp),
+        if (locked) {
+            Text(text = "잠김", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextDisabled)
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = AppColor.IconMuted,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+}
+
+// 수정 모드 + 확정 참가자 있음: 무엇이 잠기는지 알려 준다. (service-rules 4장)
+@Composable
+private fun LockedNotice() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(AppRadius.md))
+            .background(AppColor.SurfaceMuted)
+            .padding(AppSpace.xxl),
+        verticalArrangement = Arrangement.spacedBy(AppSpace.xxs),
+    ) {
+        Text("확정된 메이트가 있어요", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+        Text(
+            "제목, 설명, 상세주소만 바꿀 수 있어요. 일시·기준·정원은 공지로 안내해 주세요.",
+            fontSize = 13.sp, lineHeight = 19.sp, color = AppColor.TextSecondary,
         )
     }
 }
 
 @Composable
-private fun BottomBar(enabled: Boolean, onSubmit: () -> Unit) {
+private fun BottomBar(text: String, enabled: Boolean, onSubmit: () -> Unit) {
     val shape = RoundedCornerShape(AppRadius.md)
     Column(modifier = Modifier.background(AppColor.Surface)) {
         HorizontalLine(AppColor.DividerSoft)
@@ -381,7 +439,7 @@ private fun BottomBar(enabled: Boolean, onSubmit: () -> Unit) {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "모임 개설하기",
+                text = text,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (enabled) AppColor.OnAccent else AppColor.TextDisabled,
