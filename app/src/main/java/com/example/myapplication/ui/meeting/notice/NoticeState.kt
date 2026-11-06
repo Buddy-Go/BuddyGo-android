@@ -51,6 +51,7 @@ data class NoticeDetailState(
     val commentInput: String = "",
     val isSending: Boolean = false,
     val isDeleted: Boolean = false, // 공지를 지우면 화면을 닫는다
+    val loadFailed: Boolean = false, // 공지를 못 찾았거나 불러오지 못함 (알림에서 지워진 공지로 들어온 경우 등)
 ) {
     // 8f: 오른쪽 위 ⋯(수정·삭제)는 호스트에게만
     val canManageNotice: Boolean get() = isHost && !isReadOnly

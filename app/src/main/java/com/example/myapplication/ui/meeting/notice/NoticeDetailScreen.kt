@@ -34,6 +34,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
+import com.example.myapplication.ui.common.ErrorType
+import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.data.model.Comment
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
@@ -61,6 +63,7 @@ fun NoticeDetailScreen(
         onCommentInputChange = viewModel::onCommentInputChange,
         onSend = viewModel::onSend,
         onDeleteComment = viewModel::onDeleteComment,
+        onRetry = viewModel::refresh,
     )
 }
 
@@ -73,6 +76,7 @@ private fun NoticeDetailContent(
     onCommentInputChange: (String) -> Unit,
     onSend: () -> Unit,
     onDeleteComment: (String) -> Unit,
+    onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     Column(
@@ -100,6 +104,12 @@ private fun NoticeDetailContent(
                     description = "공지 더보기",
                 )
             }
+        }
+
+        if (state.loadFailed) {
+            // 공지를 못 찾으면 빈 화면 대신 오류 화면 (16g)
+            FullScreenError(type = ErrorType.SERVER, onRetry = onRetry, modifier = Modifier.weight(1f))
+            return@Column
         }
 
         val notice = state.notice

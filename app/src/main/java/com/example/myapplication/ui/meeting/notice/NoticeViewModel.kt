@@ -132,8 +132,10 @@ class NoticeDetailViewModel(
 
     fun refresh() {
         viewModelScope.launch {
+            val notice = noticeRepository.getNotice(noticeId).getOrNull()
             state = state.copy(
-                notice = noticeRepository.getNotice(noticeId).getOrNull(),
+                notice = notice,
+                loadFailed = notice == null,
                 comments = noticeRepository.getComments(noticeId).getOrDefault(emptyList()),
             )
         }
