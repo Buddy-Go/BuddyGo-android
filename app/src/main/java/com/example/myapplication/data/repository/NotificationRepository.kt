@@ -9,4 +9,7 @@ interface NotificationRepository {
 
     // 알림을 읽음으로 바꾼다. 이미 읽은 알림에 다시 보내도 결과는 같다.
     suspend fun markAsRead(notificationId: String): Result<Unit>
+
+    // '모두 읽음'. 읽지 않은 알림을 한 번에 읽음으로 바꾼다. 이미 모두 읽었어도 결과는 같다.
+    suspend fun markAllAsRead(): Result<Unit>
 }

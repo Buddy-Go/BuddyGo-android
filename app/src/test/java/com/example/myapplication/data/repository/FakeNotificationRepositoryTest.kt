@@ -39,4 +39,25 @@ class FakeNotificationRepositoryTest {
     fun 빈_목록도_성공으로_돌려준다() {
         assertTrue(list(FakeNotificationRepository(MockNotifications.empty)).isEmpty())
     }
+
+    @Test
+    fun 모두_읽음을_누르면_모든_알림이_읽은_상태가_된다() {
+        val repo = FakeNotificationRepository()
+        assertTrue(list(repo).any { !it.isRead })
+        assertTrue(runBlocking { repo.markAllAsRead() }.isSuccess)
+        assertTrue(list(repo).all { it.isRead })
+    }
+
+    @Test
+    fun 이미_모두_읽었어도_모두_읽음은_성공한다() {
+        val repo = FakeNotificationRepository(MockNotifications.allRead)
+        assertTrue(runBlocking { repo.markAllAsRead() }.isSuccess)
+        assertTrue(runBlocking { FakeNotificationRepository(MockNotifications.empty).markAllAsRead() }.isSuccess)
+    }
+
+    @Test
+    fun 목데이터에_강조_문구가_있는_알림이_있다() {
+        assertEquals("서연", MockNotifications.readMate.subject)
+        assertTrue(MockNotifications.all.all { it.subject != null })
+    }
 }

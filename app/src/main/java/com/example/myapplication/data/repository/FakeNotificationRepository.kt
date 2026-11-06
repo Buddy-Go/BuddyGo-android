@@ -18,4 +18,9 @@ class FakeNotificationRepository(
         notifications[index] = notifications[index].copy(isRead = true)
         return Result.success(Unit)
     }
+
+    override suspend fun markAllAsRead(): Result<Unit> {
+        notifications.replaceAll { it.copy(isRead = true) }
+        return Result.success(Unit)
+    }
 }

@@ -26,6 +26,8 @@ enum class NotificationType {
 data class Notification(
     val id: String = "",
     val type: NotificationType = NotificationType.JOIN_REQUESTED,
+    // 알림 문장에서 굵게 보이는 앞부분(모임 제목, 상대 닉네임). 없으면 message만 보여 준다. (3-6 알림 목록)
+    val subject: String? = null,
     val message: String = "",
     val meetingId: String? = null,
     val noticeId: String? = null,

@@ -204,6 +204,7 @@ class ExploreViewModelTest {
         val failing = object : NotificationRepository {
             override suspend fun getNotifications() = Result.failure<List<Notification>>(IOException())
             override suspend fun markAsRead(notificationId: String) = Result.success(Unit)
+            override suspend fun markAllAsRead() = Result.success(Unit)
         }
         val vm = viewModel(notifications = failing)
         vm.refreshNotifications()
