@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.model.CheckInResult
 import com.example.myapplication.data.model.JoinRequest
 import com.example.myapplication.data.model.Meeting
 
@@ -11,6 +12,7 @@ class RealMeetingRepository : MeetingRepository {
     override suspend fun apply(meetingId: String, message: String?): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun cancelApplication(meetingId: String): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun leave(meetingId: String): Result<Unit> = TODO("서버 연결 후 구현")
+    override suspend fun checkIn(meetingId: String, latitude: Double, longitude: Double): Result<CheckInResult> = TODO("서버 연결 후 구현")
     override suspend fun getJoinRequests(meetingId: String): Result<List<JoinRequest>> = TODO("서버 연결 후 구현")
     override suspend fun accept(meetingId: String, requestId: String): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun reject(meetingId: String, requestId: String): Result<Unit> = TODO("서버 연결 후 구현")

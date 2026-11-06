@@ -24,6 +24,7 @@ data class MeetingMember(
     val userId: String,
     val nickname: String,
     val checkedIn: Boolean = false,
+    val checkedInAtMillis: Long? = null, // 체크인한 시각 (9c '체크인 완료 · 오전 7:02')
 )
 
 data class MeetingPlace(
