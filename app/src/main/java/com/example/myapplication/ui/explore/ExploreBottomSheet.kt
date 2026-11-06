@@ -138,6 +138,7 @@ private fun SheetBody(
                             meeting = meeting,
                             onClick = { onMeetingClick(meeting.id) },
                             onToggleFavorite = { onToggleFavorite(meeting.id) },
+                            showPlaceName = state.sheetTitlePlace == null,
                         )
                     }
                 }

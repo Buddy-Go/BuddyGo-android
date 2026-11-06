@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.explore
 
+import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.MeetingPlace
 import java.util.Calendar
 import java.util.TimeZone
 import org.junit.Assert.assertEquals
@@ -61,5 +63,27 @@ class MeetingFormatTest {
     fun 자정과_정오는_열두_시로_쓴다() {
         assertEquals("오늘 오전 12:05", formatStartTime(millis(2026, 11, 6, 0, 5), now, seoul))
         assertEquals("오늘 오후 12:00", formatStartTime(millis(2026, 11, 6, 12), now, seoul))
+    }
+
+    private fun meetingAt(name: String, detail: String?) = Meeting(
+        place = MeetingPlace(name = name, detailAddress = detail),
+        startAtMillis = millis(2026, 11, 6, 19, 30),
+    )
+
+    @Test
+    fun 장소_줄은_장소명_상세주소_시각_순이다() {
+        assertEquals("에이블짐 홍대점 3층 · 오늘 오후 7:30", formatPlaceAndTime(meetingAt("에이블짐 홍대점", "3층"), now, timeZone = seoul))
+    }
+
+    @Test
+    fun 상세주소가_없거나_비어_있으면_장소명만_쓴다() {
+        assertEquals("한강공원 · 오늘 오후 7:30", formatPlaceAndTime(meetingAt("한강공원", null), now, timeZone = seoul))
+        assertEquals("한강공원 · 오늘 오후 7:30", formatPlaceAndTime(meetingAt("한강공원", "  "), now, timeZone = seoul))
+    }
+
+    @Test
+    fun 장소명을_숨기면_상세주소만_쓰고_둘_다_없으면_시각만_쓴다() {
+        assertEquals("3층 · 오늘 오후 7:30", formatPlaceAndTime(meetingAt("에이블짐", "3층"), now, showPlaceName = false, timeZone = seoul))
+        assertEquals("오늘 오후 7:30", formatPlaceAndTime(meetingAt("에이블짐", null), now, showPlaceName = false, timeZone = seoul))
     }
 }
