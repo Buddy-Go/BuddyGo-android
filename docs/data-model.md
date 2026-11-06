@@ -38,6 +38,7 @@
 | 이름 | 하는 일 |
 | --- | --- |
 | `MeetingRepository` | 목록·상세 조회, 찜 켜기·끄기, 신청·신청 취소·나가기(참가자), 신청 목록·수락·거절(호스트) |
+| `NotificationRepository` | 알림 목록, 읽음 처리 |
 | `UserRepository` | 로그인, 내 정보, 사용자 조회 |
 
 - 모든 호출은 `suspend`이고 `Result<T>`를 돌려준다.
