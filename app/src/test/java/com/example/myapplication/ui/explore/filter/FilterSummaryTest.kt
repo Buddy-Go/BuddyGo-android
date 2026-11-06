@@ -52,6 +52,8 @@ class FilterSummaryTest {
     fun 헬스_기준_설정이_꺼져_있으면_부위만_쓰고_수준은_관계없음이다() {
         val filter = MeetingFilter(sport = Sport.HEALTH, health = HealthFilter(parts = setOf(BodyPart.ARM, BodyPart.CHEST)))
         assertEquals("가슴 · 팔 · 수준 관계없음", criteriaSummary(filter))
+        val all = MeetingFilter(sport = Sport.HEALTH, health = HealthFilter(parts = BodyPart.entries.toSet()))
+        assertEquals("디자인 순서: 가슴·등·팔·하체·어깨", "가슴 · 등 · 팔 · 하체 · 어깨 · 수준 관계없음", criteriaSummary(all))
     }
 
     @Test

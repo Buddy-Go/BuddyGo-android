@@ -58,7 +58,7 @@ fun criteriaSummary(filter: MeetingFilter): String? = when (filter.sport) {
 
 private fun healthSummary(health: HealthFilter): String {
     if (health.parts.isEmpty()) return NONE
-    val ordered = BodyPart.entries.filter { it in health.parts }
+    val ordered = filterPartOrder.filter { it in health.parts }
     // 기준 설정이 꺼져 있으면 부위만 보여 주고 수준은 관계없다고 쓴다. (4a-3)
     if (!health.criteriaOn) return ordered.joinToString(" · ") { bodyPartLabel(it) } + " · 수준 $NONE"
     return ordered.joinToString(" · ") { part ->

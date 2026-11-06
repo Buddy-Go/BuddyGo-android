@@ -73,6 +73,23 @@ fun FilterScreen(
         },
         modifier = modifier,
     )
+
+    // 조건 설정 위에 뜨는 시트들. 닫으면(적용 없이) 열기 전 값으로 돌아간다.
+    when (state.openSheet) {
+        FilterSheet.CRITERIA -> HealthFilterBottomSheet(
+            state = state,
+            onTogglePart = viewModel::onTogglePart,
+            onSetCriteriaOn = viewModel::onSetCriteriaOn,
+            onResetToMine = viewModel::onResetToMine,
+            onSetRange = viewModel::onSetRange,
+            onSetArmLevel = viewModel::onSetArmLevel,
+            onSetPaceRange = viewModel::onSetPaceRange,
+            onSetHikingStyle = viewModel::onSetHikingStyle,
+            onDismiss = viewModel::onDismissSheet,
+            onApply = viewModel::onApplySheet,
+        )
+        FilterSheet.DETAIL, FilterSheet.TIME_RANGE, null -> Unit // 이어지는 PR에서 붙인다.
+    }
 }
 
 @Composable
