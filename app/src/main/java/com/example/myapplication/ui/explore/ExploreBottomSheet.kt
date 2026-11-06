@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.ui.common.SkeletonList
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
@@ -100,7 +102,7 @@ private fun SheetHeader(state: ExploreState) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                text = place ?: "이 지역 모임 ${state.visibleMeetings.size}",
+                text = place ?: if (state.meetings is UiState.Success) "이 지역 모임 ${state.visibleMeetings.size}" else "이 지역 모임",
                 color = AppColor.TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold,
             )
             if (place != null) {
@@ -125,7 +127,14 @@ private fun SheetBody(
 ) {
     when (state.meetings) {
         // 16e 부분 로딩: 지도는 그대로 두고 목록 자리만 스켈레톤으로 채운다.
-        UiState.Loading -> SkeletonList()
+        UiState.Loading -> Column(
+            Modifier.fillMaxWidth().padding(top = AppSpace.x5 * 3),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            CircularProgressIndicator(Modifier.size(28.dp), color = AppColor.AccentStrong, trackColor = AppColor.ChipNeutralBg, strokeWidth = 3.dp)
+            Spacer(Modifier.height(AppSpace.xl))
+            Text("이 지역 모임을 불러오는 중", color = AppColor.TextSecondary, fontSize = 15.sp)
+        }
         is UiState.Error -> Unit // 오류는 화면 전체를 덮는 FullScreenError가 맡는다.
         is UiState.Success -> {
             val meetings = state.sheetMeetings

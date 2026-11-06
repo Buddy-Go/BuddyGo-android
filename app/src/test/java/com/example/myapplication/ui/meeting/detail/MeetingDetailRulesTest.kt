@@ -103,6 +103,14 @@ class MeetingDetailRulesTest {
     }
 
     @Test
+    fun 종료된_모임의_아바타는_체크인한_사람만_보여_준다() {
+        val members = listOf(MeetingMember("a", "민", true), MeetingMember("b", "서", false), MeetingMember("c", "유", true))
+        val row = avatarRowOf(meeting(MeetingStatus.ENDED, confirmed = 3, members = members))!!
+        assertEquals(listOf("민", "유"), row.initials)
+        assertEquals("진행중에는 모두 보인다", 3, avatarRowOf(meeting(MeetingStatus.IN_PROGRESS, confirmed = 3, members = members))!!.initials.size)
+    }
+
+    @Test
     fun 아바타는_앞의_세_명과_나머지_수를_보여_준다() {
         val members = listOf("가", "나", "다", "라", "마", "바").map { MeetingMember(it, "${it}길동") }
         val row = avatarRowOf(meeting(members = members))!!

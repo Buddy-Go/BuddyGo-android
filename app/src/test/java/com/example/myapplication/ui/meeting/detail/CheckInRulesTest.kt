@@ -31,6 +31,12 @@ class CheckInRulesTest {
     }
 
     @Test
+    fun 거리가_1km_넘으면_km로_줄여_보인다() {
+        assertEquals("모임 장소에서 10.7km", checkInTextsOf(CheckInPrompt.Ready(10655)).distanceLine)
+        assertEquals("모임 장소에서 999m", checkInTextsOf(CheckInPrompt.Ready(999)).distanceLine)
+    }
+
+    @Test
     fun 범위_밖이면_아직_조금_멀어요_창이고_체크인_버튼이_막힌다() {
         val t = checkInTextsOf(CheckInPrompt.Ready(320))
         assertEquals("아직 조금 멀어요", t.title)
