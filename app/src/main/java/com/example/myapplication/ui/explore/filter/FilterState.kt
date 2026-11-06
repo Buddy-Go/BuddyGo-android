@@ -20,7 +20,12 @@ data class FilterState(
 
     // 시트를 열 때의 조건을 기억해 둔다. 시트 안에서 고친 값은 바로 화면에 보이지만,
     // '적용' 없이 닫으면(밖을 누르거나 아래로 내림) 열기 전 값으로 돌아간다.
-    fun withSheetOpened(sheet: FilterSheet) = copy(openSheet = sheet, sheetBackup = draft)
+    fun withSheetOpened(sheet: FilterSheet): FilterState {
+        // 시간 범위 시트는 값이 하나도 없으면 기본 범위에서 시작한다. 닫으면 백업으로 돌아가므로 적용 전에는 남지 않는다.
+        val opened = if (sheet == FilterSheet.TIME_RANGE && draft.customRange == null)
+            draft.withCustomRange(TimeOfDayRange.DEFAULT) else draft
+        return copy(openSheet = sheet, sheetBackup = draft, draft = opened)
+    }
     fun withSheetApplied() = copy(openSheet = null, sheetBackup = null)
     fun withSheetDismissed() = copy(draft = sheetBackup ?: draft, openSheet = null, sheetBackup = null)
 }
