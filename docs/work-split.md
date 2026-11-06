@@ -123,13 +123,13 @@
 - [x] `SignUpProfileScreen.kt`
   - [x] 2b 프로필 설정
 - [ ] `RecordScreen.kt`
-  - [ ] 2c 헬스
-  - [ ] 2c-2 헬스 하체·어깨
-  - [ ] 2c-5 헬스 턱걸이 0회
+  - [x] 2c 헬스
+  - [x] 2c-2 헬스 하체·어깨
+  - [x] 2c-5 헬스 턱걸이 0회
   - [ ] 2d 러닝
   - [ ] 2e 등산
-- [ ] `OneRmGuideBottomSheet.kt` ← 2c-3
-- [ ] `PullUpGuideBottomSheet.kt` ← 2c-4
+- [x] `OneRmGuideBottomSheet.kt` ← 2c-3
+- [x] `PullUpGuideBottomSheet.kt` ← 2c-4
 - [ ] `RecordState.kt`, `RecordViewModel.kt`
 
 ---
