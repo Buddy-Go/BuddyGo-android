@@ -25,7 +25,7 @@ class LocationSearchViewModelTest {
 
     private val created = mutableListOf<LocationSearchViewModel>()
 
-    private fun vm(initial: String?) = LocationSearchViewModel(initial).also { created += it }
+    private fun vm(initial: String?) = LocationSearchViewModel(initial, DistrictSearcher { DistrictCatalog.search(it) }, debounceMs = 0).also { created += it }
 
     @After
     fun 정리() {

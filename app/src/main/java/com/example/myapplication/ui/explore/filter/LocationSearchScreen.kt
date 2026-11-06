@@ -84,7 +84,7 @@ fun LocationSearchScreen(
                         onClick = { viewModel.onSelect(district.name) },
                     )
                 }
-                if (state.results.isEmpty()) item { EmptyText("검색 결과가 없어요") }
+                if (state.results.isEmpty() && !state.loading) item { EmptyText(if (state.failed) "검색하지 못했어요. 잠시 후 다시 시도해 주세요" else "검색 결과가 없어요") }
             } else {
                 // 4g: 최근 검색. 고른 곳은 굵게 + 체크, 나머지는 회색 + 지우기(X)
                 item { Text("최근 검색", fontSize = 14.sp, color = AppColor.TextSecondary, modifier = Modifier.padding(bottom = AppSpace.md)) }
@@ -128,7 +128,7 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onClear: () -
         SearchIcon(AppColor.TextSecondary, size = 20.dp)
         Spacer(Modifier.width(AppSpace.xl))
         Box(Modifier.weight(1f)) {
-            if (query.isEmpty()) Text("구 · 동 이름으로 검색", fontSize = 16.sp, color = AppColor.TextDisabled)
+            if (query.isEmpty()) Text("지역 이름으로 검색 (예: 수원, 해운대, 합정동)", fontSize = 16.sp, color = AppColor.TextDisabled)
             BasicTextField(
                 value = query, onValueChange = onChange, singleLine = true,
                 textStyle = TextStyle(fontSize = 16.sp, color = AppColor.TextPrimary),

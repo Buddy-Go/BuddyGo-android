@@ -10,9 +10,11 @@ data class LocationSearchState(
     val query: String = "",
     val selected: String? = null,
     val recent: List<String> = emptyList(),
+    val results: List<District> = emptyList(),
+    val loading: Boolean = false,
+    val failed: Boolean = false,
 ) {
     val isSearching: Boolean get() = query.isNotBlank()
-    val results: List<District> get() = DistrictCatalog.search(query)
 
     // 고른 곳을 다시 누르면 해제된다.
     fun withToggled(name: String) = copy(selected = if (selected == name) null else name)
