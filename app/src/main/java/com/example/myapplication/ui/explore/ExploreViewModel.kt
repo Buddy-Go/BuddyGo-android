@@ -7,6 +7,7 @@ import com.example.myapplication.data.repository.FakeMeetingRepository
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.filter.FilterStore
 import java.io.IOException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,12 @@ class ExploreViewModel(
 
     init {
         load()
+        // 조건 설정 화면에서 적용한 조건이나 종목 칩으로 바꾼 조건이 곧바로 목록과 지도에 반영된다.
+        viewModelScope.launch {
+            FilterStore.applied.collect { filter ->
+                _state.update { it.copy(filter = filter, selectedPinKey = null) }
+            }
+        }
     }
 
     fun load() {
@@ -49,14 +56,14 @@ class ExploreViewModel(
 
     fun onSetSheetExpanded(expanded: Boolean) = _state.update { it.copy(sheetExpanded = expanded) }
 
-    fun onToggleSportChip(sport: Sport) = _state.update {
-        it.copy(sportChip = if (it.sportChip == sport) null else sport, selectedPinKey = null)
-    }
+    // 종목 칩: 하나만 고르고 다시 누르면 해제. 종목이 바뀌면 이전 종목의 기준은 지워진다.
+    fun onToggleSportChip(sport: Sport) = FilterStore.update { it.withSport(if (it.sport == sport) null else sport) }
 
     fun onCameraMoved() = _state.update { it.withCameraMoved() }
 
     // TODO(임시) 지도 범위를 서버에 넘기는 호출이 정해지면 영역을 같이 보낸다.
     fun onResearch() {
+        FilterStore.update { it.copy(district = null) } // 재검색하면 위치 조건이 풀린다
         _state.update { it.afterResearch() }
         load()
     }

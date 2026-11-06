@@ -5,6 +5,7 @@ import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.ui.explore.filter.MeetingFilter
 import com.example.myapplication.data.model.MeetingCriteria
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.ui.common.UiState
@@ -127,7 +128,7 @@ class ExploreStateTest {
     fun 종목_칩을_고르면_그_종목만_나온다() {
         val hiking = meeting("h").copy(criteria = MeetingCriteria.Hiking(HikingStyle.HOBBY))
         val running = meeting("r").copy(criteria = MeetingCriteria.Running(5f, 360))
-        val state = stateOf(hiking, running).copy(sportChip = Sport.RUNNING)
+        val state = stateOf(hiking, running).copy(filter = MeetingFilter(sport = Sport.RUNNING))
         assertEquals(listOf("r"), state.visibleMeetings.map { it.id })
     }
 
@@ -136,7 +137,7 @@ class ExploreStateTest {
         val a = meeting("a", favorite = true).copy(criteria = MeetingCriteria.Hiking(HikingStyle.HOBBY))
         val b = meeting("b").copy(criteria = MeetingCriteria.Hiking(HikingStyle.HOBBY))
         val c = meeting("c", favorite = true).copy(criteria = MeetingCriteria.Running(5f, 360))
-        val state = stateOf(a, b, c).copy(sportChip = Sport.HIKING, favoriteOnly = true)
+        val state = stateOf(a, b, c).copy(filter = MeetingFilter(sport = Sport.HIKING), favoriteOnly = true)
         assertEquals(listOf("a"), state.visibleMeetings.map { it.id })
     }
 
@@ -149,10 +150,11 @@ class ExploreStateTest {
     @Test
     fun 재검색하면_위치_조건이_풀리고_다른_조건은_유지된다() {
         val before = stateOf(meeting("1"), selected = "서교동 1-1", favoriteOnly = true)
-            .copy(cameraMoved = true, hasLocationCondition = true, sportChip = Sport.HEALTH)
+            .copy(cameraMoved = true, filter = MeetingFilter(sport = Sport.HEALTH, district = "마포구"))
         val after = before.afterResearch()
         assertFalse(after.cameraMoved)
         assertFalse(after.hasLocationCondition)
+        assertNull(after.filter.district)
         assertNull("재검색하면 핀 선택도 풀린다", after.selectedPinKey)
         assertTrue(after.favoriteOnly)
         assertEquals(Sport.HEALTH, after.sportChip)
