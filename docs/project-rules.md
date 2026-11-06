@@ -72,7 +72,7 @@ app/
 │   │       ├─ FilterScreen.kt              [화면] ← 4a, 4a-2, 4a-3, 4b, 4c
 │   │       ├─ FilterState.kt
 │   │       ├─ FilterViewModel.kt
-│   │       ├─ HealthFilterBottomSheet.kt   [시트] ← 4d-After, 4d-2, 4d-3 부위 미선택
+│   │       ├─ HealthFilterBottomSheet.kt   [시트] ← 4d-After, 4d-2, 4d-3 부위 미선택 (러닝·등산 기준도 같은 틀, 디자인 프레임 없음)
 │   │       ├─ DetailConditionBottomSheet.kt [시트] ← 4e
 │   │       ├─ TimeRangeBottomSheet.kt      [시트] ← 4f
 │   │       └─ LocationSearchScreen.kt      [화면] ← 4g, 4g-2
