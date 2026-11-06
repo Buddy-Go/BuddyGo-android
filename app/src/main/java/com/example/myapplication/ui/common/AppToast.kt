@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -110,7 +111,7 @@ class ToastState {
 @Composable
 fun ToastHost(state: ToastState, modifier: Modifier = Modifier) {
     // 사라지는 동안에도 마지막 문구를 보여 주려고 마지막 값을 기억해 둔다.
-    var lastMessage by mutableStateOf("")
+    var lastMessage by remember { mutableStateOf("") }
     state.message?.let { lastMessage = it }
     AnimatedVisibility(
         visible = state.message != null,
