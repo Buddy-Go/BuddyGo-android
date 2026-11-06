@@ -96,7 +96,14 @@ fun FilterScreen(
             onDismiss = viewModel::onDismissSheet,
             onApply = viewModel::onApplySheet,
         )
-        FilterSheet.TIME_RANGE, null -> Unit // 시간 범위 시트는 이어지는 PR에서 붙인다.
+        FilterSheet.TIME_RANGE -> TimeRangeBottomSheet(
+            range = state.draft.customRange ?: TimeOfDayRange.DEFAULT,
+            onSetStart = viewModel::onSetTimeStart,
+            onSetEnd = viewModel::onSetTimeEnd,
+            onDismiss = viewModel::onDismissSheet,
+            onConfirm = viewModel::onApplySheet,
+        )
+        null -> Unit
     }
 }
 

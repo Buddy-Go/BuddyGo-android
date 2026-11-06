@@ -244,4 +244,25 @@ class MeetingFilterTest {
         assertFalse(filter.ok(ok.copy(hostMannerTemperature = 20f)))
         assertFalse(filter.ok(ok.copy(startAtMillis = millis(9, 8, 9))))
     }
+
+    @Test
+    fun 시작을_끝보다_늦게_바꾸면_끝도_같이_옮겨진다() {
+        val range = TimeOfDayRange(7 * 60, 11 * 60)
+        assertEquals(TimeOfDayRange(8 * 60, 11 * 60), range.withStart(8 * 60))
+        assertEquals(TimeOfDayRange(13 * 60, 13 * 60), range.withStart(13 * 60))
+    }
+
+    @Test
+    fun 끝을_시작보다_이르게_바꾸면_시작도_같이_옮겨진다() {
+        val range = TimeOfDayRange(7 * 60, 11 * 60)
+        assertEquals(TimeOfDayRange(7 * 60, 9 * 60), range.withEnd(9 * 60))
+        assertEquals(TimeOfDayRange(5 * 60, 5 * 60), range.withEnd(5 * 60))
+    }
+
+    @Test
+    fun 시간_범위는_하루_안으로_제한된다() {
+        val range = TimeOfDayRange(0, 60)
+        assertEquals(TimeOfDayRange.MAX_MINUTE, range.withEnd(5000).endMinute)
+        assertEquals(0, range.withStart(-30).startMinute)
+    }
 }

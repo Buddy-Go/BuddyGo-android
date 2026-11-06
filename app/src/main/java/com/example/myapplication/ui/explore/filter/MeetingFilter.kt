@@ -30,8 +30,24 @@ data class TimeOfDayRange(val startMinute: Int, val endMinute: Int) {
 
     operator fun contains(minuteOfDay: Int) = minuteOfDay in startMinute..endMinute
 
+    // 시작을 바꿨는데 끝보다 늦으면 끝도 같이 옮겨서 범위가 뒤집히지 않게 한다.
+    fun withStart(minute: Int): TimeOfDayRange {
+        val start = minute.coerceIn(0, MAX_MINUTE)
+        return TimeOfDayRange(start, maxOf(start, endMinute))
+    }
+
+    // 끝을 바꿨는데 시작보다 이르면 시작도 같이 옮긴다.
+    fun withEnd(minute: Int): TimeOfDayRange {
+        val end = minute.coerceIn(0, MAX_MINUTE)
+        return TimeOfDayRange(minOf(startMinute, end), end)
+    }
+
     companion object {
         const val MAX_MINUTE = 24 * 60 - 1
+        const val STEP_MINUTE = 10 // 시간 범위 시트에서 분은 10분 단위로 고른다
+
+        // 시트를 처음 열 때 보이는 값 (디자인 4f 예시)
+        val DEFAULT = TimeOfDayRange(7 * 60, 11 * 60)
     }
 }
 

@@ -54,4 +54,30 @@ class FilterStateTest {
         val state = FilterState(draft = MeetingFilter(minMannerTemperature = 30))
         assertEquals(state, state.withSheetDismissed())
     }
+
+    @Test
+    fun 시간_범위_시트를_처음_열면_기본_범위에서_시작한다() {
+        val opened = FilterState().withSheetOpened(FilterSheet.TIME_RANGE)
+        assertEquals(TimeOfDayRange.DEFAULT, opened.draft.customRange)
+        assertEquals(TimeOfDayRange(7 * 60, 11 * 60), TimeOfDayRange.DEFAULT)
+    }
+
+    @Test
+    fun 시간_범위_시트를_확인_없이_닫으면_범위가_남지_않는다() {
+        val dismissed = FilterState().withSheetOpened(FilterSheet.TIME_RANGE).withSheetDismissed()
+        assertNull(dismissed.draft.customRange)
+    }
+
+    @Test
+    fun 이미_고른_시간_범위는_시트를_열어도_그대로다() {
+        val range = TimeOfDayRange(9 * 60, 10 * 60)
+        val opened = FilterState(draft = MeetingFilter(customRange = range)).withSheetOpened(FilterSheet.TIME_RANGE)
+        assertEquals(range, opened.draft.customRange)
+    }
+
+    @Test
+    fun 시간_범위를_확인하면_범위가_남는다() {
+        val applied = FilterState().withSheetOpened(FilterSheet.TIME_RANGE).withSheetApplied()
+        assertEquals(TimeOfDayRange.DEFAULT, applied.draft.customRange)
+    }
 }

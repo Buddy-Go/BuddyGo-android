@@ -83,6 +83,11 @@ class FilterViewModel(
     fun onSetPaceRange(range: IntRange) = change { it.copy(running = it.running.withPaceRange(range)) }
     fun onSetHikingStyle(style: HikingStyle) = change { it.copy(hiking = it.hiking.withStyle(style)) }
 
+    // ---- 시간 범위 시트 (4f) ----
+
+    fun onSetTimeStart(minute: Int) = change { f -> f.withCustomRange((f.customRange ?: TimeOfDayRange.DEFAULT).withStart(minute)) }
+    fun onSetTimeEnd(minute: Int) = change { f -> f.withCustomRange((f.customRange ?: TimeOfDayRange.DEFAULT).withEnd(minute)) }
+
     // ---- 상세 조건 시트 (4e) ----
 
     fun onSetGender(gender: GenderLimit) = change { it.withGender(gender) }
