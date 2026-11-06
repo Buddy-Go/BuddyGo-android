@@ -2,6 +2,7 @@ package com.example.myapplication.ui.explore.filter
 
 import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.ExerciseRecord
+import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import org.junit.Assert.assertEquals
@@ -120,5 +121,36 @@ class CriteriaRulesTest {
     fun 슬라이더_최대값은_등이_횟수_나머지는_킬로그램이다() {
         assertEquals(30, sliderMax(BodyPart.BACK))
         assertEquals(200, sliderMax(BodyPart.CHEST))
+    }
+
+    // ---- 상세 조건 ----
+
+    @Test
+    fun 누구나를_고르면_성별을_정하지_않은_상태가_된다() {
+        val female = MeetingFilter().withGender(GenderLimit.FEMALE_ONLY)
+        assertEquals(GenderLimit.FEMALE_ONLY, female.gender)
+        assertNull(female.withGender(GenderLimit.ANYONE).gender)
+        assertEquals(GenderLimit.MALE_ONLY, MeetingFilter().withGender(GenderLimit.MALE_ONLY).gender)
+    }
+
+    @Test
+    fun 매너온도_하한을_켜면_30도부터_시작한다() {
+        assertEquals(30, MeetingFilter().withMannerOn(true).minMannerTemperature)
+    }
+
+    @Test
+    fun 매너온도_하한을_끄면_관계없음이다() {
+        assertNull(MeetingFilter(minMannerTemperature = 70).withMannerOn(false).minMannerTemperature)
+    }
+
+    @Test
+    fun 이미_켜져_있으면_다시_켜도_고른_값이_유지된다() {
+        assertEquals(70, MeetingFilter(minMannerTemperature = 70).withMannerOn(true).minMannerTemperature)
+    }
+
+    @Test
+    fun 매너온도_선택지는_30_50_70이다() {
+        assertEquals(listOf(30, 50, 70), DetailDefaults.MANNER_OPTIONS)
+        assertEquals(50, MeetingFilter().withMinManner(50).minMannerTemperature)
     }
 }

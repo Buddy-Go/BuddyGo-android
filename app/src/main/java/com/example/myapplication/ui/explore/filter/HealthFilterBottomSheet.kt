@@ -277,7 +277,7 @@ private fun RangeThumb() {
 }
 
 @Composable
-private fun SwitchRow(
+internal fun SwitchRow(
     title: String,
     subtitle: String?,
     checked: Boolean,
@@ -329,7 +329,7 @@ private fun ChoiceChip(text: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun OptionCard(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun OptionCard(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.height(52.dp).clip(RoundedCornerShape(AppRadius.pill)).clickable(onClick = onClick),
         shape = RoundedCornerShape(AppRadius.pill),
