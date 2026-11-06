@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.explore
 
 import com.example.myapplication.data.mock.MockMeetings
+import com.example.myapplication.data.mock.MockNotifications
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.MeetingStatus
@@ -189,5 +190,18 @@ class ExploreStateTest {
         val state = stateOf(meeting("1"))
         assertEquals(state, state.withFavoriteToggled("없는 id"))
         assertEquals(state, state.withFavoriteSet("없는 id", true))
+    }
+
+    @Test
+    fun 읽지_않은_알림이_하나라도_있으면_벨에_점을_보여_준다() {
+        assertTrue(MockNotifications.all.hasUnread())
+        assertTrue(listOf(MockNotifications.readMate, MockNotifications.unreadNotice).hasUnread())
+    }
+
+    @Test
+    fun 모두_읽었거나_알림이_없으면_점을_보여_주지_않는다() {
+        assertFalse(MockNotifications.allRead.hasUnread())
+        assertFalse(MockNotifications.empty.hasUnread())
+        assertFalse(ExploreState().hasUnreadNotifications)
     }
 }

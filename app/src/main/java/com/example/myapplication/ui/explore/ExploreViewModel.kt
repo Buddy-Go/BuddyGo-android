@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.FakeMeetingRepository
+import com.example.myapplication.data.repository.FakeNotificationRepository
 import com.example.myapplication.data.repository.MeetingRepository
+import com.example.myapplication.data.repository.NotificationRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.filter.FilterStore
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
 class ExploreViewModel(
     // TODO(임시) 서버 연결 전까지 Fake를 쓴다.
     private val repository: MeetingRepository = FakeMeetingRepository(),
+    private val notificationRepository: NotificationRepository = FakeNotificationRepository(),
 ) : ViewModel() {
     private val _state = MutableStateFlow(ExploreState())
     val state: StateFlow<ExploreState> = _state.asStateFlow()
@@ -29,6 +32,15 @@ class ExploreViewModel(
             FilterStore.applied.collect { filter ->
                 _state.update { it.copy(filter = filter, selectedPinKey = null) }
             }
+        }
+    }
+
+    // 알림 벨의 점. 알림 목록을 보고 돌아왔을 때도 맞도록 화면이 다시 보일 때마다 불러온다.
+    // 알림을 불러오지 못하면 점을 보여 주지 않는다. (없는 알림을 있다고 알리지 않는다)
+    fun refreshNotifications() {
+        viewModelScope.launch {
+            val hasUnread = notificationRepository.getNotifications().getOrNull()?.hasUnread() ?: false
+            _state.update { it.copy(hasUnreadNotifications = hasUnread) }
         }
     }
 

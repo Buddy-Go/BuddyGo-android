@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.explore
 
 import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.Notification
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.explore.filter.MeetingFilter
 import com.example.myapplication.ui.common.UiState
@@ -14,6 +15,7 @@ data class ExploreState(
     val filter: MeetingFilter = MeetingFilter(),
     // 사용자가 지도를 움직인 뒤 '이 지역 재검색'을 보여 주기 위한 표시
     val cameraMoved: Boolean = false,
+    val hasUnreadNotifications: Boolean = false, // 알림 벨의 빨간 점
 ) {
     // 지도와 리스트에 보이는 모임: 모집중만, 찜 칩이 켜져 있으면 찜한 모임만, 거리순
     val visibleMeetings: List<Meeting>
@@ -74,3 +76,6 @@ data class ExploreState(
         )
     }
 }
+
+// 읽지 않은 알림이 하나라도 있으면 벨에 점을 보여 준다.
+fun List<Notification>.hasUnread(): Boolean = any { !it.isRead }
