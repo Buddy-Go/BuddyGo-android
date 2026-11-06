@@ -11,6 +11,9 @@ import com.example.myapplication.ui.explore.meetingDistanceMeters
 // 모임 상세 위에 뜨는 시트 (5e 장소, 5f·5h 기준)
 enum class DetailSheet { PLACE, CRITERIA }
 
+// 호스트가 ⋯ 메뉴에서 연 창 (5a-X2 취소 시트, 5a-X3 삭제 확인)
+enum class HostDialog { CANCEL, DELETE }
+
 data class MeetingDetailState(
     val meeting: UiState<Meeting> = UiState.Loading,
     val myUserId: String = "",
@@ -25,6 +28,9 @@ data class MeetingDetailState(
     val leaveDialog: LeavePlan? = null,      // 나가기 확인창. null이면 닫혀 있다
     val checkIn: CheckInPrompt? = null,      // 체크인 확인창(9a, 9b). null이면 닫혀 있다
     val checkInPoint: GeoPoint? = null,      // 체크인 확인창에서 잰 내 위치. 체크인을 보낼 때 쓴다
+    val hostSection: HostSectionState? = null, // 내가 호스트일 때만 채운다 (5a-H 계열)
+    val hostDialog: HostDialog? = null,      // 취소 시트·삭제 확인창. null이면 닫혀 있다
+    val deleted: Boolean = false,            // 모임을 삭제했다: 화면을 닫는다
 ) {
     val loaded: Meeting? get() = (meeting as? UiState.Success)?.data
 

@@ -2,13 +2,16 @@ package com.example.myapplication.ui.meeting.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.model.CheckInOutOfRangeException
+import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.MeetingRole
+import com.example.myapplication.data.model.distanceMeters
 import com.example.myapplication.data.repository.MeetingRepository
+import com.example.myapplication.data.repository.NoticeRepository
 import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
-import com.example.myapplication.data.model.CheckInOutOfRangeException
-import com.example.myapplication.data.model.distanceMeters
 import com.example.myapplication.ui.explore.GeoPoint
 import com.example.myapplication.ui.explore.LastKnownLocation
 import java.io.IOException
@@ -22,6 +25,7 @@ class MeetingDetailViewModel(
     private val meetingId: String,
     private val repository: MeetingRepository = Repositories.meetings,
     private val userRepository: UserRepository = Repositories.users,
+    private val noticeRepository: NoticeRepository = Repositories.notices,
     nowMillis: Long = System.currentTimeMillis(),
 ) : ViewModel() {
     private val _state = MutableStateFlow(MeetingDetailState(nowMillis = nowMillis, myLocation = LastKnownLocation.point.value))
@@ -38,6 +42,7 @@ class MeetingDetailViewModel(
             val me = userRepository.getCurrentUser().getOrNull()
             _state.update { it.copy(myUserId = me?.id.orEmpty(), myGender = me?.gender, myRecord = me?.record) }
             val result = repository.getMeeting(meetingId)
+            result.onSuccess { loadHostSection(it) }
             _state.update {
                 it.copy(
                     meeting = result.fold(
@@ -152,7 +157,67 @@ class MeetingDetailViewModel(
     // 화면은 그대로 두고 모임 정보만 다시 받는다.
     private suspend fun reloadMeeting() {
         repository.getMeeting(meetingId).onSuccess { meeting ->
+            loadHostSection(meeting)
             _state.update { it.copy(meeting = UiState.Success(meeting)) }
+        }
+    }
+
+    // 다른 화면(공지, 참가자 관리)에서 돌아왔을 때 새로 받는다.
+    fun onResume() {
+        if (_state.value.loaded == null) return
+        viewModelScope.launch { reloadMeeting() }
+    }
+
+    // ---- 호스트 영역 (5a-H 계열) ----
+
+    // 내가 호스트일 때만 확정 명단 이름과 마지막 공지를 받아 호스트 영역 값을 만든다.
+    private suspend fun loadHostSection(meeting: Meeting) {
+        if (meeting.roleOf(_state.value.myUserId) != MeetingRole.HOST) {
+            _state.update { it.copy(hostSection = null) }
+            return
+        }
+        val names = meeting.confirmedIds.mapNotNull { id ->
+            userRepository.getUser(id).getOrNull()?.let { id to it.nickname }
+        }.toMap()
+        val latest = noticeRepository.getNotices(meetingId).getOrDefault(emptyList()).maxByOrNull { it.createdAtMillis }
+        _state.update { it.copy(hostSection = hostSectionStateOf(meeting, orderedConfirmedNames(meeting, names), latest)) }
+    }
+
+    // ⋯ 메뉴 항목: 수정은 아직 화면이 없어 안내만 한다.
+    fun onHostAction(action: HostAction) {
+        when (action) {
+            HostAction.EDIT -> _state.update { it.copy(message = "모임 수정은 아직 준비 중이에요") }
+            HostAction.CANCEL -> _state.update { it.copy(hostDialog = HostDialog.CANCEL) }
+            HostAction.DELETE -> _state.update { it.copy(hostDialog = HostDialog.DELETE) }
+        }
+    }
+
+    fun onHostDialogDismiss() = _state.update { it.copy(hostDialog = null) }
+
+    // 5a-X2 취소: 확정 참가자(호스트 제외)가 있을 때. 사유는 필수다.
+    fun onCancelMeetingConfirm(reason: String) {
+        if (_state.value.submitting || !canSubmitCancelReason(reason)) return
+        _state.update { it.copy(submitting = true) }
+        viewModelScope.launch {
+            repository.cancelMeeting(meetingId, reason.trim())
+                .onSuccess {
+                    _state.update { it.copy(hostDialog = null, notice = "모임을 취소했어요") }
+                    reloadMeeting()
+                }
+                .onFailure { _state.update { it.copy(hostDialog = null, message = "모임을 취소하지 못했어요. 다시 시도해주세요.") } }
+            _state.update { it.copy(submitting = false) }
+        }
+    }
+
+    // 5a-X3 삭제: 확정 참가자(호스트 제외)가 없을 때. 성공하면 화면을 닫는다.
+    fun onDeleteMeetingConfirm() {
+        if (_state.value.submitting) return
+        _state.update { it.copy(submitting = true) }
+        viewModelScope.launch {
+            repository.deleteMeeting(meetingId)
+                .onSuccess { _state.update { it.copy(hostDialog = null, deleted = true) } }
+                .onFailure { _state.update { it.copy(hostDialog = null, message = "모임을 삭제하지 못했어요. 다시 시도해주세요.") } }
+            _state.update { it.copy(submitting = false) }
         }
     }
 }
