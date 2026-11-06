@@ -18,19 +18,51 @@ data class DateOption(val startOfDayMillis: Long, val weekdayLabel: String, val 
 private val weekdays = listOf("일", "월", "화", "수", "목", "금", "토") // Calendar.DAY_OF_WEEK는 일요일이 1
 
 // 오늘부터 [count]일. 날짜는 그날 0시(해당 시간대)로 정한다.
-fun dateOptions(nowMillis: Long, timeZone: TimeZone = TimeZone.getDefault(), count: Int = 5): List<DateOption> =
-    (0 until count).map { offset ->
-        val day = Calendar.getInstance(timeZone).apply {
-            timeInMillis = nowMillis
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            add(Calendar.DAY_OF_YEAR, offset)
-        }
+// 달력으로 고른 날짜([pickedStartOfDay])가 이 범위 밖이면 그 날짜부터 [count]일을 보여 줘서, 고른 날이 줄에서 보이게 한다.
+fun dateOptions(
+    nowMillis: Long,
+    timeZone: TimeZone = TimeZone.getDefault(),
+    count: Int = 5,
+    pickedStartOfDay: Long? = null,
+): List<DateOption> {
+    val today = startOfDay(nowMillis, timeZone)
+    val windowEnd = addDays(today, count - 1, timeZone)
+    val start = if (pickedStartOfDay != null && pickedStartOfDay > windowEnd) pickedStartOfDay else today
+    return (0 until count).map { offset ->
+        val day = Calendar.getInstance(timeZone).apply { timeInMillis = addDays(start, offset, timeZone) }
         DateOption(
             startOfDayMillis = day.timeInMillis,
-            weekdayLabel = if (offset == 0) "오늘" else weekdays[day.get(Calendar.DAY_OF_WEEK) - 1],
+            weekdayLabel = if (day.timeInMillis == today) "오늘" else weekdays[day.get(Calendar.DAY_OF_WEEK) - 1],
             dateLabel = "${day.get(Calendar.MONTH) + 1}/${day.get(Calendar.DAY_OF_MONTH)}",
         )
     }
+}
+
+private fun startOfDay(millis: Long, timeZone: TimeZone): Long = Calendar.getInstance(timeZone).apply {
+    timeInMillis = millis
+    set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+}.timeInMillis
+
+private fun addDays(startOfDay: Long, days: Int, timeZone: TimeZone): Long =
+    Calendar.getInstance(timeZone).apply { timeInMillis = startOfDay; add(Calendar.DAY_OF_YEAR, days) }.timeInMillis
+
+// 날짜 선택 창은 고른 날을 'UTC 그날 0시'로 돌려준다. 우리가 쓰는 '그 시간대의 그날 0시'로 바꾼다.
+fun localStartOfDay(utcMidnightMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): Long {
+    val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = utcMidnightMillis }
+    return Calendar.getInstance(timeZone).apply {
+        clear()
+        set(utc.get(Calendar.YEAR), utc.get(Calendar.MONTH), utc.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
+    }.timeInMillis
+}
+
+// 반대로, 우리 날짜(그 시간대의 어느 시각)를 날짜 선택 창이 쓰는 'UTC 그날 0시'로 바꾼다.
+fun utcMidnightOf(localMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): Long {
+    val local = Calendar.getInstance(timeZone).apply { timeInMillis = localMillis }
+    return Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+        clear()
+        set(local.get(Calendar.YEAR), local.get(Calendar.MONTH), local.get(Calendar.DAY_OF_MONTH), 0, 0, 0)
+    }.timeInMillis
+}
 
 // 분(하루 안)을 "07:00"으로
 fun formatMinuteOfDay(minute: Int): String = "%02d:%02d".format(minute / 60, minute % 60)

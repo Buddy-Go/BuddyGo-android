@@ -9,6 +9,7 @@ import java.util.Calendar
 import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FilterSummaryTest {
@@ -110,5 +111,54 @@ class FilterSummaryTest {
         assertEquals("헬스", searchTitle(MeetingFilter(sport = Sport.HEALTH), now, seoul))
         assertEquals("오늘 · 러닝", searchTitle(MeetingFilter(sport = Sport.RUNNING, dateMillis = millis(9, 8)), now, seoul))
         assertEquals("9/10 · 모든 운동", searchTitle(MeetingFilter(dateMillis = millis(9, 10)), now, seoul))
+    }
+
+    private val utc = TimeZone.getTimeZone("UTC")
+
+    private fun utcMidnight(month: Int, day: Int) =
+        Calendar.getInstance(utc).apply { clear(); set(2026, month - 1, day, 0, 0, 0) }.timeInMillis
+
+    @Test
+    fun 날짜_선택_창이_돌려주는_날은_우리_시간대의_그날_0시로_바뀐다() {
+        // 서울이 UTC보다 앞서 있어도 날짜가 하루 밀리지 않는다.
+        assertEquals(millis(9, 20, 0), localStartOfDay(utcMidnight(9, 20), seoul))
+        assertEquals(millis(1, 1, 0), localStartOfDay(utcMidnight(1, 1), seoul))
+    }
+
+    @Test
+    fun 우리_날짜는_선택_창이_쓰는_UTC_그날_0시로_바뀐다() {
+        assertEquals(utcMidnight(9, 8), utcMidnightOf(millis(9, 8, 23), seoul))
+        assertEquals(utcMidnight(9, 8), utcMidnightOf(millis(9, 8, 0), seoul))
+    }
+
+    @Test
+    fun 두_변환은_서로_되돌릴_수_있다() {
+        val local = millis(11, 6, 0)
+        assertEquals(local, localStartOfDay(utcMidnightOf(local, seoul), seoul))
+    }
+
+    @Test
+    fun 다섯_날_안의_날짜를_골랐으면_줄은_그대로_오늘부터다() {
+        val now = millis(9, 8, 15)
+        val options = dateOptions(now, seoul, pickedStartOfDay = millis(9, 10, 0))
+        assertEquals("9/8", options.first().dateLabel)
+        assertEquals("오늘", options.first().weekdayLabel)
+    }
+
+    @Test
+    fun 다섯_날_밖의_날짜를_골랐으면_그_날짜부터_보여_준다() {
+        val now = millis(9, 8, 15)
+        val picked = millis(9, 20, 0)
+        val options = dateOptions(now, seoul, pickedStartOfDay = picked)
+        assertEquals(picked, options.first().startOfDayMillis)
+        assertEquals(listOf("9/20", "9/21", "9/22", "9/23", "9/24"), options.map { it.dateLabel })
+        assertTrue("오늘이 아니면 요일을 쓴다", options.none { it.weekdayLabel == "오늘" })
+    }
+
+    @Test
+    fun 다섯_날의_마지막_날을_골라도_오늘부터_보여_준다() {
+        val now = millis(9, 8, 15)
+        assertEquals("9/8", dateOptions(now, seoul, pickedStartOfDay = millis(9, 12, 0)).first().dateLabel)
+        assertEquals("9/13", dateOptions(now, seoul, pickedStartOfDay = millis(9, 13, 0)).first().dateLabel)
     }
 }

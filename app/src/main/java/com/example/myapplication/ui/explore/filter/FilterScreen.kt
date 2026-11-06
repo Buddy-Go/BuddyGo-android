@@ -21,7 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -61,6 +68,7 @@ fun FilterScreen(
         onReset = viewModel::onReset,
         onSelectSport = viewModel::onSelectSport,
         onSelectDate = viewModel::onSelectDate,
+        onOpenDatePicker = { viewModel.onOpenSheet(FilterSheet.DATE_PICKER) },
         onToggleTimeSlot = viewModel::onToggleTimeSlot,
         onOpenTimeRange = { viewModel.onOpenSheet(FilterSheet.TIME_RANGE) },
         onClearTimeRange = viewModel::onClearTimeRange,
@@ -103,6 +111,12 @@ fun FilterScreen(
             onDismiss = viewModel::onDismissSheet,
             onConfirm = viewModel::onApplySheet,
         )
+        FilterSheet.DATE_PICKER -> DatePickerDialogContent(
+            selectedMillis = state.draft.dateMillis,
+            todayMillis = state.nowMillis,
+            onPick = viewModel::onPickDate,
+            onDismiss = viewModel::onDismissSheet,
+        )
         null -> Unit
     }
 }
@@ -114,6 +128,7 @@ private fun FilterContent(
     onReset: () -> Unit,
     onSelectSport: (Sport) -> Unit,
     onSelectDate: (Long) -> Unit,
+    onOpenDatePicker: () -> Unit,
     onToggleTimeSlot: (TimeSlot) -> Unit,
     onOpenTimeRange: () -> Unit,
     onClearTimeRange: () -> Unit,
@@ -152,7 +167,7 @@ private fun FilterContent(
             }
 
             SectionTitle("날짜 · 시간대")
-            DateRow(state, onSelectDate)
+            DateRow(state, onSelectDate, onOpenDatePicker)
             TimeRow(draft, onToggleTimeSlot, onOpenTimeRange, onClearTimeRange)
 
             SettingsCard(
@@ -202,10 +217,10 @@ private fun SportCard(sport: Sport, selected: Boolean, onClick: () -> Unit, modi
 }
 
 @Composable
-private fun DateRow(state: FilterState, onSelectDate: (Long) -> Unit) {
+private fun DateRow(state: FilterState, onSelectDate: (Long) -> Unit, onOpenDatePicker: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
-            dateOptions(state.nowMillis).forEach { option ->
+            dateOptions(state.nowMillis, pickedStartOfDay = state.draft.dateMillis).forEach { option ->
                 val selected = state.draft.dateMillis == option.startOfDayMillis
                 Column(
                     Modifier
@@ -222,8 +237,11 @@ private fun DateRow(state: FilterState, onSelectDate: (Long) -> Unit) {
             }
         }
         Spacer(Modifier.width(AppSpace.md))
-        // TODO(임시) 날짜를 직접 고르는 달력은 디자인이 없어 아이콘만 둔다.
-        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) { CalendarIcon(AppColor.TextPrimary) }
+        // 달력: 5일 밖의 날짜를 고를 때 쓴다.
+        Box(
+            Modifier.size(40.dp).clip(CircleShape).clickable(onClick = onOpenDatePicker),
+            contentAlignment = Alignment.Center,
+        ) { CalendarIcon(AppColor.TextPrimary) }
     }
 }
 
@@ -324,8 +342,41 @@ private fun FilterScreenPreview() {
     MyApplicationTheme(dynamicColor = false) {
         FilterContent(
             state = FilterState(draft = MeetingFilter(sport = Sport.HEALTH, minMannerTemperature = 30), nowMillis = 1_798_761_600_000L),
-            onClose = {}, onReset = {}, onSelectSport = {}, onSelectDate = {}, onToggleTimeSlot = {},
+            onClose = {}, onReset = {}, onSelectSport = {}, onSelectDate = {}, onOpenDatePicker = {}, onToggleTimeSlot = {},
             onOpenTimeRange = {}, onClearTimeRange = {}, onOpenCriteria = {}, onLocationClick = {}, onOpenDetail = {}, onApply = {},
+        )
+    }
+}
+
+// 날짜 선택 창. 오늘 이전은 고를 수 없다. 창이 주고받는 날짜는 UTC 그날 0시다.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DatePickerDialogContent(selectedMillis: Long?, todayMillis: Long, onPick: (Long) -> Unit, onDismiss: () -> Unit) {
+    val todayUtc = utcMidnightOf(todayMillis)
+    val pickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedMillis?.let { utcMidnightOf(it) },
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis >= todayUtc
+        },
+    )
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = { pickerState.selectedDateMillis?.let(onPick) },
+                enabled = pickerState.selectedDateMillis != null,
+            ) { Text("확인", color = AppColor.AccentStrong, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("취소", color = AppColor.TextSecondary) } },
+        colors = DatePickerDefaults.colors(containerColor = AppColor.Surface),
+    ) {
+        DatePicker(
+            state = pickerState,
+            colors = DatePickerDefaults.colors(
+                containerColor = AppColor.Surface,
+                selectedDayContainerColor = AppColor.Accent, selectedDayContentColor = AppColor.TextPrimary,
+                todayDateBorderColor = AppColor.Accent, todayContentColor = AppColor.AccentStrong,
+            ),
         )
     }
 }

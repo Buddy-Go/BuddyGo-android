@@ -5,7 +5,7 @@ import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.ui.explore.onlyRecruiting
 
 // 조건 설정 화면에서 바로 닫으면 적용되지 않는다. [draft]를 고치다가 '찾기'를 눌러야 FilterStore에 들어간다.
-enum class FilterSheet { CRITERIA, DETAIL, TIME_RANGE }
+enum class FilterSheet { CRITERIA, DETAIL, TIME_RANGE, DATE_PICKER }
 
 data class FilterState(
     val draft: MeetingFilter = MeetingFilter(),

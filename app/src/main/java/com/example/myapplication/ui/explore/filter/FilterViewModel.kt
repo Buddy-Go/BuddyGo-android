@@ -47,6 +47,13 @@ class FilterViewModel(
         it.withTimeSlots(if (slot in it.timeSlots) it.timeSlots - slot else it.timeSlots + slot)
     }
 
+    // 달력(날짜 선택 창)에서 날짜를 고르면 그 날이 조건이 되고 창이 닫힌다.
+    // 선택 창이 돌려주는 값은 UTC 그날 0시라서 우리 시간대의 그날 0시로 바꿔 넣는다.
+    fun onPickDate(utcMidnightMillis: Long) {
+        change { it.copy(dateMillis = localStartOfDay(utcMidnightMillis)) }
+        onApplySheet()
+    }
+
     fun onClearTimeRange() = change { it.withCustomRange(null) }
 
     fun onReset() = change { MeetingFilter() }
