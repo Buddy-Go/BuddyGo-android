@@ -344,4 +344,17 @@ class MeetingDetailRulesTest {
         assertFalse("공백이 그대로 남지 않는다", url.contains(' '))
         assertTrue(url.contains("%20"))
     }
+
+    @Test
+    fun 성별_조건이_안_맞으면_신청하기_대신_안내를_보여_준다() {
+        val femaleOnly = meeting().copy(genderLimit = com.example.myapplication.data.model.GenderLimit.FEMALE_ONLY)
+        val a = bottomActionOf(femaleOnly, MeetingRole.NONE, me, millis(9, 8, 0), com.example.myapplication.data.model.Gender.MALE)!!
+        assertEquals("신청할 수 없어요", a.title)
+        assertEquals("성별 조건이 맞지 않아요", a.subtitle)
+        assertFalse(a.enabled)
+        val ok = bottomActionOf(femaleOnly, MeetingRole.NONE, me, millis(9, 8, 0), com.example.myapplication.data.model.Gender.FEMALE)!!
+        assertEquals(DetailAction.APPLY, ok.action)
+        val unknown = bottomActionOf(femaleOnly, MeetingRole.NONE, me, millis(9, 8, 0), null)!!
+        assertEquals("내 성별을 모르면 막지 않는다", DetailAction.APPLY, unknown.action)
+    }
 }

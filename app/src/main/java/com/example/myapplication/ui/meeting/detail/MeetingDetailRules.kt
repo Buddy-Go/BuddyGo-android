@@ -234,12 +234,21 @@ data class BottomAction(
 )
 
 // 지금 이 사람에게 보여 줄 하단 큰 버튼. 호스트는 호스트 영역(HostSection)이 맡으므로 null이다.
-fun bottomActionOf(meeting: Meeting, role: MeetingRole, myUserId: String, nowMillis: Long): BottomAction? {
+fun bottomActionOf(
+    meeting: Meeting,
+    role: MeetingRole,
+    myUserId: String,
+    nowMillis: Long,
+    myGender: com.example.myapplication.data.model.Gender? = null,
+): BottomAction? {
     if (role == MeetingRole.HOST) return null
     val iCheckedIn = meeting.members.any { it.userId == myUserId && it.checkedIn }
     return when (meeting.status) {
         MeetingStatus.RECRUITING -> when (role) {
-            MeetingRole.NONE -> BottomAction(
+            // 성별 조건이 안 맞으면 서버가 막는다. 미리 알려 줘서 헛걸음을 줄인다. (5장)
+            MeetingRole.NONE -> if (!genderAllowed(meeting.genderLimit, myGender))
+                BottomAction(DetailAction.NONE, "신청할 수 없어요", "성별 조건이 맞지 않아요", enabled = false)
+            else BottomAction(
                 DetailAction.APPLY, "참여 신청하기",
                 listOfNotNull(formatUntilDeadline(meeting, nowMillis), "남은 자리 ${(meeting.capacity - meeting.confirmedCount).coerceAtLeast(0)}").joinToString(" · "),
             )

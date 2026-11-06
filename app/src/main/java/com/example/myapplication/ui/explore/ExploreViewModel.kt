@@ -3,10 +3,9 @@ package com.example.myapplication.ui.explore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.Sport
-import com.example.myapplication.data.repository.FakeMeetingRepository
-import com.example.myapplication.data.repository.FakeNotificationRepository
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.NotificationRepository
+import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.filter.FilterStore
@@ -18,9 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ExploreViewModel(
-    // TODO(임시) 서버 연결 전까지 Fake를 쓴다.
-    private val repository: MeetingRepository = FakeMeetingRepository(),
-    private val notificationRepository: NotificationRepository = FakeNotificationRepository(),
+    private val repository: MeetingRepository = Repositories.meetings,
+    private val notificationRepository: NotificationRepository = Repositories.notifications,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ExploreState())
     val state: StateFlow<ExploreState> = _state.asStateFlow()
