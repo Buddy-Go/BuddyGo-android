@@ -46,6 +46,7 @@ class ExploreViewModelTest {
         created.forEach { it.viewModelScope.cancel() }
         Dispatchers.resetMain()
         FilterStore.clear()
+        LastKnownLocation.clear()
     }
 
     // 목 저장소를 그대로 쓰되 일부 호출만 실패시키는 가짜

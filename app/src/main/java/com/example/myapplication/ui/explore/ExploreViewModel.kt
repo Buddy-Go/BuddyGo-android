@@ -72,7 +72,10 @@ class ExploreViewModel(
     fun onToggleSportChip(sport: Sport) = FilterStore.update { it.withSport(if (it.sport == sport) null else sport) }
 
     // 내 위치를 받았다. 위치를 못 얻었으면(null) 이전 값을 지우지 않는다.
-    fun onMyLocation(location: GeoPoint?) = _state.update { it.copy(myLocation = location ?: it.myLocation) }
+    fun onMyLocation(location: GeoPoint?) {
+        location?.let(LastKnownLocation::set) // 모임 상세 등 다른 화면도 같은 위치를 쓴다
+        _state.update { it.copy(myLocation = location ?: it.myLocation) }
+    }
 
     // 위치 권한은 앱을 켜고 한 번만 묻는다. 거절해도 화면을 열 때마다 다시 묻지 않는다.
     fun onLocationAsked() = _state.update { it.copy(locationAsked = true) }

@@ -137,6 +137,15 @@ fun placeLine(meeting: Meeting): String {
     return listOfNotNull(meeting.place.name.takeIf { it.isNotBlank() }, district).joinToString(" · ")
 }
 
+// 장소 시트와 주소 복사에 쓰는 주소. 도로명 주소 뒤에 호스트가 적은 상세주소를 붙인다.
+fun fullAddress(meeting: Meeting): String =
+    listOfNotNull(meeting.place.address.takeIf { it.isNotBlank() }, meeting.place.detailAddress?.takeIf { it.isNotBlank() }).joinToString(" ")
+
+// 길찾기: 카카오맵 길찾기 링크. 앱이 있으면 앱이, 없으면 브라우저가 열린다.
+fun routeUrl(meeting: Meeting): String =
+    "https://map.kakao.com/link/to/${java.net.URLEncoder.encode(meeting.place.name, "UTF-8").replace("+", "%20")}," +
+        "${meeting.place.latitude},${meeting.place.longitude}"
+
 fun sportCriteriaTitle(sport: Sport): String = when (sport) {
     Sport.HEALTH -> "헬스 기준"
     Sport.RUNNING -> "러닝 기준"

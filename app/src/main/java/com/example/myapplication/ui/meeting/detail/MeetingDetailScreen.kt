@@ -28,10 +28,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,6 +44,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.data.model.MeetingStatus
+import com.example.myapplication.data.model.Sport
+import kotlinx.coroutines.launch
 import com.example.myapplication.ui.common.CriteriaSummaryRow
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.SkeletonDetail
@@ -70,6 +74,7 @@ fun MeetingDetailScreen(
     onApply: () -> Unit,
     onCheckIn: () -> Unit,
     onReview: () -> Unit,
+    onAddRecord: (Sport) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MeetingDetailViewModel = viewModel(
         key = meetingId,
@@ -78,6 +83,8 @@ fun MeetingDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val toast = remember { ToastState() }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     // 저장 실패 같은 안내는 토스트로 한 번 보여 주고 지운다.
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -110,6 +117,30 @@ fun MeetingDetailScreen(
                     }
                 },
             )
+        }
+        // 5e 장소 시트, 5f·5h 기준 시트
+        val sheetMeeting = state.loaded
+        if (sheetMeeting != null) when (state.openSheet) {
+            DetailSheet.PLACE -> PlaceBottomSheet(
+                meeting = sheetMeeting,
+                distanceMeters = state.distanceMeters,
+                onCopyAddress = {
+                    copyToClipboard(context, "주소", fullAddress(sheetMeeting))
+                    scope.launch { toast.show("주소를 복사했어요", ToastType.Success) }
+                },
+                onFindRoute = { openRoute(context, sheetMeeting) { scope.launch { toast.show("길찾기를 열 수 없어요", ToastType.Error) } } },
+                onDismiss = viewModel::onCloseSheet,
+            )
+            DetailSheet.CRITERIA -> CriteriaBottomSheet(
+                meeting = sheetMeeting,
+                myRecord = state.myRecord,
+                onAddRecord = {
+                    viewModel.onCloseSheet()
+                    onAddRecord(it)
+                },
+                onDismiss = viewModel::onCloseSheet,
+            )
+            null -> Unit
         }
         ToastHost(toast, Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp))
     }
@@ -372,3 +403,16 @@ private fun ActionBox(action: BottomAction, submitting: Boolean, onAction: (Deta
 // 얇은 테두리를 두르는 짧은 표기
 private fun Modifier.border1(color: Color, shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(AppRadius.pill)) =
     this.then(Modifier.border(1.dp, color, shape))
+
+// 주소를 클립보드에 복사한다.
+private fun copyToClipboard(context: android.content.Context, label: String, text: String) {
+    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+    clipboard?.setPrimaryClip(android.content.ClipData.newPlainText(label, text))
+}
+
+// 카카오맵 길찾기 링크를 연다. 열 수 있는 앱이 없으면 onFail을 부른다.
+private fun openRoute(context: android.content.Context, meeting: Meeting, onFail: () -> Unit) {
+    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(routeUrl(meeting)))
+        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(intent) }.onFailure { onFail() }
+}
