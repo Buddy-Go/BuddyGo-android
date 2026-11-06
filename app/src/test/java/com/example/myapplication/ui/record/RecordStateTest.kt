@@ -2,7 +2,9 @@ package com.example.myapplication.ui.record
 
 import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.ExerciseRecord
+import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.SignUpDraftStore
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -82,5 +84,52 @@ class RecordStateTest {
         assertEquals(0, record.pullUpCount)
         assertNull(record.squatKg)
         assertTrue(vm.state.value.saved)
+    }
+
+    @Test
+    fun 페이스_글자는_처음은_물결_마지막은_플러스() {
+        assertEquals("~4'30\"", RecordState.paceLabel(270))
+        assertEquals("5'00\"", RecordState.paceLabel(300))
+        assertEquals("6'30\"", RecordState.paceLabel(390))
+        assertEquals("7'00\"+", RecordState.paceLabel(420))
+    }
+
+    @Test
+    fun 러닝은_페이스만_바꾸고_다른_종목_기록은_그대로() {
+        val state = RecordState(sport = Sport.RUNNING, runningPaceSec = 360)
+        val record = state.toRecord(ExerciseRecord(benchPressKg = 80, hikingStyle = HikingStyle.PRO))
+        assertEquals(360, record.runningPaceSec)
+        assertEquals(80, record.benchPressKg)
+        assertEquals(HikingStyle.PRO, record.hikingStyle)
+    }
+
+    @Test
+    fun 등산은_성향만_바꾸고_고르지_않으면_비운다() {
+        val chosen = RecordState(sport = Sport.HIKING, hikingStyle = HikingStyle.HOBBY).toRecord(ExerciseRecord(runningPaceSec = 330))
+        assertEquals(HikingStyle.HOBBY, chosen.hikingStyle)
+        assertEquals(330, chosen.runningPaceSec)
+        assertNull(RecordState(sport = Sport.HIKING).toRecord(ExerciseRecord(hikingStyle = HikingStyle.PRO)).hikingStyle)
+    }
+
+    @Test
+    fun 러닝_등산을_저장하면_입력값_저장소에_들어간다() {
+        val run = RecordViewModel(Sport.RUNNING)
+        assertNull("고르기 전에는 비어 있음", run.state.value.runningPaceSec)
+        run.onSelectPace(330)
+        run.onSave()
+        assertEquals(330, SignUpDraftStore.draft.value.record.runningPaceSec)
+
+        val hike = RecordViewModel(Sport.HIKING)
+        hike.onSelectHiking(HikingStyle.PRO)
+        hike.onSave()
+        assertEquals(HikingStyle.PRO, SignUpDraftStore.draft.value.record.hikingStyle)
+        assertEquals("러닝 기록은 그대로", 330, SignUpDraftStore.draft.value.record.runningPaceSec)
+    }
+
+    @Test
+    fun 저장해_둔_러닝_등산_기록으로_시작한다() {
+        SignUpDraftStore.update { it.copy(record = ExerciseRecord(runningPaceSec = 300, hikingStyle = HikingStyle.HOBBY)) }
+        assertEquals(300, RecordViewModel(Sport.RUNNING).state.value.runningPaceSec)
+        assertEquals(HikingStyle.HOBBY, RecordViewModel(Sport.HIKING).state.value.hikingStyle)
     }
 }
