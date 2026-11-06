@@ -56,3 +56,21 @@ fun ChevronRightIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 20.
         drawPath(path, color, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
+
+@Composable
+fun ChevronLeftIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 24.dp) {
+    Canvas(modifier.size(size)) {
+        val w = this.size.width
+        val path = Path().apply { moveTo(w * .62f, w * .2f); lineTo(w * .32f, w * .5f); lineTo(w * .62f, w * .8f) }
+        drawPath(path, color, style = Stroke(2.2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}
+
+@Composable
+fun CheckMarkIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 22.dp) {
+    Canvas(modifier.size(size)) {
+        val w = this.size.width
+        val path = Path().apply { moveTo(w * .18f, w * .52f); lineTo(w * .42f, w * .74f); lineTo(w * .84f, w * .28f) }
+        drawPath(path, color, style = Stroke(2.4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+}

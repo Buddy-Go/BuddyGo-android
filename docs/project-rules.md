@@ -75,7 +75,15 @@ app/
 │   │       ├─ HealthFilterBottomSheet.kt   [시트] ← 4d-After, 4d-2, 4d-3 부위 미선택 (러닝·등산 기준도 같은 틀, 디자인 프레임 없음)
 │   │       ├─ DetailConditionBottomSheet.kt [시트] ← 4e
 │   │       ├─ TimeRangeBottomSheet.kt      [시트] ← 4f
-│   │       └─ LocationSearchScreen.kt      [화면] ← 4g, 4g-2
+│   │       ├─ LocationSearchScreen.kt      [화면] ← 4g, 4g-2 (현재 위치 반경은 정의서에 없어 제외)
+│   │       ├─ LocationSearchState.kt           구·동 선택·검색어, 최근 검색 저장소
+│   │       ├─ LocationSearchViewModel.kt
+│   │       ├─ DistrictCatalog.kt               구·동 목록과 검색, 검색어 강조, 최근 검색 규칙
+│   │       ├─ MeetingFilter.kt                 검색 조건 모델과 판정 규칙 (service-rules 3장)
+│   │       ├─ CriteriaRules.kt                 기준·상세 조건 규칙 (내 기록 초기값, 범위 보정 등)
+│   │       ├─ FilterSummary.kt                 날짜 선택지, 줄 요약 문구
+│   │       ├─ FilterStore.kt                   적용된 조건 (탐색과 조건 설정이 같이 씀)
+│   │       └─ FilterIcons.kt                   조건 설정 전용 아이콘
 │   │
 │   ├─ notification/                        ← 3-6 알림 목록
 │   │   └─ NotificationScreen.kt            [화면] ← 3-6, 3-6-2 빈 상태
