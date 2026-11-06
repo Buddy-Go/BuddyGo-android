@@ -364,7 +364,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             ) { entry ->
                 val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
                 MemberReviewScreen(
-                    viewModel = viewModel<ReviewViewModel>(parent),
+                    viewModel = viewModel<ReviewViewModel>(parent, key = "review-${entry.meetingId()}"),
                     onClose = { navController.popBackStack() },
                     onAllDone = {
                         navController.navigate(Routes.REVIEW_DONE) { popUpTo(Routes.MEMBER_REVIEW) { inclusive = true } }
@@ -374,7 +374,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             composable(Routes.REVIEW_DONE) { entry ->
                 val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
                 ReviewDoneScreen(
-                    viewModel = viewModel<ReviewViewModel>(parent),
+                    viewModel = viewModel<ReviewViewModel>(parent, key = "review-${parent.meetingId()}"),
                     onGoActivity = {
                         navController.navigate(Routes.ACTIVITY) { popUpTo(Routes.REVIEW_LIST) { inclusive = true } }
                     },
