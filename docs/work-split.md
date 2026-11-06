@@ -114,8 +114,8 @@
 #### 1. 로그인 · 회원가입 · 종목 기록
 
 ##### `ui/auth/`
-- [ ] `LoginScreen.kt`
-  - [ ] 1 로그인 기본
+- [x] `LoginScreen.kt`
+  - [x] 1 로그인 기본
 
 ##### `ui/record/`
 - [ ] `SignUpInfoScreen.kt`
