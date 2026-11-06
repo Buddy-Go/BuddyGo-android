@@ -9,6 +9,9 @@ interface MeetingRepository {
     suspend fun getMeetings(): Result<List<Meeting>>
     suspend fun getMeeting(meetingId: String): Result<Meeting>
 
+    // 찜 (service-rules 2장). 켜고 끄는 값을 그대로 보낸다. 서버가 같은 값을 받아도 결과는 같다.
+    suspend fun setFavorite(meetingId: String, favorite: Boolean): Result<Unit>
+
     // 참가자
     suspend fun apply(meetingId: String, message: String?): Result<Unit>
     suspend fun cancelApplication(meetingId: String): Result<Unit>
