@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.model.CheckInResult
 import com.example.myapplication.data.model.JoinRequest
 import com.example.myapplication.data.model.Meeting
 
@@ -16,6 +17,10 @@ interface MeetingRepository {
     suspend fun apply(meetingId: String, message: String?): Result<Unit>
     suspend fun cancelApplication(meetingId: String): Result<Unit>
     suspend fun leave(meetingId: String): Result<Unit>
+
+    // 체크인 (service-rules 7장): 기기 GPS 좌표를 보내면 서버가 모임 장소와의 거리를 재서 범위 안일 때만 성공시킨다.
+    // 범위 밖이면 CheckInOutOfRangeException으로 실패한다. 체크인은 한 번만 할 수 있다.
+    suspend fun checkIn(meetingId: String, latitude: Double, longitude: Double): Result<CheckInResult>
 
     // 호스트
     suspend fun getJoinRequests(meetingId: String): Result<List<JoinRequest>>
