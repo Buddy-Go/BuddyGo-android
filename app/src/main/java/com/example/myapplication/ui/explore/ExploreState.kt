@@ -16,11 +16,13 @@ data class ExploreState(
     // 사용자가 지도를 움직인 뒤 '이 지역 재검색'을 보여 주기 위한 표시
     val cameraMoved: Boolean = false,
     val hasUnreadNotifications: Boolean = false, // 알림 벨의 빨간 점
+    val myLocation: GeoPoint? = null,            // 허용했을 때만 있다. 카드의 거리와 거리순 기준
+    val locationAsked: Boolean = false,          // 이번 실행에서 위치 권한을 이미 물어봤는지
 ) {
     // 지도와 리스트에 보이는 모임: 모집중만, 찜 칩이 켜져 있으면 찜한 모임만, 거리순
     val visibleMeetings: List<Meeting>
         get() {
-            val all = (meetings as? UiState.Success)?.data.orEmpty().onlyRecruiting()
+            val all = (meetings as? UiState.Success)?.data.orEmpty().onlyRecruiting().map(::withMyDistance)
             return all
                 .filter { filter.matches(it) }
                 .filter { !favoriteOnly || it.isFavorite }
@@ -32,6 +34,15 @@ data class ExploreState(
 
     // 위치 조건(구·동)이 걸려 있으면 검색 영역이 고정된다.
     val hasLocationCondition: Boolean get() = filter.district != null
+
+    // 내 위치를 알면 거리를 그 위치에서 다시 잰다. 모르면 목록이 가져온 거리(서버 계산)를 그대로 쓴다.
+    private fun withMyDistance(meeting: Meeting): Meeting {
+        val me = myLocation ?: return meeting
+        val place = meeting.place
+        // 좌표가 없는(0, 0) 모임은 거리를 잴 수 없어 가져온 값을 그대로 둔다.
+        if (place.latitude == 0.0 && place.longitude == 0.0) return meeting
+        return meeting.copy(distanceMeters = distanceMeters(me, place.latitude, place.longitude))
+    }
 
     val pins: List<PinGroup> get() = visibleMeetings.groupIntoPins()
 

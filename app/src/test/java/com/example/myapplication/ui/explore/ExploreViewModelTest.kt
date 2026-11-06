@@ -208,4 +208,31 @@ class ExploreViewModelTest {
         vm.refreshNotifications()
         assertFalse(vm.state.value.hasUnreadNotifications)
     }
+
+    @Test
+    fun 내_위치를_받으면_거리가_그_위치_기준으로_바뀐다() {
+        val vm = viewModel()
+        val before = vm.state.value.visibleMeetings.first { it.id == MockMeetings.recruiting.id }.distanceMeters
+        vm.onMyLocation(GeoPoint(37.5551, 126.8978))
+        val after = vm.state.value.visibleMeetings.first { it.id == MockMeetings.recruiting.id }.distanceMeters
+        assertTrue(before != after)
+        assertTrue(after!! in 2_000..2_500)
+    }
+
+    @Test
+    fun 위치를_못_얻어도_이전에_받은_위치를_지우지_않는다() {
+        val vm = viewModel()
+        val me = GeoPoint(37.5551, 126.8978)
+        vm.onMyLocation(me)
+        vm.onMyLocation(null)
+        assertEquals(me, vm.state.value.myLocation)
+    }
+
+    @Test
+    fun 위치_권한은_한_번만_묻는다() {
+        val vm = viewModel()
+        assertFalse(vm.state.value.locationAsked)
+        vm.onLocationAsked()
+        assertTrue(vm.state.value.locationAsked)
+    }
 }
