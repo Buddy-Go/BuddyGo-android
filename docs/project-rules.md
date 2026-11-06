@@ -155,7 +155,9 @@ app/
 │   │   └─ ReviewPendingCard.kt             [부품] ← 13-R 평소/마감 임박
 │   │
 │   └─ mypage/                              ← 14번 마이페이지
-│       └─ MyPageScreen.kt                  [화면] ← 14
+│       ├─ MyPageScreen.kt                  [화면] ← 14
+│       ├─ MyPageViewModel.kt               [상태] 불러오기 · 알림 설정 · 로그아웃
+│       └─ MyPageRules.kt                   [규칙] 한 줄 소개 · 온도·날짜 표기
 │
 └─ data/
     ├─ model/                               앱에서 쓰는 데이터 모양

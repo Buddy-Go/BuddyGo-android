@@ -23,6 +23,7 @@ import com.example.myapplication.ui.explore.filter.FilterViewModel
 import com.example.myapplication.ui.explore.filter.LocationSearchScreen
 import com.example.myapplication.ui.meeting.detail.ApplyScreen
 import com.example.myapplication.ui.meeting.detail.MeetingDetailScreen
+import com.example.myapplication.ui.mypage.MyPageScreen
 import com.example.myapplication.ui.notification.NotificationScreen
 import com.example.myapplication.ui.record.RecordScreen
 import com.example.myapplication.ui.record.SignUpInfoScreen
@@ -229,7 +230,13 @@ fun AppNavHost(modifier: Modifier = Modifier) {
 
             // 13~14 활동 내역 · 마이페이지
             composable(Routes.ACTIVITY) { TempScreen("13 활동 내역") }
-            composable(Routes.MYPAGE) { TempScreen("14 마이페이지") }
+            composable(Routes.MYPAGE) {
+                MyPageScreen(
+                    onLogout = {
+                        navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+                    },
+                )
+            }
         }
     }
 }
