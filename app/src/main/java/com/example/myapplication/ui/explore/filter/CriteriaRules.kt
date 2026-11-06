@@ -2,6 +2,7 @@ package com.example.myapplication.ui.explore.filter
 
 import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.ExerciseRecord
+import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 
@@ -96,3 +97,20 @@ fun HikingFilter.withCriteriaOn(on: Boolean, record: ExerciseRecord?): HikingFil
     if (!on) copy(criteriaOn = false) else copy(criteriaOn = true, style = style ?: record?.hikingStyle)
 
 fun HikingFilter.withStyle(style: HikingStyle): HikingFilter = copy(style = style)
+
+// ---- 상세 조건 (4e) ----
+
+object DetailDefaults {
+    val MANNER_OPTIONS = listOf(30, 50, 70) // 호스트 매너온도 하한 선택지(°C 이상)
+    val DEFAULT_MANNER = MANNER_OPTIONS.first()
+}
+
+// 성별: '누구나'는 성별을 정하지 않은 상태(null)로 다룬다. 정하면 모임의 성별 조건과 같은 것만 남는다.
+fun MeetingFilter.withGender(gender: GenderLimit): MeetingFilter =
+    copy(gender = if (gender == GenderLimit.ANYONE) null else gender)
+
+// 매너온도 하한 스위치. 켜면 가장 낮은 선택지(30°C)부터, 끄면 하한을 풀어 관계없음이 된다.
+fun MeetingFilter.withMannerOn(on: Boolean): MeetingFilter =
+    copy(minMannerTemperature = if (!on) null else minMannerTemperature ?: DetailDefaults.DEFAULT_MANNER)
+
+fun MeetingFilter.withMinManner(degrees: Int): MeetingFilter = copy(minMannerTemperature = degrees)

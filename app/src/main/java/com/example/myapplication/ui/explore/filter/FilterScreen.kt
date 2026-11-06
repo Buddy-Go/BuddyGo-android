@@ -88,7 +88,15 @@ fun FilterScreen(
             onDismiss = viewModel::onDismissSheet,
             onApply = viewModel::onApplySheet,
         )
-        FilterSheet.DETAIL, FilterSheet.TIME_RANGE, null -> Unit // 이어지는 PR에서 붙인다.
+        FilterSheet.DETAIL -> DetailConditionBottomSheet(
+            state = state,
+            onSetGender = viewModel::onSetGender,
+            onSetMannerOn = viewModel::onSetMannerOn,
+            onSetMinManner = viewModel::onSetMinManner,
+            onDismiss = viewModel::onDismissSheet,
+            onApply = viewModel::onApplySheet,
+        )
+        FilterSheet.TIME_RANGE, null -> Unit // 시간 범위 시트는 이어지는 PR에서 붙인다.
     }
 }
 

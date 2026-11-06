@@ -75,12 +75,7 @@ fun locationSummary(filter: MeetingFilter): String = filter.district?.takeIf { i
 
 // '상세 조건' 줄 요약: "누구나 · 매너 30°C+" (성별을 정하지 않으면 '누구나', 매너온도를 정하지 않으면 '관계없음')
 fun detailSummary(filter: MeetingFilter): String {
-    val gender = when (filter.gender) {
-        null -> "누구나"
-        GenderLimit.ANYONE -> "누구나"
-        GenderLimit.FEMALE_ONLY -> "여성만"
-        GenderLimit.MALE_ONLY -> "남성만"
-    }
+    val gender = genderLabel(filter.gender ?: GenderLimit.ANYONE)
     val manner = filter.minMannerTemperature?.let { "매너 ${it}°C+" } ?: "매너 $NONE"
     return "$gender · $manner"
 }

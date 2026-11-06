@@ -3,6 +3,7 @@ package com.example.myapplication.ui.explore.filter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.BodyPart
+import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.model.Sport
@@ -81,6 +82,12 @@ class FilterViewModel(
     fun onSetArmLevel(level: SkillLevel) = change { it.copy(health = it.health.withArmLevel(level)) }
     fun onSetPaceRange(range: IntRange) = change { it.copy(running = it.running.withPaceRange(range)) }
     fun onSetHikingStyle(style: HikingStyle) = change { it.copy(hiking = it.hiking.withStyle(style)) }
+
+    // ---- 상세 조건 시트 (4e) ----
+
+    fun onSetGender(gender: GenderLimit) = change { it.withGender(gender) }
+    fun onSetMannerOn(on: Boolean) = change { it.withMannerOn(on) }
+    fun onSetMinManner(degrees: Int) = change { it.withMinManner(degrees) }
 
     // 화면에서 고른 조건을 적용한다. 탐색 화면이 곧바로 이 조건으로 바뀐다.
     fun onApply() = FilterStore.apply(_state.value.draft)
