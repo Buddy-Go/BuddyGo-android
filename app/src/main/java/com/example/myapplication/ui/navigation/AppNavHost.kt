@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.FakeMateRepository
+import com.example.myapplication.data.repository.FakeReviewRepository
 import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.ui.activity.ActivityScreen
 import com.example.myapplication.ui.activity.ActivityViewModel
@@ -33,10 +34,14 @@ import com.example.myapplication.ui.mate.MateRequestScreen
 import com.example.myapplication.ui.mate.MateRequestViewModel
 import com.example.myapplication.ui.mate.MateScreen
 import com.example.myapplication.ui.mate.MateViewModel
+import com.example.myapplication.ui.mate.review.MemberReviewScreen
+import com.example.myapplication.ui.mate.review.ReviewDoneScreen
+import com.example.myapplication.ui.mate.review.ReviewListScreen
+import com.example.myapplication.ui.mate.review.ReviewViewModel
 import com.example.myapplication.ui.meeting.create.MeetingCreateScreen
 import com.example.myapplication.ui.meeting.create.MeetingCreateViewModel
-import com.example.myapplication.ui.meeting.create.PlaceSearchScreen
 import com.example.myapplication.ui.meeting.create.PlaceConfirmScreen
+import com.example.myapplication.ui.meeting.create.PlaceSearchScreen
 import com.example.myapplication.ui.meeting.detail.ApplyScreen
 import com.example.myapplication.ui.meeting.detail.MeetingDetailScreen
 import com.example.myapplication.ui.meeting.manage.ParticipantManageScreen
@@ -74,6 +79,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val userRepository = Repositories.users
     val noticeRepository = Repositories.notices
     val mateRepository = remember { FakeMateRepository() }
+    val reviewRepository = remember { FakeReviewRepository() }
 
     // 탭 5개 화면에서만 하단 탭 바를 보여 준다.
     Scaffold(
@@ -192,7 +198,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onAppliedHandled = { entry.savedStateHandle[KEY_APPLIED] = false },
                     onBack = { navController.popBackStack() },
                     onApply = { navController.navigate(Routes.apply(meetingId)) },
-                    onReview = { navController.navigate(Routes.REVIEW_LIST) },
+                    onReview = { navController.navigate(Routes.reviewList(meetingId)) },
                     onManageParticipants = { navController.navigate(Routes.participantManage(meetingId)) },
                     onWriteNotice = { navController.navigate(Routes.noticeEdit(meetingId)) },
                     onOpenNotices = { navController.navigate(Routes.noticeList(meetingId)) },
@@ -340,24 +346,46 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 )
             }
 
-            // 12 메이트 평가
-            // TODO(문찬주 확인): 12a~12c는 한 모임의 평가 흐름이라 meetingId가 필요하다.
-            // REVIEW_LIST를 "review/{meetingId}"로 바꾸는 데 합의하면 ReviewListScreen 등을 연결한다.
-            composable(Routes.REVIEW_LIST) { TempScreen("12a 평가 목록") }
+            // 12 메이트 평가: 12a·12b·12c가 한 모임의 평가 흐름이라 같은 ViewModel을 나눠 쓴다. (12a 화면이 주인)
+            composable(Routes.REVIEW_LIST, meetingArgs()) { entry ->
+                val meetingId = entry.meetingId()
+                ReviewListScreen(
+                    viewModel = viewModel(key = "review-$meetingId") { ReviewViewModel(meetingId, reviewRepository) },
+                    onBack = { navController.popBackStack() },
+                    onStartReview = { navController.navigate(Routes.memberReview(meetingId, "next")) },
+                )
+            }
             composable(
                 Routes.MEMBER_REVIEW,
                 listOf(
                     navArgument(Routes.ARG_MEETING_ID) { type = NavType.StringType },
                     navArgument(Routes.ARG_USER_ID) { type = NavType.StringType },
                 ),
-            ) { TempScreen("12b 멤버 평가") }
-            composable(Routes.REVIEW_DONE) { TempScreen("12c 평가 완료") }
+            ) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
+                MemberReviewScreen(
+                    viewModel = viewModel<ReviewViewModel>(parent, key = "review-${entry.meetingId()}"),
+                    onClose = { navController.popBackStack() },
+                    onAllDone = {
+                        navController.navigate(Routes.REVIEW_DONE) { popUpTo(Routes.MEMBER_REVIEW) { inclusive = true } }
+                    },
+                )
+            }
+            composable(Routes.REVIEW_DONE) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
+                ReviewDoneScreen(
+                    viewModel = viewModel<ReviewViewModel>(parent, key = "review-${parent.meetingId()}"),
+                    onGoActivity = {
+                        navController.navigate(Routes.ACTIVITY) { popUpTo(Routes.REVIEW_LIST) { inclusive = true } }
+                    },
+                )
+            }
 
             // 13~14 활동 내역 · 마이페이지
             composable(Routes.ACTIVITY) {
                 ActivityScreen(
                     viewModel = viewModel { ActivityViewModel(meetingRepository, userRepository) },
-                    onReviewClick = { navController.navigate(Routes.REVIEW_LIST) }, // TODO: meetingId 넘기기 (12번 route 합의 후)
+                    onReviewClick = { meetingId -> navController.navigate(Routes.reviewList(meetingId)) },
                     onMeetingClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
                     onCreateClick = { navController.navigate(Routes.MEETING_CREATE) },
                     onExploreClick = { navController.navigate(Routes.EXPLORE) },

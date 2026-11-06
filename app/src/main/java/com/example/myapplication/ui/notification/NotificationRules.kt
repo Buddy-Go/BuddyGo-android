@@ -68,7 +68,7 @@ fun Notification.destination(): String? = when (type) {
     NotificationType.MATE_REQUESTED -> Routes.MATE_REQUEST
     NotificationType.MATE_ACCEPTED, NotificationType.MATE_MEETING_CREATED, NotificationType.MATE_MEETING_JOINED ->
         meetingId?.let(Routes::meetingDetail) ?: userId?.let(Routes::mateProfile)
-    NotificationType.MEETING_ENDED -> Routes.REVIEW_LIST
+    NotificationType.MEETING_ENDED -> meetingId?.let(Routes::reviewList)
     else -> meetingId?.let(Routes::meetingDetail)
 }
 

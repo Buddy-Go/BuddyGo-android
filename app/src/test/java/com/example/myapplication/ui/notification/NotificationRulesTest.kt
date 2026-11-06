@@ -65,7 +65,8 @@ class NotificationRulesTest {
         assertEquals("meeting/m1", n(NotificationType.NOTICE_COMMENTED).destination())
         assertEquals("mate_request", n(NotificationType.MATE_REQUESTED, meetingId = null, userId = "u2").destination())
         assertEquals("mate/profile/u2", n(NotificationType.MATE_ACCEPTED, meetingId = null, userId = "u2").destination())
-        assertEquals("review", n(NotificationType.MEETING_ENDED).destination())
+        assertEquals("review/m1", n(NotificationType.MEETING_ENDED).destination())
+        assertNull(n(NotificationType.MEETING_ENDED, meetingId = null).destination())
         assertNull(n(NotificationType.JOIN_ACCEPTED, meetingId = null).destination())
     }
 
