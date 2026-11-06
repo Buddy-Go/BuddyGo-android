@@ -21,6 +21,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -29,6 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -136,6 +140,7 @@ fun MeetingDetailScreen(
                 state = state,
                 meeting = loaded.data,
                 onBack = onBack,
+                onLeave = viewModel::onLeaveClick,
                 onToggleFavorite = viewModel::onToggleFavorite,
                 onPlaceClick = { viewModel.onOpenSheet(DetailSheet.PLACE) },
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
@@ -149,6 +154,10 @@ fun MeetingDetailScreen(
                     }
                 },
             )
+        }
+        // 나가기 확인창
+        state.leaveDialog?.let { plan ->
+            LeaveDialog(plan = plan, onConfirm = viewModel::onLeaveConfirm, onDismiss = viewModel::onLeaveDismiss)
         }
         // 9a·9b 체크인 확인창
         state.checkIn?.let { prompt ->
@@ -192,6 +201,7 @@ private fun DetailContent(
     state: MeetingDetailState,
     meeting: Meeting,
     onBack: () -> Unit,
+    onLeave: () -> Unit,
     onToggleFavorite: () -> Unit,
     onPlaceClick: () -> Unit,
     onCriteriaClick: () -> Unit,
@@ -199,7 +209,7 @@ private fun DetailContent(
 ) {
     val role = state.role
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
-        BackBar(onBack)
+        BackBar(onBack, onLeave = if (state.leavePlan != null) onLeave else null)
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
@@ -217,11 +227,40 @@ private fun DetailContent(
     }
 }
 
+// 위쪽 줄: 뒤로 가기, 나갈 수 있는 사람에게는 오른쪽에 ⋮ 메뉴(나가기)
 @Composable
-private fun BackBar(onBack: () -> Unit) {
+private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = AppSpace.x4), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(40.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.CenterStart) {
             ChevronLeftIcon(AppColor.TextPrimary, size = 28.dp)
+        }
+        Spacer(Modifier.weight(1f))
+        if (onLeave != null) {
+            var menuOpen by remember { mutableStateOf(false) }
+            Box {
+                Box(Modifier.size(40.dp).clip(CircleShape).iconButton("더보기", { menuOpen = true }), contentAlignment = Alignment.Center) {
+                    MoreDotsIcon(AppColor.TextPrimary)
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }, containerColor = AppColor.Surface) {
+                    DropdownMenuItem(
+                        text = { Text("나가기", color = AppColor.DestructiveText, fontSize = 16.sp) },
+                        onClick = {
+                            menuOpen = false
+                            onLeave()
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoreDotsIcon(color: Color) {
+    androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+        val r = 2.2.dp.toPx()
+        listOf(0.22f, 0.5f, 0.78f).forEach { y ->
+            drawCircle(color, r, androidx.compose.ui.geometry.Offset(size.width / 2, size.height * y))
         }
     }
 }

@@ -9,6 +9,7 @@ import com.example.myapplication.data.model.GeoPoint
 import com.example.myapplication.data.model.JoinRequest
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingMember
+import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.distanceMeters
 
 // 목데이터로 응답한다. 서버 규칙은 흉내 내지 않고, 신청·취소 정도만 메모리에서 반영한다.
@@ -39,7 +40,14 @@ class FakeMeetingRepository(
         update(meetingId) {
             it.copy(
                 confirmedIds = it.confirmedIds - currentUserId,
+                members = it.members.filterNot { member -> member.userId == currentUserId },
                 confirmedCount = (it.confirmedCount - 1).coerceAtLeast(0),
+                // 마감 상태에서 나가면(service-rules 5장) 데드라인 전에는 마감이 풀려 모집중으로, 후에는 모임이 취소된다.
+                status = when {
+                    it.status != MeetingStatus.CLOSED -> it.status
+                    nowMillis() >= it.deadlineAtMillis -> MeetingStatus.CANCELED
+                    else -> MeetingStatus.RECRUITING
+                },
             )
         }
 

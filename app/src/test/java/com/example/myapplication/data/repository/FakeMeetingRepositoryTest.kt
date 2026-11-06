@@ -2,6 +2,7 @@ package com.example.myapplication.data.repository
 
 import com.example.myapplication.data.mock.MockMeetings
 import com.example.myapplication.data.model.CHECK_IN_RADIUS_METERS
+import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.CheckInOutOfRangeException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -94,5 +95,47 @@ class FakeMeetingRepositoryTest {
     @Test
     fun 없는_모임이면_체크인에_실패한다() {
         assertTrue(runBlocking { FakeMeetingRepository().checkIn("없는 id", 37.0, 127.0) }.isFailure)
+    }
+
+    // ---- 나가기 ----
+
+    @Test
+    fun 나가면_확정_명단과_인원과_참가자_명단에서_빠진다() {
+        val repo = FakeMeetingRepository()
+        val closed = MockMeetings.closed
+        assertTrue(runBlocking { repo.leave(closed.id) }.isSuccess)
+        val after = runBlocking { repo.getMeeting(closed.id) }.getOrThrow()
+        assertFalse("u1" in after.confirmedIds)
+        assertEquals(closed.confirmedCount - 1, after.confirmedCount)
+        assertFalse(after.members.any { it.userId == "u1" })
+        assertTrue("다른 참가자는 그대로", after.members.any { it.userId == "u3" })
+    }
+
+    @Test
+    fun 데드라인_전에_마감_모임에서_나가면_마감이_풀려_모집중이_된다() {
+        val closed = MockMeetings.closed
+        val repo = FakeMeetingRepository(nowMillis = { closed.deadlineAtMillis - 1 })
+        runBlocking { repo.leave(closed.id) }
+        assertEquals(MeetingStatus.RECRUITING, runBlocking { repo.getMeeting(closed.id) }.getOrThrow().status)
+    }
+
+    @Test
+    fun 데드라인_후에_마감_모임에서_나가면_모임이_취소된다() {
+        val closed = MockMeetings.closed
+        val repo = FakeMeetingRepository(nowMillis = { closed.deadlineAtMillis })
+        runBlocking { repo.leave(closed.id) }
+        assertEquals(MeetingStatus.CANCELED, runBlocking { repo.getMeeting(closed.id) }.getOrThrow().status)
+    }
+
+    @Test
+    fun 모집중_모임에서_나가도_상태는_그대로다() {
+        val repo = FakeMeetingRepository(initial = listOf(MockMeetings.recruiting.copy(confirmedIds = listOf("u1"), confirmedCount = 2)))
+        runBlocking { repo.leave(MockMeetings.recruiting.id) }
+        assertEquals(MeetingStatus.RECRUITING, runBlocking { repo.getMeeting(MockMeetings.recruiting.id) }.getOrThrow().status)
+    }
+
+    @Test
+    fun 없는_모임에서_나가려면_실패한다() {
+        assertTrue(runBlocking { FakeMeetingRepository().leave("없는 id") }.isFailure)
     }
 }

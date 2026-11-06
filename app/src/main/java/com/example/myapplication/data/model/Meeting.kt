@@ -1,6 +1,9 @@
 package com.example.myapplication.data.model
 
 // 모집중 → 마감 → 진행중 → 종료, 취소는 어느 단계에서든 가능 (service-rules 6장)
+// 데드라인은 모임 시작 이 시간(분) 전이다. (service-rules 5장, 기준값은 바뀔 수 있다)
+const val DEADLINE_BEFORE_START_MINUTES = 90
+
 enum class MeetingStatus { RECRUITING, CLOSED, IN_PROGRESS, ENDED, CANCELED }
 
 enum class GenderLimit { ANYONE, FEMALE_ONLY, MALE_ONLY }
@@ -85,6 +88,9 @@ data class Meeting(
             is MeetingCriteria.Running -> Sport.RUNNING
             is MeetingCriteria.Hiking -> Sport.HIKING
         }
+
+    // 데드라인 = 시작 1시간 30분 전. 이때까지 정원이 안 차면 자동 취소되고, 마감 상태에서 이후에 누가 나가면 모임이 취소된다. (service-rules 5장)
+    val deadlineAtMillis: Long get() = startAtMillis - DEADLINE_BEFORE_START_MINUTES * 60_000L
 
     // 종료 시각 = 시작 + 진행 시간
     val endAtMillis: Long get() = startAtMillis + durationMinutes * 60_000L

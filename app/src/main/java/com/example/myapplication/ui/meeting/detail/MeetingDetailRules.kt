@@ -28,8 +28,7 @@ private const val MINUTE = 60_000L
 private val weekdayNames = listOf("일", "월", "화", "수", "목", "금", "토")
 
 // 데드라인 = 시작 1시간 30분 전. 이때까지 정원이 안 차면 자동 취소된다. (service-rules 5장)
-const val DEADLINE_BEFORE_START_MINUTES = 90
-fun deadlineMillis(meeting: Meeting): Long = meeting.startAtMillis - DEADLINE_BEFORE_START_MINUTES * MINUTE
+fun deadlineMillis(meeting: Meeting): Long = meeting.deadlineAtMillis
 
 // 체크인은 시작 10분 전부터 시작 후 10분까지 열린다. (7장, 기준값은 바뀔 수 있다)
 const val CHECK_IN_OPENS_BEFORE_MINUTES = 10
@@ -283,5 +282,29 @@ private fun checkInAction(meeting: Meeting, alreadyCheckedIn: Boolean, nowMillis
         nowMillis < opens -> BottomAction(DetailAction.NONE, "체크인하기", "시작 10분 전부터 할 수 있어요", enabled = false)
         nowMillis > closes -> BottomAction(DetailAction.NONE, "체크인하기", "체크인 시간이 지났어요", enabled = false)
         else -> BottomAction(DetailAction.CHECK_IN, "체크인하기")
+    }
+}
+
+// ---- 나가기 (service-rules 5장) ----
+
+// 나가기 확인창에 보여 줄 내용. 나간 시점에 따라 모임과 내 매너온도에 생기는 일이 다르다.
+// warnsCancel은 지금 나가면 모임 전체가 취소되는 경우(데드라인 후 마감 상태)라, 확인창에 꼭 알려야 한다.
+data class LeavePlan(val title: String, val message: String, val warnsCancel: Boolean)
+
+// 참가자가 지금 나갈 수 있으면 확인창 내용을, 나갈 수 없으면 null을 돌려준다.
+// 호스트에게는 나가기가 없고(취소만 있다), 진행중 이후에는 나가기가 없다. (오지 않으면 노쇼)
+fun leavePlanOf(meeting: Meeting, role: MeetingRole, nowMillis: Long): LeavePlan? {
+    if (role != MeetingRole.CONFIRMED) return null
+    return when (meeting.status) {
+        MeetingStatus.RECRUITING -> LeavePlan(
+            "모임에서 나갈까요?", "나가도 매너온도에는 영향이 없어요", warnsCancel = false,
+        )
+        MeetingStatus.CLOSED ->
+            if (nowMillis < deadlineMillis(meeting)) LeavePlan(
+                "모임에서 나갈까요?", "나가면 마감이 풀려 다시 모집하고, 매너온도가 내려가요", warnsCancel = false,
+            ) else LeavePlan(
+                "모임에서 나갈까요?", "지금 나가면 모임이 취소돼요. 매너온도도 크게 내려가요", warnsCancel = true,
+            )
+        else -> null
     }
 }

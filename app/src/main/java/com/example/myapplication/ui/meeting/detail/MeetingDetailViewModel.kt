@@ -81,6 +81,31 @@ class MeetingDetailViewModel(
     fun onMessageShown() = _state.update { it.copy(message = null) }
     fun onNoticeShown() = _state.update { it.copy(notice = null) }
 
+    // ---- 나가기 ----
+
+    // ⋮ 메뉴의 '나가기'를 눌렀다. 나갈 수 없는 사람이면 아무것도 하지 않는다.
+    fun onLeaveClick() {
+        val plan = _state.value.leavePlan ?: return
+        _state.update { it.copy(leaveDialog = plan) }
+    }
+
+    fun onLeaveDismiss() = _state.update { it.copy(leaveDialog = null) }
+
+    // 확인창의 '나가기'. 성공하면 내 역할이 없어지도록 모임 정보를 새로 받는다. (취소되는 경우도 서버가 상태를 바꿔 준다)
+    fun onLeaveConfirm() {
+        if (_state.value.submitting || _state.value.leaveDialog == null) return
+        _state.update { it.copy(submitting = true) }
+        viewModelScope.launch {
+            repository.leave(meetingId)
+                .onSuccess {
+                    _state.update { it.copy(leaveDialog = null, notice = "모임에서 나갔어요") }
+                    reloadMeeting()
+                }
+                .onFailure { _state.update { it.copy(leaveDialog = null, message = "나가지 못했어요. 다시 시도해주세요.") } }
+            _state.update { it.copy(submitting = false) }
+        }
+    }
+
     // ---- 체크인 (9a, 9b, 9c) ----
 
     // 체크인하기를 눌렀다. 화면이 위치 권한을 확인해 내 위치를 가져오고 onCheckInLocation으로 알려 준다.
