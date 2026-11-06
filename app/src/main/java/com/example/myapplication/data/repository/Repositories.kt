@@ -7,4 +7,5 @@ object Repositories {
     val meetings: MeetingRepository by lazy { FakeMeetingRepository() }
     val users: UserRepository by lazy { FakeUserRepository() }
     val notifications: NotificationRepository by lazy { FakeNotificationRepository() }
+    val notices: NoticeRepository by lazy { FakeNoticeRepository() }
 }

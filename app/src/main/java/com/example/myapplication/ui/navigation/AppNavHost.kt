@@ -18,7 +18,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.FakeMateRepository
-import com.example.myapplication.data.repository.FakeNoticeRepository
 import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.ui.activity.ActivityScreen
 import com.example.myapplication.ui.activity.ActivityViewModel
@@ -71,7 +70,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     // (화면마다 새로 만들면 수락·공지 작성 결과가 다른 화면에 안 보인다)
     val meetingRepository = Repositories.meetings
     val userRepository = Repositories.users
-    val noticeRepository = remember { FakeNoticeRepository() }
+    val noticeRepository = Repositories.notices
     val mateRepository = remember { FakeMateRepository() }
 
     // 탭 5개 화면에서만 하단 탭 바를 보여 준다.
@@ -192,6 +191,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onBack = { navController.popBackStack() },
                     onApply = { navController.navigate(Routes.apply(meetingId)) },
                     onReview = { navController.navigate(Routes.REVIEW_LIST) },
+                    onManageParticipants = { navController.navigate(Routes.participantManage(meetingId)) },
+                    onWriteNotice = { navController.navigate(Routes.noticeEdit(meetingId)) },
+                    onOpenNotices = { navController.navigate(Routes.noticeList(meetingId)) },
+                    onOpenNotice = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
                     // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
                     onAddRecord = { sport -> navController.navigate(Routes.record(sport)) },
                 )

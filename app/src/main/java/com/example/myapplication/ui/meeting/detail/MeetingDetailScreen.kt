@@ -28,6 +28,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,6 +46,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -76,7 +80,7 @@ import com.example.myapplication.ui.theme.AppSpace
 import kotlinx.coroutines.launch
 
 // 5a~5d, 5g, 5l 모임 상세 (참가자 시점). 상태와 내 역할에 따라 칩·참가자 영역·하단 버튼이 달라진다.
-// 호스트 영역(5a-H 계열)은 문진곤이 `HostSection`으로 만들어 끼운다.
+// 내가 호스트이면 호스트 영역(5a-H 계열, 문진곤의 HostSection 부품)으로 화면을 구성한다.
 @Composable
 fun MeetingDetailScreen(
     meetingId: String,
@@ -84,6 +88,10 @@ fun MeetingDetailScreen(
     onApply: () -> Unit,
     onReview: () -> Unit,
     onAddRecord: (Sport) -> Unit,
+    onManageParticipants: () -> Unit,           // 호스트: 참가자 관리(7)
+    onWriteNotice: () -> Unit,                  // 호스트: 공지 작성(8a)
+    onOpenNotices: () -> Unit,                  // 호스트: 공지 목록(8d)
+    onOpenNotice: (noticeId: String) -> Unit,   // 호스트: 공지 상세(8f)
     modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
     onAppliedHandled: () -> Unit = {},
@@ -96,6 +104,15 @@ fun MeetingDetailScreen(
     val toast = remember { ToastState() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    // 공지·참가자 관리에서 돌아오면 호스트 영역의 숫자와 공지를 새로 받는다.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) viewModel.onResume() }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    // 모임을 삭제했으면 화면을 닫는다.
+    LaunchedEffect(state.deleted) { if (state.deleted) onBack() }
     // 저장 실패 같은 안내는 토스트로 한 번 보여 주고 지운다.
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -145,6 +162,11 @@ fun MeetingDetailScreen(
                 onToggleFavorite = viewModel::onToggleFavorite,
                 onPlaceClick = { viewModel.onOpenSheet(DetailSheet.PLACE) },
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
+                onHostAction = viewModel::onHostAction,
+                onManageParticipants = onManageParticipants,
+                onWriteNotice = onWriteNotice,
+                onOpenNotices = onOpenNotices,
+                onOpenNotice = onOpenNotice,
                 onAction = { action ->
                     when (action) {
                         DetailAction.APPLY -> onApply()
@@ -155,6 +177,20 @@ fun MeetingDetailScreen(
                     }
                 },
             )
+        }
+        // 5a-X2 취소 시트, 5a-X3 삭제 확인 (호스트)
+        val host = state.hostSection
+        if (host != null) when (state.hostDialog) {
+            HostDialog.CANCEL -> MeetingCancelBottomSheet(
+                confirmedOthersCount = host.confirmedOthersCount,
+                onConfirm = viewModel::onCancelMeetingConfirm,
+                onDismiss = viewModel::onHostDialogDismiss,
+            )
+            HostDialog.DELETE -> MeetingDeleteDialog(
+                onConfirm = viewModel::onDeleteMeetingConfirm,
+                onDismiss = viewModel::onHostDialogDismiss,
+            )
+            null -> Unit
         }
         // 나가기 확인창
         state.leaveDialog?.let { plan ->
@@ -206,36 +242,56 @@ private fun DetailContent(
     onToggleFavorite: () -> Unit,
     onPlaceClick: () -> Unit,
     onCriteriaClick: () -> Unit,
+    onHostAction: (HostAction) -> Unit,
+    onManageParticipants: () -> Unit,
+    onWriteNotice: () -> Unit,
+    onOpenNotices: () -> Unit,
+    onOpenNotice: (String) -> Unit,
     onAction: (DetailAction) -> Unit,
 ) {
     val role = state.role
+    val host = if (role == MeetingRole.HOST) state.hostSection else null
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
-        BackBar(onBack, onLeave = if (state.leavePlan != null) onLeave else null)
+        BackBar(
+            onBack,
+            onLeave = if (state.leavePlan != null) onLeave else null,
+            hostMenu = host?.let { { HostMoreMenu(actions = it.menuActions, onAction = onHostAction) } },
+        )
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
             ChipsRow(meeting, role)
             Text(meeting.title, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, lineHeight = 34.sp)
-            ParticipantsSection(meeting, state.nowMillis)
-            InfoCard(meeting, onPlaceClick, onCriteriaClick)
-            HostCard(meeting)
-            if (meeting.description.isNotBlank()) IntroCard(meeting.description)
-            if (role == MeetingRole.HOST) HostAreaPlaceholder()
+            if (host != null) {
+                // 5a-H 계열: 확정 명단, 정보 카드, '내가 호스트', 공지, 모임 소개
+                HostRosterSection(host, onRosterClick = onManageParticipants)
+                InfoCard(meeting, onPlaceClick, onCriteriaClick)
+                HostSelfRow(meeting.hostNickname)
+                HostNoticeSection(host, onWriteClick = onWriteNotice, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice)
+                if (meeting.description.isNotBlank()) IntroCard(meeting.description)
+            } else {
+                ParticipantsSection(meeting, state.nowMillis)
+                InfoCard(meeting, onPlaceClick, onCriteriaClick)
+                HostCard(meeting)
+                if (meeting.description.isNotBlank()) IntroCard(meeting.description)
+            }
             Spacer(Modifier.height(AppSpace.md))
         }
-        BottomBar(meeting.isFavorite, state.bottomAction, state.submitting, onToggleFavorite, onAction)
+        if (host != null) HostBottomBar(host, onManageClick = onManageParticipants)
+        else BottomBar(meeting.isFavorite, state.bottomAction, state.submitting, onToggleFavorite, onAction)
     }
 }
 
 // 위쪽 줄: 뒤로 가기, 나갈 수 있는 사람에게는 오른쪽에 ⋮ 메뉴(나가기)
 @Composable
-private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null) {
+private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null, hostMenu: (@Composable () -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = AppSpace.x4), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(40.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.CenterStart) {
             ChevronLeftIcon(AppColor.TextPrimary, size = 28.dp)
         }
         Spacer(Modifier.weight(1f))
+        hostMenu?.invoke()
         if (onLeave != null) {
             var menuOpen by remember { mutableStateOf(false) }
             Box {
@@ -426,12 +482,6 @@ private fun IntroCard(description: String) {
         Text("모임 소개", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         Text(description, fontSize = 16.sp, color = AppColor.TextPrimary, lineHeight = 24.sp)
     }
-}
-
-// TODO(임시) 호스트 영역(5a-H 계열)은 문진곤이 `HostSection.kt`로 만들어 이 자리에서 부른다.
-@Composable
-private fun HostAreaPlaceholder() {
-    Text("호스트 영역은 준비 중이에요", fontSize = 14.sp, color = AppColor.TextSecondary)
 }
 
 @Composable

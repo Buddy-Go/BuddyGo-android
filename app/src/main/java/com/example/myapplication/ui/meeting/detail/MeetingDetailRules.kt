@@ -8,12 +8,14 @@ import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.data.model.MeetingStatus
+import com.example.myapplication.data.model.Notice
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.CriteriaMatch
 import com.example.myapplication.ui.explore.filter.CriteriaDefaults
 import com.example.myapplication.ui.explore.filter.filterPartOrder
 import com.example.myapplication.ui.explore.filter.paceText
 import com.example.myapplication.ui.explore.formatStartTime
+import com.example.myapplication.ui.meeting.notice.noticeTimeText
 import com.example.myapplication.ui.record.bodyPartLabel
 import com.example.myapplication.ui.record.hikingStyleLabel
 import com.example.myapplication.ui.record.skillLevelLabel
@@ -309,4 +311,37 @@ fun leavePlanOf(meeting: Meeting, role: MeetingRole, nowMillis: Long): LeavePlan
             )
         else -> null
     }
+}
+
+// ---- 호스트 영역 (5a-H 계열) ----
+
+// 호스트일 때 모임 상세 아래쪽에 쓰는 값. 확정 명단과 마지막 공지는 모임 정보 밖에서 받아 온 것을 넘긴다.
+// confirmedNames는 호스트가 맨 앞이다.
+fun hostSectionStateOf(
+    meeting: Meeting,
+    confirmedNames: List<String>,
+    latestNotice: Notice?,
+    timeZone: TimeZone = TimeZone.getDefault(),
+): HostSectionState = HostSectionState(
+    hostNickname = meeting.hostNickname,
+    confirmedNicknames = confirmedNames,
+    capacity = meeting.capacity,
+    isClosed = meeting.status == MeetingStatus.CLOSED,
+    // 진행중이 되면 수정·취소할 수 없고, 종료·취소된 모임도 같다. (service-rules 4장)
+    isStartedOrLater = meeting.status != MeetingStatus.RECRUITING && meeting.status != MeetingStatus.CLOSED,
+    pendingApplicantCount = meeting.pendingIds.size,
+    latestNotice = latestNotice?.let {
+        HostNoticePreview(it.id, noticeTimeText(it.createdAtMillis, timeZone), it.title, it.body)
+    },
+)
+
+// 확정 명단 이름: 명단이 있으면 그것을, 없으면 확정 id를 이름으로 바꾼 것을 쓴다. 호스트를 맨 앞에 둔다.
+fun orderedConfirmedNames(meeting: Meeting, namesById: Map<String, String>): List<String> {
+    val names = if (meeting.members.isNotEmpty()) {
+        meeting.members.map { it.userId to it.nickname }
+    } else {
+        meeting.confirmedIds.map { it to (namesById[it] ?: "") }.filter { it.second.isNotEmpty() }
+    }
+    val (host, others) = names.partition { it.first == meeting.hostId }
+    return (host + others).map { it.second }
 }
