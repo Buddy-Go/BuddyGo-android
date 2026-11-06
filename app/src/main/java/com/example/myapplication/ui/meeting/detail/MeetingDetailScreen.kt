@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.meeting.detail
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,16 +27,14 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -51,7 +52,6 @@ import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.Sport
-import kotlinx.coroutines.launch
 import com.example.myapplication.ui.common.CriteriaSummaryRow
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.SkeletonDetail
@@ -59,20 +59,21 @@ import com.example.myapplication.ui.common.ToastHost
 import com.example.myapplication.ui.common.ToastState
 import com.example.myapplication.ui.common.ToastType
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.HeartIcon
-import com.example.myapplication.ui.explore.filter.ChevronLeftIcon
-import com.example.myapplication.ui.explore.filter.ChevronRightIcon
-import com.example.myapplication.ui.explore.filter.genderLabel
 import com.example.myapplication.ui.explore.LocationPermissions
 import com.example.myapplication.ui.explore.favoriteLabel
 import com.example.myapplication.ui.explore.fetchMyLocation
+import com.example.myapplication.ui.explore.filter.ChevronLeftIcon
+import com.example.myapplication.ui.explore.filter.ChevronRightIcon
+import com.example.myapplication.ui.explore.filter.genderLabel
 import com.example.myapplication.ui.explore.hasLocationPermission
 import com.example.myapplication.ui.explore.iconButton
-import com.example.myapplication.ui.explore.sportLabel
 import com.example.myapplication.ui.record.SportIcon
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import kotlinx.coroutines.launch
 
 // 5a~5d, 5g, 5l 모임 상세 (참가자 시점). 상태와 내 역할에 따라 칩·참가자 영역·하단 버튼이 달라진다.
 // 호스트 영역(5a-H 계열)은 문진곤이 `HostSection`으로 만들어 끼운다.
@@ -83,9 +84,9 @@ fun MeetingDetailScreen(
     onApply: () -> Unit,
     onReview: () -> Unit,
     onAddRecord: (Sport) -> Unit,
+    modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
     onAppliedHandled: () -> Unit = {},
-    modifier: Modifier = Modifier,
     viewModel: MeetingDetailViewModel = viewModel(
         key = meetingId,
         factory = viewModelFactory { initializer { MeetingDetailViewModel(meetingId) } },
@@ -492,7 +493,7 @@ private fun copyToClipboard(context: android.content.Context, label: String, tex
 
 // 카카오맵 길찾기 링크를 연다. 열 수 있는 앱이 없으면 onFail을 부른다.
 private fun openRoute(context: android.content.Context, meeting: Meeting, onFail: () -> Unit) {
-    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(routeUrl(meeting)))
+    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, routeUrl(meeting).toUri())
         .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
     runCatching { context.startActivity(intent) }.onFailure { onFail() }
 }

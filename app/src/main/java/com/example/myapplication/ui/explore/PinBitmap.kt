@@ -8,6 +8,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.createBitmap
 import com.example.myapplication.data.model.Sport
 
 // 카카오맵 라벨은 Compose 화면이 아니라 비트맵을 받는다. 그래서 핀(3-4-After)을 Canvas로 직접 그린다.
@@ -35,7 +36,7 @@ internal object PinBitmap {
         val tailH = 6f * d
         val margin = MARGIN * d
 
-        val bitmap = Bitmap.createBitmap(
+        val bitmap = createBitmap(
             (bodyW + margin * 2).toInt(), (margin + bodyH + tailH).toInt(), Bitmap.Config.ARGB_8888,
         )
         val canvas = Canvas(bitmap)

@@ -3,7 +3,7 @@ package com.example.myapplication.ui.explore.filter
 import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.Sport
-import com.example.myapplication.ui.explore.sportLabel
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.record.bodyPartLabel
 import com.example.myapplication.ui.record.hikingStyleLabel
 import com.example.myapplication.ui.record.skillLevelLabel

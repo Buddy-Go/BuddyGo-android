@@ -1,8 +1,8 @@
 package com.example.myapplication.ui.mypage
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,9 +49,9 @@ import com.example.myapplication.ui.common.ConfirmDialog
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.SkeletonList
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.BellIcon
 import com.example.myapplication.ui.explore.ThermometerIcon
-import com.example.myapplication.ui.explore.sportLabel
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace

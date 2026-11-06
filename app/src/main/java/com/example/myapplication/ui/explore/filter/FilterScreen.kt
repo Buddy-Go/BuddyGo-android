@@ -27,9 +27,9 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,9 +44,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.ActionButton
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.explore.selectableItem
-import com.example.myapplication.ui.explore.sportLabel
 import com.example.myapplication.ui.record.SportIcon
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius

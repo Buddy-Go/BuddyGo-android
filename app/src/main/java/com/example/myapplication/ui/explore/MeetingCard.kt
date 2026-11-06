@@ -32,6 +32,7 @@ import com.example.myapplication.data.mock.MockMeetings
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.record.bodyPartLabel
 import com.example.myapplication.ui.record.hikingStyleLabel
 import com.example.myapplication.ui.theme.AppColor
@@ -46,12 +47,6 @@ internal fun toneOf(sport: Sport): SportTone = when (sport) {
     Sport.HEALTH -> SportTone(Color(0xFFF5A524), Color(0xFFFDEBD0), Color(0xFFB45309))
     Sport.RUNNING -> SportTone(Color(0xFF3B82F6), Color(0xFFE0EBFF), Color(0xFF1D4ED8))
     Sport.HIKING -> SportTone(Color(0xFF2F7D4F), Color(0xFFDDF3E4), Color(0xFF166534))
-}
-
-fun sportLabel(sport: Sport): String = when (sport) {
-    Sport.HEALTH -> "헬스"
-    Sport.RUNNING -> "러닝"
-    Sport.HIKING -> "등산"
 }
 
 // 3-3-After 떠 있는 카드의 두 번째 칩. 기준을 짧게 요약한다.
