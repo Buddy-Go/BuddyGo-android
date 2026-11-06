@@ -45,16 +45,11 @@ import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.ActionButton
 import com.example.myapplication.ui.common.InlineErrorBanner
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
 import com.example.myapplication.ui.theme.MyApplicationTheme
-
-fun sportLabel(sport: Sport): String = when (sport) {
-    Sport.HEALTH -> "헬스"
-    Sport.RUNNING -> "러닝"
-    Sport.HIKING -> "등산"
-}
 
 // 2b 회원가입 · 프로필 설정 (2 / 3)
 // 디자인의 '활동 지역' 카드는 서비스 규칙(1장, 13장)에서 쓰임새가 정해지지 않아 제거하기로 해서 넣지 않았다.

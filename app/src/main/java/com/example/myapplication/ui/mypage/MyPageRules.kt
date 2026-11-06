@@ -3,10 +3,10 @@ package com.example.myapplication.ui.mypage
 import com.example.myapplication.data.model.ReviewVerdict
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.model.User
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.filter.paceText
 import com.example.myapplication.ui.record.hikingStyleLabel
 import com.example.myapplication.ui.record.skillLevelLabel
-import com.example.myapplication.ui.record.sportLabel
 import java.util.Calendar
 import java.util.TimeZone
 

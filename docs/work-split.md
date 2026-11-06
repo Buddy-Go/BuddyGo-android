@@ -137,7 +137,7 @@
 #### 2. 탐색 (지도·리스트)
 
 ##### `ui/explore/`
-- [ ] `ExploreScreen.kt`
+- [x] `ExploreScreen.kt`
   - [x] 3-After 지도 + 바텀시트
   - [x] 3-2-After 지도 전체 (시트 내림)
   - [x] 3-3-After 핀 선택
@@ -202,7 +202,7 @@
 #### 5. 알림 · 마이페이지
 
 ##### `ui/notification/`
-- [ ] `NotificationScreen.kt`
+- [x] `NotificationScreen.kt`
   - [x] 3-6 알림 목록
   - [x] 3-6-2 알림 목록 · 빈 상태
   - [x] 탭 이동: 체크인 → 모임 상세 체크인 / 공지 → 공지 상세(8g) / 메이트 신청 → 메이트 신청(11c) (이동 연결 완료, 8g·11c 화면은 담당 구간 구현 대기)
