@@ -1,7 +1,7 @@
 package com.example.myapplication.ui.common
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,9 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +40,7 @@ fun ActionButton(
     enabled: Boolean = true,
     loading: Boolean = false,
     loadingText: String = text,
+    outlined: Boolean = false, // true이면 흰 배경 + 테두리 (보조 동작: '홈으로' 등)
 ) {
     val active = enabled && !loading
     Box(
@@ -50,7 +48,8 @@ fun ActionButton(
             .fillMaxWidth()
             .height(54.dp)
             .clip(RoundedCornerShape(AppRadius.md))
-            .background(if (active) AppColor.Accent else AppColor.SkeletonBase)
+            .background(if (!active) AppColor.SkeletonBase else if (outlined) AppColor.Surface else AppColor.Accent)
+            .then(if (outlined && active) Modifier.border(1.dp, AppColor.Border, RoundedCornerShape(AppRadius.md)) else Modifier)
             .clickable(enabled = active, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -85,13 +84,7 @@ fun InlineErrorBanner(message: String, modifier: Modifier = Modifier) {
             .padding(horizontal = AppSpace.xxl, vertical = AppSpace.xl),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Canvas(Modifier.size(20.dp)) {
-            val c = AppColor.DestructiveText
-            val sw = 1.8.dp.toPx()
-            drawCircle(c, size.width / 2 - sw / 2, style = Stroke(sw))
-            drawLine(c, Offset(size.width / 2, size.height * .28f), Offset(size.width / 2, size.height * .58f), sw, StrokeCap.Round)
-            drawCircle(c, sw * .7f, Offset(size.width / 2, size.height * .74f))
-        }
+        ExclamationIcon(AppColor.DestructiveText)
         Spacer(Modifier.width(AppSpace.xl))
         Text(message, color = AppColor.DestructiveText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
@@ -106,6 +99,7 @@ private fun ActionButtonPreview() {
             ActionButton(text = "신청하기", onClick = {})
             ActionButton(text = "다시 시도", onClick = {})
             ActionButton(text = "신청하기", loadingText = "신청하는 중", loading = true, onClick = {})
+            ActionButton(text = "홈으로", outlined = true, onClick = {})
             ActionButton(text = "신청하기", enabled = false, onClick = {})
         }
     }

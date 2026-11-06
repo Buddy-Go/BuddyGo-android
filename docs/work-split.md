@@ -103,8 +103,8 @@
 - [x] `SkeletonList.kt` ← 16a
 - [x] `SkeletonDetail.kt` ← 16b
 - [x] `ActionButton.kt` ← 16c 제출 중, 16i 제출 실패
-- [ ] `ListFooter.kt` ← 16d 추가 로딩, 16h 부분 실패
-- [ ] `FullScreenError.kt` ← 16f 네트워크 없음, 16g 서버 오류
+- [x] `ListFooter.kt` ← 16d 추가 로딩, 16h 부분 실패
+- [x] `FullScreenError.kt` ← 16f 네트워크 없음, 16g 서버 오류
 - [ ] `AppToast.kt` ← 16j 성공/경고/실패
 - [ ] `CriteriaSummaryRow.kt` ← 5i 맞음/일부만/안 맞음
 - [ ] `ConfirmDialog.kt` 다이얼로그 공통 틀
