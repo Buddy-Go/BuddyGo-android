@@ -27,17 +27,23 @@ app/
 ├─ ui/
 │   ├─ navigation/                          화면 이동
 │   │   ├─ Routes.kt                        화면 이름표 목록
-│   │   └─ AppNavHost.kt                    이름표와 실제 화면을 연결
+│   │   ├─ AppNavHost.kt                    이름표와 실제 화면을 연결 (하단 탭 바 표시 포함)
+│   │   └─ TempScreen.kt                    아직 안 만든 화면 자리. 화면을 만들면 AppNavHost에서 교체
+│   │
+│   ├─ theme/                               색·글자·여백 기준
+│   │   └─ AppTokens.kt                     AppColor, AppRadius, AppSpace 토큰 (이 파일이 이름 기준)
 │   │
 │   ├─ common/                              여러 화면이 같이 쓰는 것
 │   │   ├─ UiState.kt                       로딩/성공/에러 정의
 │   │   ├─ BottomNavBar.kt                  탐색·활동·개설·메이트·마이
+│   │   ├─ SkeletonBlock.kt                 회색 블록 + 반짝임 (스켈레톤 공통 조각)
 │   │   ├─ SkeletonList.kt                  ← 16a
 │   │   ├─ SkeletonDetail.kt                ← 16b
-│   │   ├─ ActionButton.kt                  ← 16c 제출 중, 16i 제출 실패
-│   │   ├─ ListFooter.kt                    ← 16d 추가 로딩, 16h 부분 실패
+│   │   ├─ ActionButton.kt                  ← 16c 제출 중, 16i 제출 실패 (InlineErrorBanner 포함)
+│   │   ├─ ExclamationIcon.kt               동그라미 느낌표 아이콘 (오류·경고 안내에서 공용)
+│   │   ├─ ListFooter.kt                    ← 16d 추가 로딩, 16h 부분 실패 (InlineLoading 포함)
 │   │   ├─ FullScreenError.kt               ← 16f 네트워크 없음, 16g 서버 오류
-│   │   ├─ AppToast.kt                      ← 16j 성공/경고/실패
+│   │   ├─ AppToast.kt                      ← 16j 성공/경고/실패 (ToastState, ToastHost 포함)
 │   │   ├─ CriteriaSummaryRow.kt            ← 5i 맞음/일부만/안 맞음
 │   │   └─ ConfirmDialog.kt                 다이얼로그 공통 틀
 │   │
@@ -301,7 +307,9 @@ app/
     - 파일 이름 앞의 ID가 프레임 ID다. 예: `10a_모임개설_헬스.png`
     - 기본 프레임은 360×800dp(PNG 720×1600px)이고, 바텀시트·다이얼로그·상태 정의는 부분 컴포넌트다.
     - `INDEX.md`에 파일별 프레임 라벨과 크기가 있다.
-    - 스크린샷에 적힌 토큰 이름(`AppColor`, `AppRadius`, `AppSpace` 등)은 16번 프레임의 캡션을 따른다.
+    - 토큰은 `ui/theme/AppTokens.kt`의 `AppColor`, `AppRadius`, `AppSpace`를 쓴다. **이름은 이 파일이 기준이다.**
+      16번 프레임 캡션의 이름(`3xl`, `4xl`, `5xl` 등)과 다르면 이름이 아니라 값(dp)으로 맞춰 고른다. 여백: `md`=8, `xl`=12, `xxl`=16, `x4`=20, `x5`=24.
+    - 새 토큰은 추가만 한다. 같은 값이 이미 있으면 새로 만들지 않고, 같은 이름을 두 곳에서 따로 만들지 않는다. (합칠 때 컴파일이 깨진다)
 - 디자인 스크린샷이 `docs/service-rules.md`와 다르면 정의서를 따른다. 다른 점은 PR의 "알릴 점"에 적는다.
 - 디자인을 새 버전으로 바꿀 때는 `docs/design/screens/` 전체를 교체하고, 프레임 번호가 달라지면 이 문서의 폴더 구조와 대응표를 같이 고친다. (`docs:` 커밋으로 따로)
 
