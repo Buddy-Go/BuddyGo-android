@@ -1,10 +1,17 @@
 package com.example.myapplication.data.repository
 
 import com.example.myapplication.data.mock.MockUsers
+import com.example.myapplication.data.model.ProfileStats
+import com.example.myapplication.data.model.ReceivedReview
 import com.example.myapplication.data.model.SignUpDraft
 import com.example.myapplication.data.model.User
 
-class FakeUserRepository : UserRepository {
+class FakeUserRepository(
+    private val stats: Map<String, ProfileStats> = mapOf(MockUsers.me.id to MockUsers.meStats),
+    private val reviews: Map<String, List<ReceivedReview>> = mapOf(MockUsers.me.id to MockUsers.meReviews),
+) : UserRepository {
+    private var notificationEnabled = true
+
     override suspend fun login(email: String, password: String, keepLogin: Boolean): Result<User> =
         Result.success(MockUsers.me)
 
@@ -29,4 +36,20 @@ class FakeUserRepository : UserRepository {
             preferredSports = draft.preferredSports, record = draft.record,
         ),
     )
+
+    // 기록이 없는 사용자는 0과 빈 목록이다.
+    override suspend fun getProfileStats(userId: String): Result<ProfileStats> =
+        Result.success(stats[userId] ?: ProfileStats())
+
+    override suspend fun getReceivedReviews(userId: String): Result<List<ReceivedReview>> =
+        Result.success((reviews[userId] ?: emptyList()).sortedByDescending { it.createdAtMillis })
+
+    override suspend fun isNotificationEnabled(): Result<Boolean> = Result.success(notificationEnabled)
+
+    override suspend fun setNotificationEnabled(enabled: Boolean): Result<Unit> {
+        notificationEnabled = enabled
+        return Result.success(Unit)
+    }
+
+    override suspend fun logout(): Result<Unit> = Result.success(Unit)
 }

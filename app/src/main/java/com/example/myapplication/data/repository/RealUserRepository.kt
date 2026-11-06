@@ -1,5 +1,7 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.model.ProfileStats
+import com.example.myapplication.data.model.ReceivedReview
 import com.example.myapplication.data.model.SignUpDraft
 import com.example.myapplication.data.model.User
 
@@ -11,4 +13,9 @@ class RealUserRepository : UserRepository {
     override suspend fun isNicknameAvailable(nickname: String): Result<Boolean> = TODO("서버 연결 후 구현")
     override suspend fun isEmailAvailable(email: String): Result<Boolean> = TODO("서버 연결 후 구현")
     override suspend fun signUp(draft: SignUpDraft): Result<User> = TODO("서버 연결 후 구현")
+    override suspend fun getProfileStats(userId: String): Result<ProfileStats> = TODO("서버 연결 후 구현")
+    override suspend fun getReceivedReviews(userId: String): Result<List<ReceivedReview>> = TODO("서버 연결 후 구현")
+    override suspend fun isNotificationEnabled(): Result<Boolean> = TODO("서버 연결 후 구현")
+    override suspend fun setNotificationEnabled(enabled: Boolean): Result<Unit> = TODO("서버 연결 후 구현")
+    override suspend fun logout(): Result<Unit> = TODO("서버 연결 후 구현")
 }
