@@ -6,6 +6,9 @@ import androidx.compose.ui.unit.dp
 // TODO: 색 값은 로그인(1) 스크린샷에서 추정한 값. 16번 프레임 캡션 기준 값으로 확정되면 교체한다.
 object AppColor {
     val Accent = Color(0xFFA3E635)
+    // TODO: 16j 캡션의 AccentSoft 값을 스크린샷에서 추정한 값. 확정되면 교체한다.
+    val AccentSoft = Color(0xFFF0FBDD)
+    val ChipNeutralBg = Color(0xFFF4F4F5) // 16j 캡션 값
     val AccentStrong = Color(0xFF4D7C0F)
     val Surface = Color(0xFFFFFFFF)
     val SurfaceMuted = Color(0xFFF7F7F8)
