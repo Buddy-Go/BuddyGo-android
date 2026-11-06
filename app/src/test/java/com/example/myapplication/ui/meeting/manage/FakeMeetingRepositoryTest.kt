@@ -39,12 +39,22 @@ class FakeMeetingRepositoryTest {
 
     @Test
     fun createMakesMeHostAndConfirmed() = runBlocking {
-        val repo = FakeMeetingRepository(emptyList())
-        val id = repo.createMeeting(Meeting(title = "새 모임", capacity = 3)).getOrThrow()
+        val now = 1_000_000_000_000L
+        val repo = FakeMeetingRepository(emptyList(), nowMillis = { now })
+        // 시작은 지금부터 1시간 30분 이후여야 개설된다. (service-rules 4장)
+        val id = repo.createMeeting(Meeting(title = "새 모임", capacity = 3, startAtMillis = now + 2 * 3_600_000L)).getOrThrow()
         val m = repo.getMeeting(id).getOrThrow()
         assertEquals("u1", m.hostId)
         assertEquals(listOf("u1"), m.confirmedIds)
         assertEquals(MeetingStatus.RECRUITING, m.status)
+    }
+
+    @Test
+    fun createFailsWhenStartIsWithinDeadline() = runBlocking {
+        val now = 1_000_000_000_000L
+        val repo = FakeMeetingRepository(emptyList(), nowMillis = { now })
+        assertTrue(repo.createMeeting(Meeting(title = "새 모임", capacity = 3, startAtMillis = now + 60 * 60_000L)).isFailure)
+        assertTrue(repo.getMeetings().getOrThrow().isEmpty())
     }
 
     @Test

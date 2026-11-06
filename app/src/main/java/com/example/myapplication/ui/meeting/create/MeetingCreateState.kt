@@ -2,6 +2,7 @@ package com.example.myapplication.ui.meeting.create
 
 import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.ExerciseRecord
+import com.example.myapplication.data.model.Gender
 import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
@@ -67,6 +68,7 @@ enum class CreateSheet {
     HEALTH_CRITERIA, // 10d
     DESCRIPTION, // 10e
     TIME, // 10f
+    CAPACITY, // 정원·성별
     DETAIL_ADDRESS, // 수정 모드에서 상세주소만 고친다 (장소 검색 화면 10g가 생기기 전까지 유일한 장소 수정)
 }
 
@@ -98,8 +100,15 @@ data class HealthCriteria(
 data class PlaceSelection(
     val name: String,
     val detail: String? = null, // 상세주소(선택)
+    val address: String = "",
+    val lotAddress: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
 ) {
     val summary: String get() = if (detail.isNullOrBlank()) name else "$name · $detail"
+
+    fun toResult() = PlaceResult(name, address, lotAddress, latitude, longitude)
+    fun toMeetingPlace() = MeetingPlace(name, address, lotAddress, detail?.takeIf { it.isNotBlank() }, latitude, longitude)
 }
 
 // 날짜 칩 하나. 10a "오늘 9/8", "화 9/9"
@@ -128,6 +137,8 @@ data class MeetingCreateState(
     val createdMeetingId: String? = null, // 개설되면 채워지고, 화면이 모임 상세로 넘어간다
     val errorMessage: String? = null,
     // ---- 수정 모드 (service-rules 4장): 기존 모임을 불러와 같은 화면으로 고친다 ----
+    val hostGender: Gender? = null,        // 성별 제한을 고를 때 호스트와 다른 성별을 막는 데 쓴다
+    val showCalendar: Boolean = false,     // 달력(날짜 선택) 창이 열려 있다
     val editMeetingId: String? = null,
     val original: Meeting? = null,         // 수정 중인 모임 원본. 장소 좌표 같은 건 이걸 그대로 쓴다
     val lockedCore: Boolean = false,       // 확정 참가자(호스트 제외)가 있어 제목·설명·상세주소만 고칠 수 있다
@@ -200,7 +211,7 @@ data class MeetingCreateState(
         return Meeting(
             title = title.trim(),
             criteria = MeetingCriteria.Health(parts = healthCriteria.parts.toSet(), hostRecord = record),
-            place = MeetingPlace(name = place?.name.orEmpty(), detailAddress = place?.detail),
+            place = place?.toMeetingPlace() ?: MeetingPlace(),
             startAtMillis = startAt,
             durationMinutes = durationMinutes ?: 0,
             capacity = capacity ?: 0,
@@ -285,7 +296,10 @@ fun editStateOf(
             showMyRecord = health?.hostRecord != null,
             myRecord = health?.hostRecord ?: myRecord,
         ),
-        place = PlaceSelection(meeting.place.name, meeting.place.detailAddress),
+        place = PlaceSelection(
+            meeting.place.name, meeting.place.detailAddress, meeting.place.address,
+            meeting.place.lotAddress, meeting.place.latitude, meeting.place.longitude,
+        ),
         capacity = meeting.capacity,
         gender = meeting.genderLimit,
         description = meeting.description,
@@ -294,4 +308,22 @@ fun editStateOf(
         lockedCore = meeting.confirmedCount > 1,
         errorMessage = if (health == null) "이 종목은 아직 수정할 수 없어요" else null,
     )
+}
+
+// 달력에서 고른 날짜의 칩. 오늘이면 '오늘', 아니면 요일.
+fun dateOptionOf(year: Int, month: Int, day: Int, nowMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): DateOption {
+    val weekdays = listOf("일", "월", "화", "수", "목", "금", "토")
+    val picked = Calendar.getInstance(timeZone).apply { clear(); set(year, month - 1, day) }
+    val today = Calendar.getInstance(timeZone).apply { timeInMillis = nowMillis }
+    val isToday = today.get(Calendar.YEAR) == year && today.get(Calendar.MONTH) + 1 == month && today.get(Calendar.DAY_OF_MONTH) == day
+    return DateOption(year, month, day, if (isToday) "오늘" else weekdays[picked.get(Calendar.DAY_OF_WEEK) - 1])
+}
+
+// 날짜 칩에 그 날짜를 넣고(없으면 날짜순으로 끼워 넣고) 그 위치를 돌려준다. 칩은 최대 6개를 넘기지 않게 가장 먼 날짜부터 뺀다.
+fun withDate(options: List<DateOption>, option: DateOption): Pair<List<DateOption>, Int> {
+    val key = { o: DateOption -> o.year * 10_000 + o.month * 100 + o.day }
+    val existing = options.indexOfFirst { key(it) == key(option) }
+    if (existing >= 0) return options to existing
+    val merged = (options + option).sortedBy(key)
+    return merged to merged.indexOfFirst { key(it) == key(option) }
 }

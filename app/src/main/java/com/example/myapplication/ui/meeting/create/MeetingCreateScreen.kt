@@ -94,7 +94,17 @@ fun MeetingCreateScreen(
     ToastHost(toast, Modifier.align(Alignment.BottomCenter).padding(bottom = 88.dp))
     }
 
+    if (state.showCalendar) {
+        CalendarDialog(onPick = viewModel::onCalendarPick, onDismiss = viewModel::onCalendarDismiss)
+    }
     when (state.openSheet) {
+        CreateSheet.CAPACITY -> CapacityBottomSheet(
+            initialCapacity = state.capacity,
+            initialGender = state.gender,
+            hostGender = state.hostGender,
+            onApply = viewModel::onCapacityApply,
+            onDismiss = viewModel::onSheetDismiss,
+        )
         CreateSheet.DETAIL_ADDRESS -> DetailAddressBottomSheet(
             placeName = state.place?.name.orEmpty(),
             initial = state.place?.detail.orEmpty(),
@@ -514,3 +524,37 @@ private fun Preview10a2() =
 @Preview(name = "빈 상태", widthDp = 360, heightDp = 800)
 @Composable
 private fun PreviewEmpty() = PreviewContent(MeetingCreateState(dateOptions = previewWeekdayDates, selectedDateIndex = 0))
+
+// 달력 창: 오늘부터 고를 수 있다. 확인하면 그 날짜 칩이 선택된다.
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun CalendarDialog(onPick: (year: Int, month: Int, day: Int) -> Unit, onDismiss: () -> Unit) {
+    val todayStart = remember {
+        val utc = java.util.TimeZone.getTimeZone("UTC")
+        val now = java.util.Calendar.getInstance()
+        java.util.Calendar.getInstance(utc).apply {
+            clear()
+            set(now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH), now.get(java.util.Calendar.DAY_OF_MONTH))
+        }.timeInMillis
+    }
+    val pickerState = androidx.compose.material3.rememberDatePickerState(
+        selectableDates = object : androidx.compose.material3.SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis >= todayStart
+        },
+    )
+    androidx.compose.material3.DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            androidx.compose.material3.TextButton(
+                enabled = pickerState.selectedDateMillis != null,
+                onClick = {
+                    pickerState.selectedDateMillis?.let { millis ->
+                        val c = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { timeInMillis = millis }
+                        onPick(c.get(java.util.Calendar.YEAR), c.get(java.util.Calendar.MONTH) + 1, c.get(java.util.Calendar.DAY_OF_MONTH))
+                    }
+                },
+            ) { Text("확인") }
+        },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("취소") } },
+    ) { androidx.compose.material3.DatePicker(state = pickerState) }
+}

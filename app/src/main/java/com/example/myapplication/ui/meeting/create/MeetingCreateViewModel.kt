@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.BodyPart
+import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.UserRepository
 import kotlinx.coroutines.launch
@@ -16,14 +17,26 @@ class MeetingCreateViewModel(
     private val meetingRepository: MeetingRepository,
     private val editMeetingId: String? = null, // 있으면 새로 만들지 않고 이 모임을 고친다 (service-rules 4장)
     private val nowMillis: () -> Long = System::currentTimeMillis,
+    // 장소 검색(10g) → 장소 확인(10g-3)에서 고른 장소를 받는다. 테스트에서는 비워 둔다.
+    private val placeStore: PlaceSelectionStore = PlaceSelectionStore,
 ) : ViewModel() {
 
     var state by mutableStateOf(MeetingCreateState(dateOptions = nextDays(), selectedDateIndex = 0, editMeetingId = editMeetingId))
         private set
 
     init {
+        // 장소 확인에서 '이 장소로 설정'하면 장소를 넣고 비운다. 수정 모드에서는 장소를 바꾸지 않는다.
+        viewModelScope.launch {
+            placeStore.confirmed.collect { picked ->
+                if (picked != null && !state.isEditMode && !state.lockedCore) {
+                    state = state.copy(place = picked)
+                    placeStore.consumeConfirmed()
+                }
+            }
+        }
         viewModelScope.launch {
             val myRecord = userRepository.getCurrentUser().getOrNull()?.record
+            state = state.copy(hostGender = userRepository.getCurrentUser().getOrNull()?.gender)
             if (editMeetingId == null) {
                 // '내 기록 표시'에 쓸 내 프로필 기록 (10d). 실패하면 기록 없음으로 둔다.
                 if (myRecord != null) state = state.copy(healthCriteria = state.healthCriteria.copy(myRecord = myRecord))
@@ -54,8 +67,19 @@ class MeetingCreateViewModel(
         state = state.copy(selectedDateIndex = index)
     }
 
+    // 달력: 5일 칩 밖의 날짜를 고른다. 디자인이 없어 Material 기본 달력을 쓴다. 오늘 이전 날짜는 고를 수 없다.
     fun onCalendarClick() {
-        // TODO(임시): 5일 뒤 날짜를 고르는 달력 디자인이 없음. 팀에 질문.
+        if (state.lockedCore) return
+        state = state.copy(showCalendar = true)
+    }
+
+    fun onCalendarDismiss() {
+        state = state.copy(showCalendar = false)
+    }
+
+    fun onCalendarPick(year: Int, month: Int, day: Int) {
+        val (options, index) = withDate(state.dateOptions, dateOptionOf(year, month, day, nowMillis()))
+        state = state.copy(dateOptions = options, selectedDateIndex = index, showCalendar = false)
     }
 
     fun onTimeClick() {
@@ -69,7 +93,14 @@ class MeetingCreateViewModel(
     }
 
     fun onCapacityClick() {
-        // TODO(임시): 정원·성별 시트 디자인이 없음. 팀에 질문.
+        if (state.lockedCore) return
+        state = state.copy(openSheet = CreateSheet.CAPACITY)
+    }
+
+    // 정원·성별 적용. 호스트와 다른 성별 제한은 받지 않는다. (service-rules 4장 가정)
+    fun onCapacityApply(capacity: Int, gender: GenderLimit) {
+        if (capacity !in HEALTH_CAPACITY_RANGE || gender !in allowedGenderLimits(state.hostGender)) return
+        state = state.copy(capacity = capacity, gender = gender, openSheet = null)
     }
 
     // 수정 모드에서 장소 행을 누르면 상세주소만 고친다. (장소 자체를 바꾸는 화면 10g는 아직 없다)
