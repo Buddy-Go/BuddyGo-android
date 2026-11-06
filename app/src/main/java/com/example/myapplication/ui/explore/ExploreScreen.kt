@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,8 @@ fun ExploreScreen(
     viewModel: ExploreViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    // 화면이 다시 보일 때마다 읽지 않은 알림 여부를 새로 확인한다.
+    LaunchedEffect(Unit) { viewModel.refreshNotifications() }
     // 앱 키가 없으면 지도를 시작하지 않는다. (local.properties의 KAKAO_NATIVE_APP_KEY)
     var mapFailed by remember { mutableStateOf(BuildConfig.KAKAO_NATIVE_APP_KEY.isBlank()) }
 
@@ -147,8 +150,9 @@ private fun TopOverlay(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     BellIcon(AppColor.TextPrimary)
-                    // TODO(임시) 안 읽은 알림이 있을 때만 점을 보여 준다. 알림 목록(3-6)을 만들면 연결한다.
-                    Box(Modifier.align(Alignment.TopEnd).padding(top = 14.dp, end = 14.dp).size(7.dp).clip(CircleShape).background(Color(0xFFE5383B)))
+                    if (state.hasUnreadNotifications) {
+                        Box(Modifier.align(Alignment.TopEnd).padding(top = 14.dp, end = 14.dp).size(7.dp).clip(CircleShape).background(Color(0xFFE5383B)))
+                    }
                 }
             }
         }
