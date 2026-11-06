@@ -39,6 +39,7 @@ object Routes {
 
     // 10 모임 개설
     const val MEETING_CREATE = "meeting_create"
+    const val MEETING_EDIT = "meeting/{$ARG_MEETING_ID}/edit"
     const val PLACE_SEARCH = "place_search"
     const val PLACE_CONFIRM = "place_confirm"
 
@@ -66,6 +67,7 @@ object Routes {
     fun participantManage(meetingId: String) = "meeting/$meetingId/manage"
     fun noticeList(meetingId: String) = "meeting/$meetingId/notices"
     fun noticeDetail(meetingId: String, noticeId: String) = "meeting/$meetingId/notices/$noticeId"
+    fun meetingEdit(meetingId: String) = "meeting/$meetingId/edit"
     fun noticeEdit(meetingId: String, noticeId: String? = null) =
         "meeting/$meetingId/notice_edit" + if (noticeId != null) "?$ARG_NOTICE_ID=$noticeId" else ""
     fun mateProfile(userId: String) = "mate/profile/$userId"
