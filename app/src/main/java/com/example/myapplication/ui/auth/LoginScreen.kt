@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.ui.common.EyeIcon
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
@@ -262,24 +263,6 @@ private fun LogoMark() {
             drawRoundRect(c, Offset(w * 0.30f, h * 0.45f), Size(w * 0.40f, h * 0.10f), r)
             drawRoundRect(c, Offset(w * 0.70f, h * 0.15f), Size(w * 0.14f, h * 0.70f), r)
             drawRoundRect(c, Offset(w * 0.90f, h * 0.30f), Size(w * 0.10f, h * 0.40f), r)
-        }
-    }
-}
-
-@Composable
-private fun EyeIcon(crossed: Boolean, modifier: Modifier = Modifier) {
-    Canvas(modifier.size(24.dp)) {
-        val c = AppColor.IconMuted
-        val sw = 2.dp.toPx()
-        drawOval(c, Offset(sw, size.height * 0.2f), Size(size.width - 2 * sw, size.height * 0.6f), style = Stroke(sw))
-        drawCircle(c, radius = size.width * 0.14f, style = Stroke(sw))
-        if (crossed) {
-            drawLine(
-                c,
-                Offset(size.width * 0.15f, size.height * 0.85f),
-                Offset(size.width * 0.85f, size.height * 0.15f),
-                strokeWidth = sw,
-            )
         }
     }
 }
