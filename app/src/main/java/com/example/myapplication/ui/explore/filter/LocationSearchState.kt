@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.explore.filter
 
+import com.example.myapplication.data.local.KeyValueStore
+import com.example.myapplication.data.local.decodeStrings
+import com.example.myapplication.data.local.encodeStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,12 +27,27 @@ data class LocationSearchState(
 }
 
 // 최근 검색 구·동. 화면이 닫혀도 남도록 앱 안에 하나만 둔다.
-// TODO(임시) 지금은 메모리에만 둔다. 앱을 다시 켜도 남기려면 저장소를 붙인다.
+// attach로 저장소를 붙이면 앱을 다시 켜도 남는다. 저장된 값이 없는 첫 실행에만 예시 값으로 시작한다.
 object RecentDistrictStore {
-    private val _recent = MutableStateFlow(listOf("마포구", "강북구", "종로구", "영등포구"))
+    private const val KEY = "recent_districts"
+    private val SEED = listOf("마포구", "강북구", "종로구", "영등포구")
+
+    private var store: KeyValueStore? = null
+    private val _recent = MutableStateFlow(SEED)
     val recent: StateFlow<List<String>> = _recent.asStateFlow()
 
-    fun add(name: String) = _recent.update { it.withRecent(name) }
-    fun remove(name: String) = _recent.update { it - name }
-    fun clear() { _recent.value = emptyList() }
+    // 앱 시작 때 한 번 부른다. 저장된 값이 있으면(비어 있는 목록도 저장된 값이다) 그것으로 바꾼다.
+    fun attach(store: KeyValueStore) {
+        this.store = store
+        store.get(KEY)?.let { _recent.value = decodeStrings(it) }
+    }
+
+    fun add(name: String) = change { it.withRecent(name) }
+    fun remove(name: String) = change { it - name }
+    fun clear() = change { emptyList() }
+
+    private fun change(transform: (List<String>) -> List<String>) {
+        _recent.update(transform)
+        store?.put(KEY, encodeStrings(_recent.value))
+    }
 }
