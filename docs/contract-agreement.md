@@ -30,6 +30,7 @@
 | `getReceivedReviews(userId)` | 마이페이지(14) | 최신순. 한마디와 태그는 공개된다. (11장) |
 | `isNotificationEnabled()` / `setNotificationEnabled(enabled)` | 마이페이지(14) | 끄면 전체 알림을 받지 않는다. (12장) |
 | `logout()` | 마이페이지(14) | 성공하면 앱이 로그인 화면으로 보낸다. |
+| `updateRecord(record)` | 프로필 기록 수정(모임 신청·상세의 '기록 추가'·'기준 줄') | 내 운동 기록 전체를 저장한다. 이미 개설한 모임의 기록 복사본에는 영향이 없다. (service-rules 1장, 4장) |
 
 ## 2. 모델 변경 (공용)
 

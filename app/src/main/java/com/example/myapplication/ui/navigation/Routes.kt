@@ -16,6 +16,7 @@ object Routes {
     const val LOGIN = "login"
     const val SIGN_UP_INFO = "sign_up_info"
     const val SIGN_UP_PROFILE = "sign_up_profile"
+    const val PROFILE_RECORD = "profile/record/{$ARG_SPORT}"
     const val RECORD = "record/{$ARG_SPORT}"
 
     // 3~4 탐색 · 조건 설정 · 알림
@@ -64,6 +65,7 @@ object Routes {
 
     // 인자가 있는 화면으로 이동할 때 쓴다.
     fun record(sport: Sport) = "record/${sport.name}"
+    fun profileRecord(sport: Sport) = "profile/record/${sport.name}"
     fun meetingDetail(meetingId: String) = "meeting/$meetingId"
     fun apply(meetingId: String) = "meeting/$meetingId/apply"
     fun participantManage(meetingId: String) = "meeting/$meetingId/manage"

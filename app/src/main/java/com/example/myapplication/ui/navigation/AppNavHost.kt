@@ -58,6 +58,7 @@ import com.example.myapplication.ui.mypage.AllReviewsViewModel
 import com.example.myapplication.ui.mypage.MyPageScreen
 import com.example.myapplication.ui.notification.NotificationScreen
 import com.example.myapplication.ui.record.RecordScreen
+import com.example.myapplication.ui.record.RecordViewModel
 import com.example.myapplication.ui.record.SignUpInfoScreen
 import com.example.myapplication.ui.record.SignUpProfileScreen
 
@@ -145,6 +146,20 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 RecordScreen(sport = sport, onBack = { navController.popBackStack() })
             }
 
+            // 프로필 기록 수정: 모임 신청·상세의 '기록 추가'·'기준 줄'에서 들어온다. 저장하면 내 프로필 기록이 바뀐다.
+            composable(
+                Routes.PROFILE_RECORD,
+                listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
+            ) { entry ->
+                val sport = Sport.valueOf(entry.arguments?.getString(Routes.ARG_SPORT) ?: Sport.HEALTH.name)
+                RecordScreen(
+                    sport = sport,
+                    onBack = { navController.popBackStack() },
+                    profileEdit = true,
+                    viewModel = viewModel(key = "profile-record-${sport.name}") { RecordViewModel(sport, userRepository) },
+                )
+            }
+
             // 3~4 탐색 · 조건 설정 · 알림
             composable(Routes.EXPLORE) {
                 ExploreScreen(
@@ -208,7 +223,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onOpenNotice = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
                     onEditMeeting = { navController.navigate(Routes.meetingEdit(meetingId)) },
                     // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
-                    onAddRecord = { sport -> navController.navigate(Routes.record(sport)) },
+                    onAddRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
                 )
             }
             composable(Routes.APPLY, meetingArgs()) { entry ->
@@ -222,7 +237,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         navController.popBackStack()
                     },
                     // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
-                    onEditRecord = { sport -> navController.navigate(Routes.record(sport)) },
+                    onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
                 )
             }
 

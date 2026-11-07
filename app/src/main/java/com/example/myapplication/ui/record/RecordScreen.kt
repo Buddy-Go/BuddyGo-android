@@ -80,10 +80,19 @@ fun skillLevelLabel(level: SkillLevel): String = when (level) {
 fun RecordScreen(
     sport: Sport,
     onBack: () -> Unit = {},
+    profileEdit: Boolean = false, // 프로필 기록 수정(가입 아님)이면 true
     viewModel: RecordViewModel = viewModel(key = sport.name, factory = viewModelFactory { initializer { RecordViewModel(sport) } }),
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(state.saveFailed) {
+        if (state.saveFailed) {
+            android.widget.Toast.makeText(context, "기록을 저장하지 못했어요. 다시 시도해주세요.", android.widget.Toast.LENGTH_SHORT).show()
+            viewModel.onSaveFailureShown()
+        }
+    }
+    androidx.compose.runtime.CompositionLocalProvider(LocalProfileEdit provides profileEdit) {
     when (sport) {
         Sport.HEALTH -> HealthRecordContent(
             state = state,
@@ -99,7 +108,11 @@ fun RecordScreen(
         Sport.RUNNING -> RunningRecordContent(state, onBack, viewModel::onSelectPace, viewModel::onSave)
         Sport.HIKING -> HikingRecordContent(state, onBack, viewModel::onSelectHiking, viewModel::onSave)
     }
+    }
 }
+
+// 프로필 기록 수정이면 true. 가입 단계("2 / 3")와 진행 막대를 숨기는 데 쓴다.
+internal val LocalProfileEdit = androidx.compose.runtime.compositionLocalOf { false }
 
 // 세 종목이 같이 쓰는 틀: 위쪽 줄(뒤로 가기·제목·단계) + 내용(스크롤) + 아래 버튼 줄
 // caption이 있으면 버튼 위에 회색 안내 글자를 보여 준다. 건너뛰기는 저장 없이 돌아간다.
@@ -112,7 +125,7 @@ private fun RecordFrame(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(AppColor.Surface)) {
-        SignUpHeader(step = 2, total = 3, onBack = onBack, title = title)
+        SignUpHeader(step = if (LocalProfileEdit.current) null else 2, total = 3, onBack = onBack, title = title)
         Column(
             modifier = Modifier
                 .weight(1f)

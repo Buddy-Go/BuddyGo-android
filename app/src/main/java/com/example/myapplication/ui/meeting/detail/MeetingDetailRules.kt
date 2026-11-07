@@ -11,6 +11,7 @@ import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.Notice
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.CriteriaMatch
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.filter.CriteriaDefaults
 import com.example.myapplication.ui.explore.filter.filterPartOrder
 import com.example.myapplication.ui.explore.filter.paceText
@@ -345,3 +346,15 @@ fun orderedConfirmedNames(meeting: Meeting, namesById: Map<String, String>): Lis
     val (host, others) = names.partition { it.first == meeting.hostId }
     return (host + others).map { it.second }
 }
+
+// 공유하는 글: 제목, 일시, 장소, 정원. 개인 정보(참가자·호스트 연락처 등)는 넣지 않는다. 장소는 상세주소까지 같이 적는다.
+//   북한산 둘레길 같이 가요
+//   9월 8일 (월) 오전 7:00 · 4시간 진행
+//   북한산 우이동 들머리 · 서울 강북구 ...
+fun shareText(meeting: Meeting, timeZone: TimeZone = TimeZone.getDefault()): String =
+    listOfNotNull(
+        meeting.title.trim(),
+        formatDetailDateTime(meeting.startAtMillis, meeting.durationMinutes, timeZone),
+        listOfNotNull(meeting.place.name.takeIf { it.isNotBlank() }, fullAddress(meeting).takeIf { it.isNotBlank() }).joinToString(" · ").takeIf { it.isNotBlank() },
+        "${sportLabel(meeting.sport)} · 정원 ${meeting.capacity}명",
+    ).joinToString("\n")

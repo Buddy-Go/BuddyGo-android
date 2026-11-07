@@ -43,6 +43,14 @@ class ApplyViewModel(
         }
     }
 
+    // 프로필 기록 수정 화면에서 돌아오면 내 기록만 새로 받는다. (한마디 등 입력은 그대로 둔다)
+    fun onResume() {
+        viewModelScope.launch {
+            val me = userRepository.getCurrentUser().getOrNull() ?: return@launch
+            _state.update { it.copy(me = me) }
+        }
+    }
+
     // 한마디는 200자까지만 받고, 다시 쓰기 시작하면 실패 띠는 지운다.
     fun onMessageChange(text: String) = _state.update { it.copy(message = limitMessage(text), failed = false) }
 
