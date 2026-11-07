@@ -81,12 +81,13 @@ fun MeetingCreateScreen(
     MeetingCreateContent(
         state = state,
         onClose = onClose,
+        onSportSelect = viewModel::onSportSelect,
         onTitleChange = viewModel::onTitleChange,
         onDateSelect = viewModel::onDateSelect,
         onCalendarClick = viewModel::onCalendarClick,
         onTimeClick = viewModel::onTimeClick,
         onCriteriaClick = viewModel::onCriteriaClick,
-        onPlaceClick = if (state.isEditMode) viewModel::onDetailAddressClick else onPlaceClick,
+        onPlaceClick = if (state.isEditMode) viewModel::onDetailAddressClick else { { viewModel.onPlaceClick(); onPlaceClick() } },
         onCapacityClick = viewModel::onCapacityClick,
         onDescriptionClick = viewModel::onDescriptionClick,
         onSubmit = viewModel::onSubmit,
@@ -98,7 +99,18 @@ fun MeetingCreateScreen(
         CalendarDialog(onPick = viewModel::onCalendarPick, onDismiss = viewModel::onCalendarDismiss)
     }
     when (state.openSheet) {
+        CreateSheet.RUNNING_CRITERIA -> RunningCriteriaBottomSheet(
+            initial = state.runningCriteria,
+            onApply = viewModel::onRunningCriteriaApply,
+            onDismiss = viewModel::onSheetDismiss,
+        )
+        CreateSheet.HIKING_CRITERIA -> HikingCriteriaBottomSheet(
+            initial = state.hikingStyle,
+            onApply = viewModel::onHikingCriteriaApply,
+            onDismiss = viewModel::onSheetDismiss,
+        )
         CreateSheet.CAPACITY -> CapacityBottomSheet(
+            range = state.capacityRange,
             initialCapacity = state.capacity,
             initialGender = state.gender,
             hostGender = state.hostGender,
@@ -144,6 +156,7 @@ private fun MeetingCreateContent(
     onCapacityClick: () -> Unit,
     onDescriptionClick: () -> Unit,
     onSubmit: () -> Unit,
+    onSportSelect: (com.example.myapplication.data.model.Sport) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -168,6 +181,8 @@ private fun MeetingCreateContent(
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
             if (state.lockedCore) LockedNotice()
+            // 종목 선택은 새로 만들 때만. 수정에서는 종목을 바꿀 수 없다.
+            if (!state.isEditMode) SportPicker(selected = state.sport, onSelect = onSportSelect)
             TitleSection(title = state.title, onTitleChange = onTitleChange)
             DateTimeSection(
                 state = state,
@@ -177,7 +192,7 @@ private fun MeetingCreateContent(
             )
             DetailCard(
                 rows = listOf(
-                    DetailRow("기준", state.criteriaSummary, onCriteriaClick, locked = state.lockedCore),
+                    DetailRow(state.criteriaTitle, state.criteriaSummary, onCriteriaClick, locked = state.lockedCore),
                     // 확정 참가자가 있어도 상세주소는 고칠 수 있어 장소 행은 잠그지 않는다.
                     DetailRow("장소", state.placeSummary, onPlaceClick),
                     DetailRow("정원 · 성별", state.capacitySummary, onCapacityClick, locked = state.lockedCore),

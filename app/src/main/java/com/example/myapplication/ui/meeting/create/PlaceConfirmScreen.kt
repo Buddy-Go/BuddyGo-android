@@ -56,6 +56,16 @@ fun PlaceConfirmScreen(
         Box(modifier.fillMaxSize().background(AppColor.Surface), contentAlignment = Alignment.Center) { Text("장소를 먼저 골라 주세요", color = AppColor.TextSecondary) }
         return
     }
+    // 러닝·등산은 가게 위치가 아니라 지도에서 집결지를 맞추는 화면(10g-4)이다.
+    val sport = PlaceSelectionStore.sport
+    if (sport != Sport.HEALTH) {
+        MeetingPointScreen(
+            place = picked, sport = sport, onBack = onBack,
+            onConfirmed = { selection -> PlaceSelectionStore.confirm(selection); onConfirmed() },
+            modifier = modifier,
+        )
+        return
+    }
     var detail by remember(picked) { mutableStateOf("") }
     Column(modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().navigationBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {

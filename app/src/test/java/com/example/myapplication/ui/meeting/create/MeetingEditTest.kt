@@ -99,11 +99,26 @@ class MeetingEditTest {
     }
 
     @Test
-    fun 헬스가_아닌_모임은_제출할_수_없고_안내한다() {
+    fun 러닝_모임도_수정_화면_상태로_바뀌고_제출할_수_있다() {
         val running = MockMeetings.pending.copy(hostId = "u1")
         val s = editStateOf(running, myRecord, 0, seoul)
-        assertFalse(s.canSubmit)
-        assertNotNull(s.errorMessage)
+        assertEquals(com.example.myapplication.data.model.Sport.RUNNING, s.sport)
+        assertEquals(5f, s.runningCriteria.distanceKm)
+        assertEquals(345, s.runningCriteria.paceSec)
+        assertTrue(s.canSubmit)
+        assertNull(s.errorMessage)
+        assertTrue(s.toUpdatedMeeting(seoul)!!.criteria is MeetingCriteria.Running)
+    }
+
+    @Test
+    fun 등산_모임도_수정_화면_상태로_바뀌고_제출할_수_있다() {
+        val hiking = MockMeetings.inProgress.copy(hostId = "u1", status = com.example.myapplication.data.model.MeetingStatus.RECRUITING)
+        val s = editStateOf(hiking, myRecord, 0, seoul)
+        assertEquals(com.example.myapplication.data.model.Sport.HIKING, s.sport)
+        assertEquals(com.example.myapplication.data.model.HikingStyle.HOBBY, s.hikingStyle)
+        assertTrue(s.canSubmit)
+        assertEquals("취미", s.criteriaSummary)
+        assertEquals("등산 기준", s.criteriaTitle)
     }
 
     @Test

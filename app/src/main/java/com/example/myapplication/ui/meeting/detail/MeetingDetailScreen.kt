@@ -260,6 +260,8 @@ private fun DetailContent(
             onLeave = if (state.leavePlan != null) onLeave else null,
             hostMenu = host?.let { { HostMoreMenu(actions = it.menuActions, onAction = onHostAction) } },
             onShare = onShare,
+            isFavorite = meeting.isFavorite,
+            onToggleFavorite = onToggleFavorite,
         )
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
@@ -289,7 +291,14 @@ private fun DetailContent(
 
 // 위쪽 줄: 뒤로 가기, 나갈 수 있는 사람에게는 오른쪽에 ⋮ 메뉴(나가기)
 @Composable
-private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null, hostMenu: (@Composable () -> Unit)? = null, onShare: (() -> Unit)? = null) {
+private fun BackBar(
+    onBack: () -> Unit,
+    onLeave: (() -> Unit)? = null,
+    hostMenu: (@Composable () -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
+    isFavorite: Boolean = false,
+    onToggleFavorite: (() -> Unit)? = null,
+) {
     Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = AppSpace.x4), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(40.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.CenterStart) {
             ChevronLeftIcon(AppColor.TextPrimary, size = 28.dp)
@@ -299,6 +308,12 @@ private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null, hostMenu:
         if (onShare != null) {
             Box(Modifier.size(40.dp).clip(CircleShape).iconButton("공유하기", onShare), contentAlignment = Alignment.Center) {
                 ShareIcon(AppColor.TextPrimary)
+            }
+        }
+        // 5l 북마크: 하단 하트와 같은 찜이다. 누르면 켜고 끄며, 켜져 있으면 채워 보인다.
+        if (onToggleFavorite != null) {
+            Box(Modifier.size(40.dp).clip(CircleShape).iconButton(favoriteLabel(isFavorite), onToggleFavorite), contentAlignment = Alignment.Center) {
+                BookmarkIcon(filled = isFavorite, color = AppColor.TextPrimary)
             }
         }
         hostMenu?.invoke()
@@ -319,6 +334,19 @@ private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null, hostMenu:
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BookmarkIcon(filled: Boolean, color: Color) {
+    androidx.compose.foundation.Canvas(Modifier.size(22.dp)) {
+        val w = size.width
+        val path = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * .24f, w * .1f); lineTo(w * .76f, w * .1f); lineTo(w * .76f, w * .9f)
+            lineTo(w * .5f, w * .68f); lineTo(w * .24f, w * .9f); close()
+        }
+        if (filled) drawPath(path, color)
+        else drawPath(path, color, style = androidx.compose.ui.graphics.drawscope.Stroke(1.8.dp.toPx(), join = androidx.compose.ui.graphics.StrokeJoin.Round))
     }
 }
 
