@@ -45,8 +45,8 @@ class NoticeListViewModel(
     // 작성·수정 화면에서 돌아왔을 때도 부른다.
     fun refresh() {
         viewModelScope.launch {
-            // TODO(임시): 실패하면 16f·16g 오류 화면 (공용 부품이 정해지면)
-            state = state.copy(notices = noticeRepository.getNotices(meetingId).getOrDefault(emptyList()), isLoading = false)
+            val result = noticeRepository.getNotices(meetingId)
+            state = state.copy(notices = result.getOrDefault(state.notices), isLoading = false, loadFailed = result.isFailure)
         }
     }
 
@@ -88,7 +88,7 @@ class NoticeEditViewModel(
 
     fun onSubmit() {
         if (!state.canSubmit) return
-        state = state.copy(isSubmitting = true)
+        state = state.copy(isSubmitting = true, submitFailed = false)
         viewModelScope.launch {
             val title = state.title.trim()
             val body = state.body.trim()
@@ -97,8 +97,7 @@ class NoticeEditViewModel(
             } else {
                 noticeRepository.updateNotice(noticeId, title, body)
             }
-            // TODO(임시): 실패하면 16i 인라인 오류 (ActionButton 공용 부품이 정해지면)
-            state = state.copy(isSubmitting = false, isDone = result.isSuccess)
+            state = state.copy(isSubmitting = false, isDone = result.isSuccess, submitFailed = result.isFailure)
         }
     }
 }

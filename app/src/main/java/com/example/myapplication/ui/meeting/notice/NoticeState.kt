@@ -18,6 +18,7 @@ data class NoticeListState(
     val isHost: Boolean = false,
     val isReadOnly: Boolean = false,
     val isLoading: Boolean = true,
+    val loadFailed: Boolean = false, // 목록을 불러오지 못함 → 16g 오류 화면
 ) {
     // 8d: 각 공지의 ⋯(수정·삭제)와 아래 '공지 작성' 버튼은 호스트에게만
     val canManage: Boolean get() = isHost && !isReadOnly
@@ -31,6 +32,7 @@ data class NoticeEditState(
     val isLoading: Boolean = false, // 수정할 공지를 불러오는 중
     val isSubmitting: Boolean = false,
     val isDone: Boolean = false, // 등록·저장이 끝나면 화면을 닫는다
+    val submitFailed: Boolean = false, // 16i 제출 실패 안내 띠
 ) {
     val screenTitle: String get() = if (isEditMode) "공지 수정" else "공지 작성"
     val submitLabel: String get() = if (isEditMode) "저장" else "등록"

@@ -32,6 +32,9 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
+import com.example.myapplication.ui.common.ErrorType
+import com.example.myapplication.ui.common.FullScreenError
+import com.example.myapplication.ui.common.InlineErrorBanner
 import com.example.myapplication.ui.theme.AppSpace
 
 // 참가자 관리 화면 ← 7a 신청 탭, 7b 확정 탭, 7c 신청 없음, 7d 마감 후. 호스트 전용.
@@ -47,6 +50,7 @@ fun ParticipantManageScreen(
         onTabSelect = viewModel::onTabSelect,
         onAccept = viewModel::onAccept,
         onReject = viewModel::onReject,
+        onRetry = viewModel::onRetry,
     )
 }
 
@@ -57,6 +61,7 @@ private fun ParticipantManageContent(
     onTabSelect: (ManageTab) -> Unit,
     onAccept: (String) -> Unit,
     onReject: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -84,12 +89,18 @@ private fun ParticipantManageContent(
             Text(text = "참가자 관리", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         }
 
+        if (state.loadFailed) {
+            FullScreenError(type = ErrorType.SERVER, onRetry = onRetry, modifier = Modifier.weight(1f))
+            return@Column
+        }
+
         Column(
             modifier = Modifier
                 .weight(1f)
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xs, bottom = AppSpace.md),
             verticalArrangement = Arrangement.spacedBy(AppSpace.md),
         ) {
+            if (state.actionFailed) InlineErrorBanner("처리하지 못했어요. 다시 시도해주세요.")
             if (state.showTabs) {
                 SegmentTabs(
                     selected = state.visibleTab,

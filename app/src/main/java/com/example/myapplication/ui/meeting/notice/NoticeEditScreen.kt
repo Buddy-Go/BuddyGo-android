@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.AppColor
+import com.example.myapplication.ui.common.InlineErrorBanner
 import com.example.myapplication.ui.theme.AppSpace
 
 // 공지 작성·수정 화면 ← 8a 빈 상태, 8b 입력 중, 8c 수정. 호스트 전용.
@@ -95,6 +96,7 @@ private fun NoticeEditContent(
                 .padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl),
             verticalArrangement = Arrangement.spacedBy(AppSpace.lg),
         ) {
+            if (state.submitFailed) InlineErrorBanner("저장하지 못했어요. 다시 시도해주세요.")
             val titleStyle = TextStyle(fontSize = 19.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
             PlaceholderField(
                 value = state.title,

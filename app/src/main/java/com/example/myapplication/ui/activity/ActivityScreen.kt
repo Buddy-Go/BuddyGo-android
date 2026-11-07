@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import com.example.myapplication.ui.common.FullScreenError
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +46,10 @@ fun ActivityScreen(
     onExploreClick: () -> Unit, // 13-P2 → 3번 탐색
 ) {
     LaunchedEffect(Unit) { viewModel.onResume() }
+    viewModel.state.loadError?.let { error ->
+        FullScreenError(type = error, onRetry = viewModel::onResume)
+        return
+    }
     ActivityContent(
         state = viewModel.state,
         onTabSelect = viewModel::onTabSelect,

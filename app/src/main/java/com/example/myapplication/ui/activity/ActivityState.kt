@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.activity
 
+import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.data.model.MeetingStatus
@@ -64,6 +65,7 @@ data class ActivityState(
     val hosted: List<HostedMeetingItem> = emptyList(),
     val joined: List<JoinedMeetingItem> = emptyList(),
     val now: Long = 0L, // 남은 시간 계산 기준. ViewModel이 화면을 열 때 넣는다
+    val loadError: ErrorType? = null, // 목록을 불러오지 못했을 때 16f·16g 오류 화면
 ) {
     val statsText: String get() = "참여 $joinedTotal · 개설 $hostedTotal"
     val reviewHeader: String get() = "평가 대기 ${reviewPending.size}"
