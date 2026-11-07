@@ -42,12 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.BuildConfig
-import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.UiState
-import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.filter.searchTitle
-import com.example.myapplication.ui.record.SportIcon
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
 
@@ -120,7 +117,6 @@ fun ExploreScreen(
             onSearchClick = onFilterClick,
             onNotificationClick = onNotificationClick,
             onToggleFavoriteOnly = viewModel::onToggleFavoriteOnly,
-            onToggleSport = viewModel::onToggleSportChip,
         )
 
         // 네이버 지도처럼: 지도를 손으로 옮겨 보이는 범위가 달라졌을 때만 위쪽에 '현 지도에서 검색'을 띄운다.
@@ -161,7 +157,6 @@ private fun TopOverlay(
     onSearchClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onToggleFavoriteOnly: () -> Unit,
-    onToggleSport: (Sport) -> Unit,
 ) {
     Column(Modifier.statusBarsPadding().padding(top = AppSpace.xl)) {
         Row(Modifier.padding(horizontal = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {
@@ -189,13 +184,6 @@ private fun TopOverlay(
                 FilterChip(selected = state.favoriteOnly, onClick = onToggleFavoriteOnly) {
                     HeartIcon(filled = state.favoriteOnly, color = if (state.favoriteOnly) Color(0xFFE5383B) else AppColor.TextPrimary, size = 16.dp)
                     Text("찜", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
-                }
-            }
-            item { Box(Modifier.width(1.dp).height(20.dp).background(AppColor.Border)) }
-            items(Sport.entries) { sport ->
-                FilterChip(selected = state.sportChip == sport, onClick = { onToggleSport(sport) }) {
-                    SportIcon(sport, AppColor.TextPrimary, size = 16.dp)
-                    Text(sportLabel(sport), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
                 }
             }
         }
@@ -276,4 +264,4 @@ private fun MapUnavailable() {
 private val TopOverlayHeight = 168.dp
 
 // 검색창과 칩 줄 바로 아래 가운데에 '현 지도에서 검색'을 놓는 위치(상태바 아래 기준)
-private val ResearchButtonTop = 124.dp
+private val ResearchButtonTop = 134.dp
