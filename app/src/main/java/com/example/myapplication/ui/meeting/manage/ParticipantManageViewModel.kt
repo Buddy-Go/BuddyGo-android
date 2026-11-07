@@ -25,14 +25,20 @@ class ParticipantManageViewModel(
         reload()
     }
 
+    fun onRetry() = reload()
+
     private fun reload() {
         viewModelScope.launch {
-            val meeting = meetingRepository.getMeeting(meetingId).getOrNull() ?: return@launch
-            // TODO(임시): 실패하면 16f·16g 오류 화면 (FullScreenError 공용 부품이 정해지면)
-            val requests = meetingRepository.getJoinRequests(meetingId).getOrDefault(emptyList())
+            val meeting = meetingRepository.getMeeting(meetingId).getOrNull()
+            val requestsResult = meetingRepository.getJoinRequests(meetingId)
+            if (meeting == null || requestsResult.isFailure) {
+                state = state.copy(loadFailed = true)
+                return@launch
+            }
+            val requests = requestsResult.getOrThrow()
             val ids = (listOf(meeting.hostId) + meeting.confirmedIds).distinct()
             val users = ids.mapNotNull { userRepository.getUser(it).getOrNull() }.associateBy(User::id)
-            state = buildParticipantState(meeting, requests, users, state.selectedTab)
+            state = buildParticipantState(meeting, requests, users, state.selectedTab).copy(actionFailed = state.actionFailed)
         }
     }
 
@@ -46,11 +52,10 @@ class ParticipantManageViewModel(
 
     private fun handle(applicationId: String, action: suspend (String) -> Result<Unit>) {
         if (state.processingApplicationId != null) return
-        state = state.copy(processingApplicationId = applicationId)
+        state = state.copy(processingApplicationId = applicationId, actionFailed = false)
         viewModelScope.launch {
-            action(applicationId)
-            // TODO(임시): 실패하면 16i 인라인 오류 (ActionButton 공용 부품이 정해지면)
-            state = state.copy(processingApplicationId = null)
+            val result = action(applicationId)
+            state = state.copy(processingApplicationId = null, actionFailed = result.isFailure)
             reload()
         }
     }

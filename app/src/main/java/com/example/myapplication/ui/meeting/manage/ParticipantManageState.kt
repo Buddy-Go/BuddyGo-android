@@ -54,6 +54,8 @@ data class ParticipantManageState(
     val applicants: List<Applicant> = emptyList(),
     val selectedTab: ManageTab = ManageTab.APPLICANTS,
     val processingApplicationId: String? = null, // 수락·거절 요청 중인 신청 (버튼 중복 클릭 방지)
+    val loadFailed: Boolean = false, // 명단을 불러오지 못함 → 16g 오류 화면
+    val actionFailed: Boolean = false, // 수락·거절 실패 → 16i 안내 띠
 ) {
     val confirmedCount: Int get() = confirmed.size
     val applicantCount: Int get() = applicants.size

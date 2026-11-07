@@ -32,6 +32,8 @@ import com.example.myapplication.R
 import com.example.myapplication.data.model.Notice
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
+import com.example.myapplication.ui.common.ErrorType
+import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.theme.AppSpace
 import java.util.TimeZone
 
@@ -53,6 +55,7 @@ fun NoticeListScreen(
         onWriteClick = onWriteClick,
         onEditClick = onEditClick,
         onDeleteClick = viewModel::onDelete,
+        onRetry = viewModel::refresh,
     )
 }
 
@@ -64,6 +67,7 @@ private fun NoticeListContent(
     onWriteClick: () -> Unit,
     onEditClick: (String) -> Unit,
     onDeleteClick: (String) -> Unit,
+    onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     Column(
@@ -79,6 +83,11 @@ private fun NoticeListContent(
             title = "공지",
             onLeadingClick = onBack,
         )
+
+        if (state.loadFailed) {
+            FullScreenError(type = ErrorType.SERVER, onRetry = onRetry, modifier = Modifier.weight(1f))
+            return@Column
+        }
 
         Column(
             modifier = Modifier
