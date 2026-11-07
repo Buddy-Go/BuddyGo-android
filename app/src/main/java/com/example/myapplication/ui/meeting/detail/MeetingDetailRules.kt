@@ -358,3 +358,13 @@ fun shareText(meeting: Meeting, timeZone: TimeZone = TimeZone.getDefault()): Str
         listOfNotNull(meeting.place.name.takeIf { it.isNotBlank() }, fullAddress(meeting).takeIf { it.isNotBlank() }).joinToString(" · ").takeIf { it.isNotBlank() },
         "${sportLabel(meeting.sport)} · 정원 ${meeting.capacity}명",
     ).joinToString("\n")
+
+// 호스트 화면의 상태 칩 옆 보조 문구 (5a-H, 5a-H5). 참가자 화면에는 없다.
+//   모집중: "마감까지 5시간"(데드라인이 지났으면 문구 없음)
+//   마감:   시작 일시 "9월 8일 (월) 오전 7:00"
+//   그 밖의 상태(진행중·종료·취소)는 칩만 보인다.
+fun hostChipCaption(meeting: Meeting, nowMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): String? = when (meeting.status) {
+    MeetingStatus.RECRUITING -> formatUntilDeadline(meeting, nowMillis)
+    MeetingStatus.CLOSED -> formatDetailDateTime(meeting.startAtMillis, meeting.durationMinutes, timeZone).substringBefore(" · ")
+    else -> null
+}

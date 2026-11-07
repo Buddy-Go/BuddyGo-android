@@ -100,7 +100,16 @@ object MockMeetings {
         status = MeetingStatus.RECRUITING, distanceMeters = 0,
     )
 
-    val all = listOf(recruiting, pending, closed, inProgress, ended, canceled, hosted)
+    // 내가 호스트 · 마감 (정원이 다 참, 확정 참가자 2명) — 5a-H5 호스트 마감됨
+    val hostedClosed = Meeting(
+        id = "m8", title = "스쿼트 데이", hostId = "u1", hostNickname = "민준", hostMannerTemperature = 36.5f,
+        criteria = MeetingCriteria.Health(setOf(BodyPart.LEGS), MockUsers.me.record),
+        place = gym, startAtMillis = BASE + 40 * HOUR, durationMinutes = 90, capacity = 3,
+        confirmedIds = listOf("u1", "u2", "u3"), confirmedCount = 3, pendingIds = emptyList(),
+        status = MeetingStatus.CLOSED, distanceMeters = 0,
+    )
+
+    val all = listOf(recruiting, pending, closed, inProgress, ended, canceled, hosted, hostedClosed)
 
     // 대기 신청의 한마디. 키는 "모임 id/신청자 id". 호스트의 신청 목록(7)에 보인다.
     val applicationMessages = mapOf(
