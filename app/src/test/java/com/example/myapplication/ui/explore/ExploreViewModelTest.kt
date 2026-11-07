@@ -55,8 +55,8 @@ class ExploreViewModelTest {
         private val favoriteError: Throwable? = null,
         private val delegate: MeetingRepository = FakeMeetingRepository(),
     ) : MeetingRepository by delegate {
-        override suspend fun getMeetings(): Result<List<Meeting>> =
-            listError?.let { Result.failure(it) } ?: delegate.getMeetings()
+        override suspend fun getMeetings(area: com.example.myapplication.data.model.MapBounds?): Result<List<Meeting>> =
+            listError?.let { Result.failure(it) } ?: delegate.getMeetings(area)
 
         override suspend fun setFavorite(meetingId: String, favorite: Boolean): Result<Unit> =
             favoriteError?.let { Result.failure(it) } ?: delegate.setFavorite(meetingId, favorite)
@@ -251,5 +251,63 @@ class ExploreViewModelTest {
         kotlinx.coroutines.runBlocking { users.setNotificationEnabled(true) }
         vm.refreshNotifications()
         assertTrue(vm.state.value.hasUnreadNotifications)
+    }
+
+    // ---- 지도 영역 재검색 (service-rules 2장) ----
+
+    private val mapo = com.example.myapplication.data.model.MapBounds(37.54, 126.88, 37.57, 126.95) // 합정·서교동 일대
+    private fun visibleIds(vm: ExploreViewModel) = vm.loaded().map { it.id }.toSet()
+
+    @Test
+    fun 지도를_옮기면_보이는_영역을_기억하고_재검색하면_그_영역_안의_모임만_받는다() {
+        val vm = viewModel()
+        val total = vm.loaded().size
+        vm.onCameraMoved(mapo)
+        assertEquals("옮기기만 해서는 목록이 바뀌지 않는다", total, vm.loaded().size)
+        vm.onResearch()
+        assertEquals(mapo, vm.state.value.searchBounds)
+        assertTrue(vm.loaded().isNotEmpty())
+        assertTrue(vm.loaded().all { mapo.contains(it.place.latitude, it.place.longitude) })
+        assertFalse("북한산 모임은 영역 밖이라 빠진다", MockMeetings.inProgress.id in visibleIds(vm))
+        assertTrue(vm.loaded().size < total)
+    }
+
+    @Test
+    fun 영역을_못_읽어도_재검색은_전체를_다시_받는다() {
+        val vm = viewModel()
+        val total = vm.loaded().size
+        vm.onCameraMoved(null)
+        vm.onResearch()
+        assertNull(vm.state.value.searchBounds)
+        assertEquals(total, vm.loaded().size)
+    }
+
+    @Test
+    fun 다시_옮기고_재검색하면_새_영역으로_바뀐다() {
+        val vm = viewModel()
+        vm.onCameraMoved(mapo); vm.onResearch()
+        val north = com.example.myapplication.data.model.MapBounds(37.64, 127.0, 37.68, 127.05) // 북한산 일대
+        vm.onCameraMoved(north); vm.onResearch()
+        assertEquals(north, vm.state.value.searchBounds)
+        assertTrue(MockMeetings.inProgress.id in visibleIds(vm))
+        assertFalse(MockMeetings.recruiting.id in visibleIds(vm))
+    }
+
+    @Test
+    fun 재검색한_뒤_구_동을_고르면_영역_기준이_풀리고_전체에서_찾는다() {
+        val vm = viewModel()
+        vm.onCameraMoved(mapo); vm.onResearch()
+        val bounded = vm.loaded().size
+        FilterStore.apply(MeetingFilter(district = "강북구"))
+        assertNull(vm.state.value.searchBounds)
+        assertTrue("영역 밖이던 모임도 다시 받아 온다", vm.loaded().size > bounded)
+    }
+
+    @Test
+    fun 종목을_바꿔도_재검색한_영역은_유지된다() {
+        val vm = viewModel()
+        vm.onCameraMoved(mapo); vm.onResearch()
+        FilterStore.apply(MeetingFilter(sport = Sport.HEALTH))
+        assertEquals(mapo, vm.state.value.searchBounds)
     }
 }

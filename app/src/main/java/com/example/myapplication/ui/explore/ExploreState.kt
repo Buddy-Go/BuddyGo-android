@@ -1,10 +1,11 @@
 package com.example.myapplication.ui.explore
 
+import com.example.myapplication.data.model.MapBounds
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.Notification
 import com.example.myapplication.data.model.Sport
-import com.example.myapplication.ui.explore.filter.MeetingFilter
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.filter.MeetingFilter
 
 data class ExploreState(
     val meetings: UiState<List<Meeting>> = UiState.Loading,
@@ -15,6 +16,9 @@ data class ExploreState(
     val filter: MeetingFilter = MeetingFilter(),
     // 사용자가 지도를 움직인 뒤 '이 지역 재검색'을 보여 주기 위한 표시
     val cameraMoved: Boolean = false,
+    // 사용자가 마지막으로 옮긴 뒤 지도에 보이는 영역. '이 지역 재검색'을 누르면 이 영역이 검색 기준(searchBounds)이 된다.
+    val cameraBounds: MapBounds? = null,
+    val searchBounds: MapBounds? = null,
     val hasUnreadNotifications: Boolean = false, // 알림 벨의 빨간 점
     val myLocation: GeoPoint? = null,            // 허용했을 때만 있다. 카드의 거리와 거리순 기준
     val locationAsked: Boolean = false,          // 이번 실행에서 위치 권한을 이미 물어봤는지
@@ -57,11 +61,12 @@ data class ExploreState(
     fun isSelected(pin: PinGroup) = pin.key == selectedPinKey
 
     // 지도를 움직이면 '이 지역 재검색'이 나타난다. 위치 조건이 있어도 결과는 그대로이고 버튼만 보인다.
-    fun withCameraMoved() = copy(cameraMoved = true)
+    fun withCameraMoved(bounds: MapBounds? = null) = copy(cameraMoved = true, cameraBounds = bounds ?: cameraBounds)
 
     // 재검색: 위치 조건이 풀리고 지도 범위 기준이 된다. 다른 조건(종목·찜 등)은 유지한다. (2장)
     fun afterResearch() = copy(
         cameraMoved = false,
+        searchBounds = cameraBounds,
         filter = filter.copy(district = null),
         selectedPinKey = null,
     )
