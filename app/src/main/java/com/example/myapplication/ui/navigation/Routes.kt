@@ -56,6 +56,8 @@ object Routes {
     // 13~14 활동 내역 · 마이페이지
     const val ACTIVITY = "activity"
     const val MYPAGE = "mypage"
+    const val MY_REVIEWS = "mypage/reviews"
+    const val MATE_REVIEWS = "mate/profile/{$ARG_USER_ID}/reviews"
 
     // 하단 탭 바에 있는 화면 (탐색·활동·개설·메이트·마이)
     val bottomTabs = listOf(EXPLORE, ACTIVITY, MEETING_CREATE, MATE, MYPAGE)
@@ -71,6 +73,7 @@ object Routes {
     fun noticeEdit(meetingId: String, noticeId: String? = null) =
         "meeting/$meetingId/notice_edit" + if (noticeId != null) "?$ARG_NOTICE_ID=$noticeId" else ""
     fun mateProfile(userId: String) = "mate/profile/$userId"
+    fun mateReviews(userId: String) = "mate/profile/$userId/reviews"
     fun reviewList(meetingId: String) = "review/$meetingId"
     fun memberReview(meetingId: String, userId: String) = "review/$meetingId/$userId"
 }
