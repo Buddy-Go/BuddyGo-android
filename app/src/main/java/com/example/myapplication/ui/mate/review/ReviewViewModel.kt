@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.Review
 import com.example.myapplication.data.model.ReviewVerdict
+import com.example.myapplication.data.repository.MateRepository
 import com.example.myapplication.data.repository.ReviewRepository
 import kotlinx.coroutines.launch
 
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 class ReviewViewModel(
     private val meetingId: String,
     private val repository: ReviewRepository,
+    private val mateRepository: MateRepository? = null, // 12c '메이트 신청'을 실제로 보낸다. 없으면 화면 상태만 바꾼다
 ) : ViewModel() {
 
     var state by mutableStateOf(ReviewState())
@@ -81,12 +83,22 @@ class ReviewViewModel(
     }
 
     // 12c '메이트 신청'
+    // 먼저 '신청함'으로 바꾸고 보낸다. 서버가 거절하면(함께 운동한 사람이 아님 등) 되돌린다.
     fun onMateRequest(userId: String) {
-        // TODO(임시): MateRepository가 생기면 메이트 신청을 보낸다 (6번 메이트 작업 때)
+        val session = state.session ?: return
+        if (session.targets.firstOrNull { it.userId == userId }?.isMateRequested == true) return
+        setRequested(userId, true)
+        val repo = mateRepository ?: return
+        viewModelScope.launch {
+            if (repo.sendRequest(userId).isFailure) setRequested(userId, false)
+        }
+    }
+
+    private fun setRequested(userId: String, requested: Boolean) {
         val session = state.session ?: return
         state = state.copy(
             session = session.copy(
-                targets = session.targets.map { if (it.userId == userId) it.copy(isMateRequested = true) else it },
+                targets = session.targets.map { if (it.userId == userId) it.copy(isMateRequested = requested) else it },
             ),
         )
     }

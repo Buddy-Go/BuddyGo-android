@@ -26,6 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.ui.explore.LocationPermissions
+import com.example.myapplication.ui.explore.LocationSettingsDialog
 import com.example.myapplication.ui.explore.SearchIcon
 import com.example.myapplication.ui.explore.fetchMyLocation
 import com.example.myapplication.ui.explore.filter.ChevronLeftIcon
@@ -48,6 +52,8 @@ import com.example.myapplication.ui.explore.filter.CloseIcon
 import com.example.myapplication.ui.explore.formatDistance
 import com.example.myapplication.ui.explore.hasLocationPermission
 import com.example.myapplication.ui.explore.iconButton
+import com.example.myapplication.ui.explore.isLocationPermanentlyDenied
+import com.example.myapplication.ui.explore.openAppSettings
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
 
@@ -61,14 +67,27 @@ fun PlaceSearchScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    var showSettings by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-        if (grants.values.any { it }) fetchMyLocation(context, viewModel::onNearby) else viewModel.onNearby(null)
+        if (grants.values.any { it }) {
+            fetchMyLocation(context, viewModel::onNearby)
+        } else {
+            viewModel.onNearby(null)
+            // 다시 묻지 않음으로 거절했으면 설정으로 안내한다.
+            if (isLocationPermanentlyDenied(context)) showSettings = true
+        }
     }
     fun findNearby() {
         if (hasLocationPermission(context)) fetchMyLocation(context, viewModel::onNearby)
         else permissionLauncher.launch(LocationPermissions)
     }
 
+    if (showSettings) {
+        LocationSettingsDialog(
+            onOpenSettings = { showSettings = false; openAppSettings(context) },
+            onDismiss = { showSettings = false },
+        )
+    }
     Column(modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(32.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.Center) {

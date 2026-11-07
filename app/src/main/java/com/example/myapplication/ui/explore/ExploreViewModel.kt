@@ -6,6 +6,7 @@ import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.NotificationRepository
 import com.example.myapplication.data.repository.Repositories
+import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.filter.FilterStore
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 class ExploreViewModel(
     private val repository: MeetingRepository = Repositories.meetings,
     private val notificationRepository: NotificationRepository = Repositories.notifications,
+    private val userRepository: UserRepository = Repositories.users,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ExploreState())
     val state: StateFlow<ExploreState> = _state.asStateFlow()
@@ -37,7 +39,9 @@ class ExploreViewModel(
     // 알림을 불러오지 못하면 점을 보여 주지 않는다. (없는 알림을 있다고 알리지 않는다)
     fun refreshNotifications() {
         viewModelScope.launch {
-            val hasUnread = notificationRepository.getNotifications().getOrNull()?.hasUnread() ?: false
+            // 마이페이지에서 알림을 껐으면 읽지 않은 알림이 있어도 점을 보이지 않는다. (service-rules 12장) 설정을 못 읽으면 켜져 있다고 본다.
+            val enabled = userRepository.isNotificationEnabled().getOrDefault(true)
+            val hasUnread = enabled && (notificationRepository.getNotifications().getOrNull()?.hasUnread() ?: false)
             _state.update { it.copy(hasUnreadNotifications = hasUnread) }
         }
     }

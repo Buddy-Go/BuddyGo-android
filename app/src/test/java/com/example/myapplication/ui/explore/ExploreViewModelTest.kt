@@ -67,7 +67,8 @@ class ExploreViewModelTest {
     private fun viewModel(
         meetings: MeetingRepository = FakeMeetingRepository(),
         notifications: NotificationRepository = FakeNotificationRepository(),
-    ) = ExploreViewModel(meetings, notifications).also { created += it }
+        users: com.example.myapplication.data.repository.UserRepository = com.example.myapplication.data.repository.FakeUserRepository(),
+    ) = ExploreViewModel(meetings, notifications, users).also { created += it }
 
     private fun ExploreViewModel.loaded() = (state.value.meetings as UiState.Success).data
 
@@ -236,5 +237,19 @@ class ExploreViewModelTest {
         assertFalse(vm.state.value.locationAsked)
         vm.onLocationAsked()
         assertTrue(vm.state.value.locationAsked)
+    }
+
+    @Test
+    fun 알림_설정을_끄면_읽지_않은_알림이_있어도_벨_점이_없다() {
+        val users = com.example.myapplication.data.repository.FakeUserRepository()
+        val vm = viewModel(notifications = notifications(MockNotifications.all), users = users)
+        vm.refreshNotifications()
+        assertTrue(vm.state.value.hasUnreadNotifications)
+        kotlinx.coroutines.runBlocking { users.setNotificationEnabled(false) }
+        vm.refreshNotifications()
+        assertFalse(vm.state.value.hasUnreadNotifications)
+        kotlinx.coroutines.runBlocking { users.setNotificationEnabled(true) }
+        vm.refreshNotifications()
+        assertTrue(vm.state.value.hasUnreadNotifications)
     }
 }

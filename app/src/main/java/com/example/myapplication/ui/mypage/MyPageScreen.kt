@@ -61,6 +61,7 @@ import com.example.myapplication.ui.theme.AppSpace
 @Composable
 fun MyPageScreen(
     onLogout: () -> Unit,
+    onAllReviewsClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: MyPageViewModel = viewModel(),
 ) {
@@ -78,7 +79,7 @@ fun MyPageScreen(
             Column(modifier.fillMaxSize().background(AppColor.Surface).verticalScroll(rememberScrollState())) {
                 ProfileHeader(d)
                 if (d.stats.topTags.isNotEmpty()) TopTags(d.stats.topTags)
-                ReviewSection(d.reviews)
+                ReviewSection(d.reviews, onAllReviewsClick)
                 Spacer(Modifier.height(AppSpace.xxl))
                 MenuRow("알림 설정", trailing = notificationStatusText(d.notificationEnabled), onClick = viewModel::onToggleNotification, leading = { BellIcon(AppColor.TextPrimary) })
                 MenuRow("로그아웃", muted = true, onClick = { confirmLogout = true }, leading = { LogoutIcon() })
@@ -173,9 +174,14 @@ private fun TopTags(tags: List<TagCount>) {
 }
 
 @Composable
-private fun ReviewSection(reviews: List<ReceivedReview>) {
+private fun ReviewSection(reviews: List<ReceivedReview>, onAllClick: () -> Unit) {
     Column(Modifier.padding(horizontal = AppSpace.x4).padding(top = AppSpace.x5)) {
-        SectionTitle("받은 후기")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SectionTitle("받은 후기", Modifier.weight(1f))
+            if (reviews.isNotEmpty()) {
+                Text("전체 보기", Modifier.clip(CircleShape).clickable(onClickLabel = "받은 후기 전체 보기", onClick = onAllClick).padding(AppSpace.md), color = AppColor.TextSecondary, fontSize = 14.sp)
+            }
+        }
         Spacer(Modifier.height(AppSpace.xl))
         if (reviews.isEmpty()) {
             Text("아직 받은 후기가 없어요", color = AppColor.TextDisabled, fontSize = 15.sp, modifier = Modifier.padding(vertical = AppSpace.xl))

@@ -52,6 +52,8 @@ import com.example.myapplication.ui.meeting.notice.NoticeEditScreen
 import com.example.myapplication.ui.meeting.notice.NoticeEditViewModel
 import com.example.myapplication.ui.meeting.notice.NoticeListScreen
 import com.example.myapplication.ui.meeting.notice.NoticeListViewModel
+import com.example.myapplication.ui.mypage.AllReviewsScreen
+import com.example.myapplication.ui.mypage.AllReviewsViewModel
 import com.example.myapplication.ui.mypage.MyPageScreen
 import com.example.myapplication.ui.notification.NotificationScreen
 import com.example.myapplication.ui.record.RecordScreen
@@ -342,7 +344,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     viewModel = viewModel { MateProfileViewModel(userId, mateRepository) },
                     onBack = { navController.popBackStack() },
                     onActivityClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
-                    onAllReviewsClick = { /* TODO(임시): 후기 전체 화면은 디자인 없음 */ },
+                    onAllReviewsClick = { navController.navigate(Routes.mateReviews(userId)) },
                 )
             }
 
@@ -350,7 +352,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             composable(Routes.REVIEW_LIST, meetingArgs()) { entry ->
                 val meetingId = entry.meetingId()
                 ReviewListScreen(
-                    viewModel = viewModel(key = "review-$meetingId") { ReviewViewModel(meetingId, reviewRepository) },
+                    viewModel = viewModel(key = "review-$meetingId") { ReviewViewModel(meetingId, reviewRepository, mateRepository) },
                     onBack = { navController.popBackStack() },
                     onStartReview = { navController.navigate(Routes.memberReview(meetingId, "next")) },
                 )
@@ -391,8 +393,23 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onExploreClick = { navController.navigate(Routes.EXPLORE) },
                 )
             }
+            composable(Routes.MY_REVIEWS) {
+                val vm = viewModel<AllReviewsViewModel>(key = "my-reviews") { AllReviewsViewModel(users = userRepository) }
+                val state by vm.state.collectAsState()
+                AllReviewsScreen("받은 후기", state, onBack = { navController.popBackStack() }, onRetry = vm::load)
+            }
+            composable(
+                Routes.MATE_REVIEWS,
+                listOf(navArgument(Routes.ARG_USER_ID) { type = NavType.StringType }),
+            ) { entry ->
+                val userId = entry.arguments?.getString(Routes.ARG_USER_ID).orEmpty()
+                val vm = viewModel<AllReviewsViewModel>(key = "mate-reviews-$userId") { AllReviewsViewModel(userId, userRepository, mateRepository) }
+                val state by vm.state.collectAsState()
+                AllReviewsScreen("받은 후기", state, onBack = { navController.popBackStack() }, onRetry = vm::load)
+            }
             composable(Routes.MYPAGE) {
                 MyPageScreen(
+                    onAllReviewsClick = { navController.navigate(Routes.MY_REVIEWS) },
                     onLogout = {
                         navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                     },

@@ -157,6 +157,8 @@ app/
 │   └─ mypage/                              ← 14번 마이페이지
 │       ├─ MyPageScreen.kt                  [화면] ← 14
 │       ├─ MyPageViewModel.kt               [상태] 불러오기 · 알림 설정 · 로그아웃
+│       ├─ AllReviewsScreen.kt              [화면] ← 받은 후기 전체 (마이페이지·메이트 프로필 공용, 디자인 없음)
+│       ├─ AllReviewsViewModel.kt           [상태] 내 후기 · 메이트 후기
 │       └─ MyPageRules.kt                   [규칙] 한 줄 소개 · 온도·날짜 표기
 │
 └─ data/
