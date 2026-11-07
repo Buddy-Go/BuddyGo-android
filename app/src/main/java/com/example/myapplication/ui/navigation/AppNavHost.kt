@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myapplication.data.local.SessionReset
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.FakeMateRepository
 import com.example.myapplication.data.repository.FakeReviewRepository
@@ -411,6 +412,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 MyPageScreen(
                     onAllReviewsClick = { navController.navigate(Routes.MY_REVIEWS) },
                     onLogout = {
+                        SessionReset.onLogout()
                         navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
                     },
                 )
