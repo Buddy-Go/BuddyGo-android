@@ -46,6 +46,8 @@ data class ReviewState(
     val draft: ReviewDraft = ReviewDraft(),
     val isSubmitting: Boolean = false,
     val isAllDone: Boolean = false, // 12c로 갈 때
+    val loadFailed: Boolean = false, // 12a 평가 대상을 불러오지 못함 → 16g 오류 화면
+    val submitFailed: Boolean = false, // 12b 제출 실패 → 16i 안내 띠 (기한 지남·이미 평가함 포함)
     val now: Long = 0L,
 ) {
     val targets: List<ReviewTargetInfo> get() = session?.targets.orEmpty()

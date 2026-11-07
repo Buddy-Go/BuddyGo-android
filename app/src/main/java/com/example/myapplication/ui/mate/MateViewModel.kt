@@ -24,11 +24,14 @@ class MateViewModel(private val repository: MateRepository) : ViewModel() {
     // 신청 화면·프로필에서 돌아왔을 때도 부른다.
     fun refresh() {
         viewModelScope.launch {
+            val mates = repository.getMates()
+            val workedOut = repository.getWorkedOut()
+            val requests = repository.getRequests()
             state = state.copy(
-                // TODO(임시): 실패하면 16f·16g 오류 화면 (공용 부품이 정해지면)
-                mates = repository.getMates().getOrDefault(emptyList()),
-                workedOut = repository.getWorkedOut().getOrDefault(emptyList()),
-                pendingRequestCount = repository.getRequests().getOrDefault(emptyList()).size,
+                mates = mates.getOrDefault(state.mates),
+                workedOut = workedOut.getOrDefault(state.workedOut),
+                pendingRequestCount = requests.map { it.size }.getOrDefault(state.pendingRequestCount),
+                loadFailed = mates.isFailure || workedOut.isFailure || requests.isFailure,
                 isLoading = false,
                 now = System.currentTimeMillis(),
             )
@@ -64,8 +67,13 @@ class MateRequestViewModel(private val repository: MateRepository) : ViewModel()
         private set
 
     init {
+        load()
+    }
+
+    fun load() {
         viewModelScope.launch {
-            state = state.copy(requests = repository.getRequests().getOrDefault(emptyList()), isLoading = false)
+            val result = repository.getRequests()
+            state = state.copy(requests = result.getOrDefault(state.requests), loadFailed = result.isFailure, isLoading = false)
         }
     }
 
@@ -96,9 +104,10 @@ class MateProfileViewModel(
         reload()
     }
 
-    private fun reload() {
+    fun reload() {
         viewModelScope.launch {
-            state = state.copy(profile = repository.getProfile(userId).getOrNull(), now = System.currentTimeMillis())
+            val result = repository.getProfile(userId)
+            state = state.copy(profile = result.getOrNull() ?: state.profile, loadFailed = result.isFailure, now = System.currentTimeMillis())
         }
     }
 
@@ -120,7 +129,7 @@ class MateProfileViewModel(
         }
     }
 
-    // 메이트 끊기. TODO(임시): 확인 창 디자인이 없음 (팀에 질문)
+    // 메이트 끊기. 확인 창은 화면(MateProfileScreen)이 공용 ConfirmDialog로 먼저 띄운다.
     fun onRemoveMate() {
         viewModelScope.launch {
             if (repository.removeMate(userId).isSuccess) state = state.copy(isRemoved = true)

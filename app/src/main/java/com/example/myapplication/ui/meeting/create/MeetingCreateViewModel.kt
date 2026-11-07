@@ -157,7 +157,7 @@ class MeetingCreateViewModel(
 
     // 10f 확인
     fun onTimeApply(startMinutes: Int, durationMinutes: Int) {
-        // TODO(임시): '시작은 지금부터 1시간 30분 이후' 검사는 서버 판정 결과를 받아 표시 (service-rules 0장, 4장)
+        // '시작은 지금부터 1시간 30분 이후' 검사는 서버가 개설·수정 때 판정하고, 어기면 토스트로 알린다. (service-rules 0장, 4장)
         state = state.copy(startMinutes = startMinutes, durationMinutes = durationMinutes, openSheet = null)
     }
 
@@ -183,7 +183,7 @@ class MeetingCreateViewModel(
         viewModelScope.launch {
             meetingRepository.createMeeting(meeting)
                 .onSuccess { id -> state = state.copy(isSubmitting = false, createdMeetingId = id) }
-                // TODO(임시): 실패 안내는 공용 토스트(16j)가 생기면 그걸로 보여준다
+                // 실패 안내는 화면이 errorMessage를 공용 토스트(16j)로 보여 준다
                 .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = e.message ?: "모임을 만들지 못했어요") }
         }
     }

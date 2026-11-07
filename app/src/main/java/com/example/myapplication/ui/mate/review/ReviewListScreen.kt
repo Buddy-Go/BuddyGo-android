@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.mate.review
 
+import com.example.myapplication.ui.common.FullScreenError
+import com.example.myapplication.ui.common.ErrorType
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +47,7 @@ fun ReviewListScreen(
             viewModel.onStartReview(userId)
             onStartReview()
         },
+        onRetry = viewModel::reload,
     )
 }
 
@@ -53,6 +56,7 @@ private fun ReviewListContent(
     state: ReviewState,
     onBack: () -> Unit,
     onReviewClick: (String) -> Unit,
+    onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     Column(
@@ -63,6 +67,10 @@ private fun ReviewListContent(
             .navigationBarsPadding(),
     ) {
         ReviewTopBar(iconRes = R.drawable.ic_arrow_back, iconDescription = "뒤로 가기", onIconClick = onBack)
+        if (state.loadFailed) {
+            FullScreenError(type = ErrorType.SERVER, onRetry = onRetry, modifier = Modifier.weight(1f))
+            return@Column
+        }
         val session = state.session ?: return@Column
         Column(
             modifier = Modifier

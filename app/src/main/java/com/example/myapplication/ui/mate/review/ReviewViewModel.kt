@@ -25,10 +25,10 @@ class ReviewViewModel(
         reload()
     }
 
-    private fun reload() {
+    fun reload() {
         viewModelScope.launch {
-            // TODO(임시): 실패하면 16f·16g 오류 화면 (공용 부품이 정해지면)
-            state = state.copy(session = repository.getReviewSession(meetingId).getOrNull(), now = System.currentTimeMillis())
+            val result = repository.getReviewSession(meetingId)
+            state = state.copy(session = result.getOrNull() ?: state.session, loadFailed = result.isFailure, now = System.currentTimeMillis())
         }
     }
 
@@ -54,7 +54,7 @@ class ReviewViewModel(
         val target = state.currentTargetId ?: return
         val verdict = state.draft.verdict ?: return
         if (state.isSubmitting) return
-        state = state.copy(isSubmitting = true)
+        state = state.copy(isSubmitting = true, submitFailed = false)
         viewModelScope.launch {
             val result = repository.submitReview(
                 Review(
@@ -66,8 +66,8 @@ class ReviewViewModel(
                 ),
             )
             if (result.isFailure) {
-                // TODO(임시): 16i 인라인 오류 (공용 부품이 정해지면). 기한이 지났거나 이미 평가했으면 서버가 거절한다.
-                state = state.copy(isSubmitting = false)
+                // 기한이 지났거나 이미 평가했으면 서버가 거절한다. 16i 안내 띠로 알린다.
+                state = state.copy(isSubmitting = false, submitFailed = true)
                 return@launch
             }
             val next = state.nextTargetId

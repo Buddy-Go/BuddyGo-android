@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.FullScreenError
+import com.example.myapplication.ui.common.ErrorType
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +57,10 @@ fun MateScreen(
     onProfileClick: (userId: String) -> Unit, // → 15
 ) {
     LaunchedEffect(Unit) { viewModel.refresh() }
+    if (viewModel.state.loadFailed) {
+        FullScreenError(type = ErrorType.SERVER, onRetry = viewModel::refresh)
+        return
+    }
     MateContent(
         state = viewModel.state,
         onTabSelect = viewModel::onTabSelect,
