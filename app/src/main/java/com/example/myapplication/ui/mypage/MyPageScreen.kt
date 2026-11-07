@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +68,7 @@ fun MyPageScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var confirmLogout by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { viewModel.refresh() }
 
     when (val s = state) {
         UiState.Loading -> Column(modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding()) {

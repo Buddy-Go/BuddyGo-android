@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +49,8 @@ fun NoticeListScreen(
     onWriteClick: () -> Unit, // 8a 작성으로
     onEditClick: (noticeId: String) -> Unit, // 8c 수정으로
 ) {
+    // 작성·수정 화면에서 돌아왔을 때 목록을 새로 받는다.
+    LaunchedEffect(Unit) { viewModel.refresh() }
     NoticeListContent(
         state = viewModel.state,
         onBack = onBack,
