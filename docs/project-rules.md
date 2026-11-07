@@ -169,6 +169,8 @@ app/
     │   ├─ Comment.kt                       공지 댓글 (8f~8i)
     │   ├─ Notification.kt                  알림 목록 (3-6)
     │   └─ Review.kt
+    ├─ local/                               앱을 껐다 켜도 남기는 작은 값
+    │   └─ KeyValueStore.kt                 SharedPreferences 저장(최근 검색 지역·최근 장소), 앱 시작 때 AppStorage.init
     ├─ repository/                          화면이 데이터를 요청하는 창구
     │   ├─ MeetingRepository.kt             interface
     │   ├─ FakeMeetingRepository.kt         목데이터로 응답
