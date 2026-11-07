@@ -120,6 +120,15 @@ fun ExploreScreen(
             onToggleSport = viewModel::onToggleSportChip,
         )
 
+        // 네이버 지도처럼: 지도를 손으로 옮겨 보이는 범위가 달라졌을 때만 위쪽에 '현 지도에서 검색'을 띄운다.
+        // 옮겼다고 목록을 바로 다시 부르지는 않고, 버튼을 눌렀을 때만 새 범위로 불러온다. 핀을 고른 동안(3-3, 3-5)에는 숨긴다.
+        if (state.showResearchButton) {
+            ResearchButton(
+                onClick = viewModel::onResearch,
+                modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = ResearchButtonTop),
+            )
+        }
+
         if (showFloatingCard) {
             // 3-3-After: 모임이 하나뿐인 핀을 고르면 시트 대신 떠 있는 카드를 보여 준다.
             val meeting = state.floatingCard!!
@@ -131,14 +140,6 @@ fun ExploreScreen(
                 modifier = Modifier.align(Alignment.BottomCenter).padding(AppSpace.xxl),
             )
         } else {
-            // 핀을 고른 동안(3-3, 3-5)에는 재검색 버튼을 숨긴다.
-            if (state.selectedPin == null) {
-                ResearchButton(
-                    highlighted = state.cameraMoved,
-                    onClick = viewModel::onResearch,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = sheetBottomSpace + AppSpace.xxl),
-                )
-            }
             ExploreBottomSheet(
                 state = state,
                 expandedHeight = sheetHeight,
@@ -240,13 +241,13 @@ private fun FilterChip(selected: Boolean, onClick: () -> Unit, content: @Composa
     }
 }
 
-// '이 지역 재검색'. 지도를 옮긴 뒤에는 라임색으로 눈에 띄게 한다.
+// '현 지도에서 검색'. 지도를 옮긴 뒤에만 보이므로 늘 라임색으로 눈에 띄게 한다.
 @Composable
-private fun ResearchButton(highlighted: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ResearchButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.height(44.dp).clip(RoundedCornerShape(22.dp)).clickable(role = Role.Button, onClick = onClick),
         shape = RoundedCornerShape(22.dp),
-        color = if (highlighted) AppColor.Accent else AppColor.Surface,
+        color = AppColor.Accent,
         shadowElevation = 6.dp,
     ) {
         Row(
@@ -254,8 +255,8 @@ private fun ResearchButton(highlighted: Boolean, onClick: () -> Unit, modifier: 
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AppSpace.md),
         ) {
-            RefreshIcon(AppColor.AccentStrong.takeIf { !highlighted } ?: AppColor.TextPrimary)
-            Text("이 지역 재검색", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+            RefreshIcon(AppColor.TextPrimary)
+            Text("현 지도에서 검색", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         }
     }
 }
@@ -270,3 +271,6 @@ private fun MapUnavailable() {
 
 // 상태바 아래 검색창과 칩 줄이 차지하는 높이(대략). 지도 중심 계산에만 쓴다.
 private val TopOverlayHeight = 168.dp
+
+// 검색창과 칩 줄 바로 아래 가운데에 '현 지도에서 검색'을 놓는 위치(상태바 아래 기준)
+private val ResearchButtonTop = 124.dp

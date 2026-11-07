@@ -21,7 +21,7 @@ fun distanceMeters(from: GeoPoint, toLatitude: Double, toLongitude: Double): Int
     return (2 * EARTH_RADIUS_METERS * asin(sqrt(a))).roundToInt()
 }
 
-// 지도에 보이는 직사각형 영역 ('이 지역 재검색'의 기준, service-rules 2장). 남서쪽 모서리와 북동쪽 모서리로 나타낸다.
+// 지도에 보이는 직사각형 영역 ('현 지도에서 검색'의 기준, service-rules 2장). 남서쪽 모서리와 북동쪽 모서리로 나타낸다.
 // 날짜변경선을 걸치는 영역은 다루지 않는다(국내 서비스).
 data class MapBounds(val south: Double, val west: Double, val north: Double, val east: Double) {
     // 경계 위의 점도 안으로 본다.
