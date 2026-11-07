@@ -104,7 +104,7 @@ fun ExploreScreen(
                 selectedKey = state.selectedPinKey,
                 onPinClick = viewModel::onSelectPin,
                 onMapClick = viewModel::onClearPin,
-                onMovedByUser = viewModel::onCameraMoved,
+                onMovedByUser = { bounds -> viewModel.onCameraMoved(bounds) },
                 onError = { mapFailed = true },
                 modifier = Modifier.fillMaxSize(),
                 topPadding = TopOverlayHeight,

@@ -2,6 +2,7 @@ package com.example.myapplication.ui.explore
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.model.MapBounds
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.NotificationRepository
@@ -30,7 +31,10 @@ class ExploreViewModel(
         // 조건 설정 화면에서 적용한 조건이나 종목 칩으로 바꾼 조건이 곧바로 목록과 지도에 반영된다.
         viewModelScope.launch {
             FilterStore.applied.collect { filter ->
-                _state.update { it.copy(filter = filter, selectedPinKey = null) }
+                // 위치(구·동)를 고르면 지도 영역 기준은 풀리고 전체에서 그 지역을 찾는다.
+                val clearBounds = filter.district != null && _state.value.searchBounds != null
+                _state.update { it.copy(filter = filter, selectedPinKey = null, searchBounds = if (clearBounds) null else it.searchBounds) }
+                if (clearBounds) load()
             }
         }
     }
@@ -49,7 +53,8 @@ class ExploreViewModel(
     fun load() {
         _state.update { it.copy(meetings = UiState.Loading) }
         viewModelScope.launch {
-            val result = repository.getMeetings()
+            // 재검색한 영역이 있으면 그 안의 모임만 받는다.
+            val result = repository.getMeetings(_state.value.searchBounds)
             _state.update {
                 it.copy(
                     meetings = result.fold(
@@ -82,9 +87,10 @@ class ExploreViewModel(
     // 위치 권한은 앱을 켜고 한 번만 묻는다. 거절해도 화면을 열 때마다 다시 묻지 않는다.
     fun onLocationAsked() = _state.update { it.copy(locationAsked = true) }
 
-    fun onCameraMoved() = _state.update { it.withCameraMoved() }
+    // 사용자가 지도를 옮기면 '이 지역 재검색'이 나타나고, 그때 지도에 보이는 영역을 기억해 둔다.
+    fun onCameraMoved(bounds: MapBounds? = null) = _state.update { it.withCameraMoved(bounds) }
 
-    // TODO(임시) 지도 범위를 서버에 넘기는 호출이 정해지면 영역을 같이 보낸다.
+    // 재검색: 기억해 둔 지도 영역 안의 모임을 다시 받는다.
     fun onResearch() {
         FilterStore.update { it.copy(district = null) } // 재검색하면 위치 조건이 풀린다
         _state.update { it.afterResearch() }

@@ -59,6 +59,11 @@
 - [x] **종목 이름 함수**: `ui/common/SportLabel.kt`의 `sportLabel()` 하나만 쓴다. 같은 이름의 함수를 새로 만들지 않는다.
 - [x] **색 토큰**: 현재 `AppTokens.kt` 값으로 확정한다. `AccentSoft`는 `F1FBE0`(흐름 A 값)이다. 16번 프레임 캡션 값과 달라지면 `AppTokens.kt` 한 곳만 고친다.
 
+## 3-1. 지도 영역 검색
+
+- `getMeetings(area: MapBounds? = null)`: 영역이 있으면 서버가 장소 좌표가 그 안에 있는 모임만 준다('이 지역 재검색', service-rules 2장). 영역은 지도 화면의 남서·북동 모서리다. 좌표가 없는 모임은 영역 검색에서 빠진다.
+- 위치(구·동) 조건을 고르면 영역 기준은 풀리고 전체에서 그 지역을 찾는다. 종목·찜 같은 다른 조건을 바꿔도 재검색한 영역은 유지된다.
+
 ## 4. 호스트 호출 (추가 완료)
 
 `MeetingRepository`에 개설(`createMeeting`), 수정(`updateMeeting`), 취소(`cancelMeeting`), 삭제(`deleteMeeting`), 신청 목록·수락·거절이 있다. 공지·댓글, 평가, 메이트는 각 화면의 저장소에 있다.

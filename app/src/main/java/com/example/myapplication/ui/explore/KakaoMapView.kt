@@ -18,6 +18,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import com.example.myapplication.data.model.MapBounds
 import com.kakao.vectormap.GestureType
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
@@ -43,7 +44,7 @@ fun KakaoMapView(
     selectedKey: String?,
     onPinClick: (String) -> Unit,
     onMapClick: () -> Unit,
-    onMovedByUser: () -> Unit,
+    onMovedByUser: (MapBounds?) -> Unit, // 옮긴 뒤 지도에 보이는 영역(읽지 못하면 null)
     onError: () -> Unit,
     modifier: Modifier = Modifier,
     topPadding: Dp = 0.dp,    // 검색창·칩이 덮는 높이
@@ -74,7 +75,7 @@ fun KakaoMapView(
                     map.setOnMapClickListener { _, _, _, _ -> currentOnMapClick() }
                     // 코드로 옮긴 카메라(Unknown)는 빼고, 사용자가 손으로 옮긴 경우에만 알린다.
                     map.setOnCameraMoveEndListener { _, _, gesture ->
-                        if (gesture != GestureType.Unknown) currentOnMoved()
+                        if (gesture != GestureType.Unknown) currentOnMoved(visibleBounds(map, mapView.width, mapView.height))
                     }
                     kakaoMap = map
                 }
@@ -139,4 +140,12 @@ fun KakaoMapView(
     }
 
     AndroidView(factory = { mapView }, modifier = modifier)
+}
+
+// 지도에 보이는 영역: 화면의 왼쪽 위와 오른쪽 아래 모서리를 좌표로 바꿔 만든다. 바꾸지 못하면(지도가 아직 준비 중 등) null.
+private fun visibleBounds(map: KakaoMap, width: Int, height: Int): MapBounds? {
+    if (width <= 0 || height <= 0) return null
+    val topLeft = runCatching { map.fromScreenPoint(0, 0) }.getOrNull() ?: return null
+    val bottomRight = runCatching { map.fromScreenPoint(width, height) }.getOrNull() ?: return null
+    return MapBounds.of(topLeft.latitude, topLeft.longitude, bottomRight.latitude, bottomRight.longitude)
 }

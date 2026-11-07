@@ -329,3 +329,36 @@ class FakeMeetingRepositorySeedTest {
         assertTrue(requests.all { !it.message.isNullOrBlank() })
     }
 }
+
+class FakeMeetingRepositoryAreaTest {
+    private val mapo = com.example.myapplication.data.model.MapBounds(37.54, 126.88, 37.57, 126.95)
+
+    @Test
+    fun 영역이_없으면_전체를_준다() {
+        val all = runBlocking { FakeMeetingRepository().getMeetings().getOrThrow() }
+        assertEquals(MockMeetings.all.size, all.size)
+        assertEquals(all.size, runBlocking { FakeMeetingRepository().getMeetings(null).getOrThrow() }.size)
+    }
+
+    @Test
+    fun 영역이_있으면_장소가_그_안에_있는_모임만_준다() {
+        val inArea = runBlocking { FakeMeetingRepository().getMeetings(mapo).getOrThrow() }
+        assertTrue(inArea.isNotEmpty())
+        assertTrue(inArea.all { mapo.contains(it.place.latitude, it.place.longitude) })
+        assertTrue(inArea.none { it.id == MockMeetings.inProgress.id })
+    }
+
+    @Test
+    fun 좌표가_없는_모임은_영역_검색에서_뺀다() {
+        val noCoords = MockMeetings.recruiting.copy(place = MockMeetings.recruiting.place.copy(latitude = 0.0, longitude = 0.0))
+        val repo = FakeMeetingRepository(listOf(noCoords))
+        assertEquals(1, runBlocking { repo.getMeetings().getOrThrow() }.size)
+        assertTrue(runBlocking { repo.getMeetings(com.example.myapplication.data.model.MapBounds(-90.0, -180.0, 90.0, 180.0)).getOrThrow() }.isEmpty())
+    }
+
+    @Test
+    fun 영역에_아무것도_없으면_빈_목록이다() {
+        val far = com.example.myapplication.data.model.MapBounds(33.0, 126.0, 33.5, 126.9) // 제주
+        assertTrue(runBlocking { FakeMeetingRepository().getMeetings(far).getOrThrow() }.isEmpty())
+    }
+}

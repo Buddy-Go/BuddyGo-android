@@ -2,12 +2,14 @@ package com.example.myapplication.data.repository
 
 import com.example.myapplication.data.model.CheckInResult
 import com.example.myapplication.data.model.JoinRequest
+import com.example.myapplication.data.model.MapBounds
 import com.example.myapplication.data.model.Meeting
 
 // 화면과 ViewModel은 이 interface만 호출한다. 규칙 판정(수락·마감 등)은 서버가 하고 앱은 결과만 받는다.
 // 개설·수정·취소, 공지, 평가처럼 아직 없는 호출은 그 화면을 만드는 사람이 추가한다.
 interface MeetingRepository {
-    suspend fun getMeetings(): Result<List<Meeting>>
+    // area가 있으면 지도에 보이는 영역 안의 모임만 준다('이 지역 재검색'). 없으면 전체. 서버가 영역으로 거른다.
+    suspend fun getMeetings(area: MapBounds? = null): Result<List<Meeting>>
     suspend fun getMeeting(meetingId: String): Result<Meeting>
 
     // 찜 (service-rules 2장). 켜고 끄는 값을 그대로 보낸다. 서버가 같은 값을 받아도 결과는 같다.

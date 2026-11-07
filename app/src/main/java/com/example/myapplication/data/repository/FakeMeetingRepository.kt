@@ -8,8 +8,10 @@ import com.example.myapplication.data.model.CheckInResult
 import com.example.myapplication.data.model.DEADLINE_BEFORE_START_MINUTES
 import com.example.myapplication.data.model.GeoPoint
 import com.example.myapplication.data.model.JoinRequest
+import com.example.myapplication.data.model.MapBounds
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingMember
+import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.distanceMeters
 
@@ -27,7 +29,12 @@ class FakeMeetingRepository(
     private val applicationTimes = mutableMapOf<String, Long>()
     private fun key(meetingId: String, userId: String) = "$meetingId/$userId"
 
-    override suspend fun getMeetings() = Result.success(meetings.toList())
+    // 영역이 있으면 장소 좌표가 그 안에 있는 모임만 준다. 좌표가 없는 모임(0, 0)은 지도에 못 올라 영역 검색에서 뺀다.
+    override suspend fun getMeetings(area: MapBounds?): Result<List<Meeting>> = Result.success(
+        meetings.filter { m -> area == null || (m.place.hasCoordinates() && area.contains(m.place.latitude, m.place.longitude)) },
+    )
+
+    private fun MeetingPlace.hasCoordinates() = latitude != 0.0 || longitude != 0.0
 
     override suspend fun getMeeting(meetingId: String): Result<Meeting> =
         meetings.firstOrNull { it.id == meetingId }
