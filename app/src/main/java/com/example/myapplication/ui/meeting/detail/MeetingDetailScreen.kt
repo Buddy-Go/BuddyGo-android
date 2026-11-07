@@ -265,7 +265,7 @@ private fun DetailContent(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
-            ChipsRow(meeting, role)
+            ChipsRow(meeting, role, caption = if (host != null) hostChipCaption(meeting, state.nowMillis) else null)
             Text(meeting.title, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, lineHeight = 34.sp)
             if (host != null) {
                 // 5a-H 계열: 확정 명단, 정보 카드, '내가 호스트', 공지, 모임 소개
@@ -349,7 +349,7 @@ private fun MoreDotsIcon(color: Color) {
 }
 
 @Composable
-private fun ChipsRow(meeting: Meeting, role: MeetingRole) {
+private fun ChipsRow(meeting: Meeting, role: MeetingRole, caption: String? = null) {
     Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.md), verticalAlignment = Alignment.CenterVertically) {
         Row(
             Modifier.clip(RoundedCornerShape(AppRadius.pill)).border1(AppColor.Border).padding(horizontal = 14.dp, vertical = 8.dp),
@@ -374,6 +374,10 @@ private fun ChipsRow(meeting: Meeting, role: MeetingRole) {
                     .then(if (border) Modifier.border1(AppColor.Border) else Modifier)
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
+        }
+        // 호스트 화면: 칩 옆의 회색 보조 문구 ("마감까지 5시간" / 시작 일시)
+        if (caption != null) {
+            Text(caption, fontSize = 14.sp, color = AppColor.TextSecondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
         }
     }
 }

@@ -152,4 +152,42 @@ class HostWiringTest {
         assertNotNull(v.state.value.message)
         assertTrue(v.state.value.meeting is UiState.Success)
     }
+
+    // ---- 호스트 칩 옆 보조 문구 (5a-H, 5a-H5) ----
+
+    private val hostNow = MockMeetings.hosted.startAtMillis - 30L * 3_600_000L // 시작 30시간 전, 데드라인(90분 전)까지 28시간 반
+
+    @Test
+    fun 모집중이면_마감까지_남은_시간을_보인다() {
+        assertEquals("마감까지 1일", hostChipCaption(MockMeetings.hosted, hostNow, seoul))
+    }
+
+    @Test
+    fun 데드라인이_지났으면_모집중이어도_문구가_없다() {
+        assertNull(hostChipCaption(MockMeetings.hosted, MockMeetings.hosted.startAtMillis, seoul))
+    }
+
+    @Test
+    fun 마감이면_시작_일시를_보이고_진행_시간은_뺀다() {
+        val text = hostChipCaption(MockMeetings.hostedClosed, hostNow, seoul)!!
+        assertTrue(text, text.matches(Regex("""\d+월 \d+일 \([월화수목금토일]\) (오전|오후) \d+:\d{2}""")))
+        assertFalse(text.contains("진행"))
+    }
+
+    @Test
+    fun 진행중_종료_취소는_칩만_보인다() {
+        for (st in listOf(MeetingStatus.IN_PROGRESS, MeetingStatus.ENDED, MeetingStatus.CANCELED)) {
+            assertNull(st.name, hostChipCaption(MockMeetings.hosted.copy(status = st), hostNow, seoul))
+        }
+    }
+
+    @Test
+    fun 마감된_호스트_모임은_마감_상태로_호스트_영역이_채워진다() {
+        val v = vm(MockMeetings.hostedClosed.id)
+        val host = v.state.value.hostSection!!
+        assertTrue(host.isClosed)
+        assertEquals(3, host.confirmedCount)
+        assertFalse("신청이 없으면 라임 강조가 없다", host.highlightManageButton)
+        assertEquals("마감됐어요 · 참가자에게도 명단이 공개됐어요", host.rosterHint)
+    }
 }
