@@ -2,6 +2,7 @@ package com.example.myapplication.ui.auth
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.common.EyeIcon
+import com.example.myapplication.R
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
@@ -76,7 +79,7 @@ fun LoginScreen(
             LogoMark()
             Spacer(Modifier.width(AppSpace.xxl))
             Text(
-                text = "운동메이트",
+                text = "BuddyGo",
                 color = AppColor.TextPrimary,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
@@ -84,7 +87,7 @@ fun LoginScreen(
         }
         Spacer(Modifier.height(AppSpace.x4))
         Text(
-            text = "헬스 · 러닝 · 등산 · 내 근처 모임",
+            text = "Find your buddy, and go.",
             color = AppColor.TextSecondary,
             fontSize = 15.sp,
         )
@@ -243,28 +246,14 @@ private fun LoginField(
     }
 }
 
+// BuddyGo 심볼(B+G). 바탕 없이 심볼만 보여 준다.
 @Composable
 private fun LogoMark() {
-    Box(
-        modifier = Modifier
-            .size(64.dp)
-            .clip(RoundedCornerShape(AppRadius.lg))
-            .background(AppColor.Accent),
-        contentAlignment = Alignment.Center,
-    ) {
-        // 덤벨 아이콘 (SVG 에셋 전까지 도형으로 대체)
-        Canvas(Modifier.size(32.dp)) {
-            val c = Color.White
-            val w = size.width
-            val h = size.height
-            val r = CornerRadius(w * 0.05f)
-            drawRoundRect(c, Offset(0f, h * 0.30f), Size(w * 0.10f, h * 0.40f), r)
-            drawRoundRect(c, Offset(w * 0.16f, h * 0.15f), Size(w * 0.14f, h * 0.70f), r)
-            drawRoundRect(c, Offset(w * 0.30f, h * 0.45f), Size(w * 0.40f, h * 0.10f), r)
-            drawRoundRect(c, Offset(w * 0.70f, h * 0.15f), Size(w * 0.14f, h * 0.70f), r)
-            drawRoundRect(c, Offset(w * 0.90f, h * 0.30f), Size(w * 0.10f, h * 0.40f), r)
-        }
-    }
+    Image(
+        painter = painterResource(R.drawable.ic_buddygo_logo),
+        contentDescription = "BuddyGo",
+        modifier = Modifier.size(64.dp),
+    )
 }
 
 @Composable
