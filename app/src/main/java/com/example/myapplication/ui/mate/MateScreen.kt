@@ -39,6 +39,7 @@ import com.example.myapplication.data.model.MateActivity
 import com.example.myapplication.data.model.MateActivityKind
 import com.example.myapplication.data.model.MateRelation
 import com.example.myapplication.data.model.MateSummary
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.model.WorkedOutPerson
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
@@ -58,6 +59,7 @@ fun MateScreen(
         state = viewModel.state,
         onTabSelect = viewModel::onTabSelect,
         onSearchChange = viewModel::onSearchChange,
+        onSportFilterSelect = viewModel::onSportFilterSelect,
         onRequestsClick = onRequestsClick,
         onProfileClick = onProfileClick,
         onSendRequest = viewModel::onSendRequest,
@@ -69,6 +71,7 @@ private fun MateContent(
     state: MateState,
     onTabSelect: (MateTab) -> Unit,
     onSearchChange: (String) -> Unit,
+    onSportFilterSelect: (Sport?) -> Unit = {},
     onRequestsClick: () -> Unit,
     onProfileClick: (String) -> Unit,
     onSendRequest: (String) -> Unit,
@@ -142,6 +145,9 @@ private fun MateContent(
                 emptyText = state.workedOutEmptyText,
                 searchQuery = state.searchQuery,
                 onSearchChange = onSearchChange,
+                sportFilter = state.sportFilter,
+                sportCount = state::sportCount,
+                onSportFilterSelect = onSportFilterSelect,
                 onPersonClick = onProfileClick,
                 onRequest = onSendRequest,
                 modifier = Modifier.weight(1f),

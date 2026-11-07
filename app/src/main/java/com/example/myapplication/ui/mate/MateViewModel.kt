@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.MateRepository
 import kotlinx.coroutines.launch
 
@@ -40,6 +41,11 @@ class MateViewModel(private val repository: MateRepository) : ViewModel() {
 
     fun onSearchChange(query: String) {
         state = state.copy(searchQuery = query)
+    }
+
+    // 11b-2 종목 칩
+    fun onSportFilterSelect(sport: Sport?) {
+        state = state.copy(sportFilter = sport)
     }
 
     // 11b '메이트 신청'

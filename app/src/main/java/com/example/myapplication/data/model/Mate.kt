@@ -34,6 +34,7 @@ data class WorkedOutPerson(
     val nickname: String,
     val lastWorkedOutAtMillis: Long,
     val relation: MateRelation,
+    val sports: Set<Sport> = setOf(Sport.HEALTH), // 함께 운동한 종목 (11b-2 종목 칩)
 )
 
 data class MateRequest(

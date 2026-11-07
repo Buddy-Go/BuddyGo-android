@@ -28,20 +28,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.model.WorkedOutPerson
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
 import java.util.TimeZone
 
 // 함께 운동한 사람 탭 ← 11b
-// 종목 필터(11b-2 헬스 필터, 11b-3 필터 결과 없음)는 헬스만 하는 범위라 만들지 않는다. 이름 찾기는 둔다.
+// 이름 찾기 아래 종목 칩(전체·헬스·러닝·등산, 숫자는 그 종목을 함께한 사람 수) ← 11b-2.
+// 고른 종목에 사람이 없으면 목록 자리에 안내 문구 ← 11b-3.
 @Composable
 fun WorkedOutTab(
     people: List<WorkedOutPerson>,
     emptyText: String,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
+    sportFilter: Sport?,
+    sportCount: (Sport?) -> Int,
+    onSportFilterSelect: (Sport?) -> Unit,
     onPersonClick: (userId: String) -> Unit, // 15 프로필
     onRequest: (userId: String) -> Unit,
     modifier: Modifier = Modifier,
@@ -56,6 +62,7 @@ fun WorkedOutTab(
             modifier = Modifier.padding(horizontal = AppSpace.x4, vertical = AppSpace.lg),
         )
         SearchField(value = searchQuery, onValueChange = onSearchChange)
+        SportChips(selected = sportFilter, count = sportCount, onSelect = onSportFilterSelect)
         if (people.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(text = emptyText, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
@@ -91,6 +98,45 @@ fun WorkedOutTab(
                     }
                     RelationAction(relation = person.relation, onRequest = { onRequest(person.userId) })
                 }
+            }
+        }
+    }
+}
+
+// 11b-2 종목 칩. 고른 칩은 라임 알약, 나머지는 글자만.
+@Composable
+private fun SportChips(selected: Sport?, count: (Sport?) -> Int, onSelect: (Sport?) -> Unit) {
+    val options = listOf<Sport?>(null) + Sport.values().toList()
+    Row(
+        modifier = Modifier
+            .padding(start = AppSpace.x4 - AppSpace.xl, end = AppSpace.x4, top = AppSpace.xs, bottom = AppSpace.xs)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(AppSpace.xs),
+    ) {
+        options.forEach { sport ->
+            val isSelected = sport == selected
+            Row(
+                modifier = Modifier
+                    .height(36.dp)
+                    .clip(RoundedCornerShape(AppRadius.pill))
+                    .background(if (isSelected) AppColor.Accent else AppColor.Surface)
+                    .clickable { onSelect(sport) }
+                    .padding(horizontal = AppSpace.xl),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AppSpace.xs),
+            ) {
+                Text(
+                    text = if (sport == null) "전체" else sportLabel(sport),
+                    fontSize = 14.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                    color = if (isSelected) AppColor.OnAccent else AppColor.TextSecondary,
+                )
+                Text(
+                    text = count(sport).toString(),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) AppColor.OnAccent else AppColor.TextDisabled,
+                )
             }
         }
     }
