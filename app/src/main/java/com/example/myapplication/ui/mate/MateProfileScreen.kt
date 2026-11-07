@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.FullScreenError
+import com.example.myapplication.ui.common.ErrorType
+import com.example.myapplication.ui.common.ConfirmDialog
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -70,6 +73,7 @@ fun MateProfileScreen(
         onSendRequest = viewModel::onSendRequest,
         onToggleNotification = viewModel::onToggleNotification,
         onRemoveMate = viewModel::onRemoveMate,
+        onRetry = viewModel::reload,
     )
 }
 
@@ -83,9 +87,26 @@ private fun MateProfileContent(
     onSendRequest: () -> Unit,
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
+    onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     val profile = state.profile
+    // 메이트 끊기는 되돌릴 수 없어 먼저 확인한다. 확인 창 디자인이 없어 공용 ConfirmDialog를 쓴다. (문구는 임시)
+    var confirmRemove by remember { mutableStateOf(false) }
+    if (confirmRemove) {
+        ConfirmDialog(
+            title = "메이트를 끊을까요?",
+            message = "${profile?.nickname ?: "이 사람"}님이 내 메이트 목록에서 사라져요",
+            confirmText = "끊기",
+            dismissText = "취소",
+            destructive = true,
+            onConfirm = {
+                confirmRemove = false
+                onRemoveMate()
+            },
+            onDismiss = { confirmRemove = false },
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -114,9 +135,13 @@ private fun MateProfileContent(
                 ProfileMenu(
                     notificationLabel = state.notificationMenuLabel,
                     onToggleNotification = onToggleNotification,
-                    onRemoveMate = onRemoveMate,
+                    onRemoveMate = { confirmRemove = true },
                 )
             }
+        }
+        if (state.loadFailed) {
+            FullScreenError(type = ErrorType.SERVER, onRetry = onRetry, modifier = Modifier.weight(1f))
+            return@Column
         }
         if (profile == null) return@Column
 

@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.FullScreenError
+import com.example.myapplication.ui.common.ErrorType
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +52,7 @@ fun MateRequestScreen(
         onProfileClick = onProfileClick,
         onAccept = viewModel::onAccept,
         onReject = viewModel::onReject,
+        onRetry = viewModel::load,
     )
 }
 
@@ -60,6 +63,7 @@ private fun MateRequestContent(
     onProfileClick: (String) -> Unit,
     onAccept: (String) -> Unit,
     onReject: (String) -> Unit,
+    onRetry: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -85,6 +89,11 @@ private fun MateRequestContent(
                     .clickable(onClick = onBack),
             )
             Text(text = state.title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextPrimary)
+        }
+
+        if (state.loadFailed) {
+            FullScreenError(type = ErrorType.SERVER, onRetry = onRetry, modifier = Modifier.weight(1f))
+            return@Column
         }
 
         if (!state.isLoading && state.requests.isEmpty()) {

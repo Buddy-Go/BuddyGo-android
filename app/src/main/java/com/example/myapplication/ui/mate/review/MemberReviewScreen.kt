@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate.review
 
+import com.example.myapplication.ui.common.InlineErrorBanner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -93,6 +94,7 @@ private fun MemberReviewContent(
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xxl, bottom = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
+            if (state.submitFailed) InlineErrorBanner("평가를 보내지 못했어요. 다시 시도해주세요.")
             if (target != null) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
                     ReviewAvatar(userId = target.userId, nickname = target.nickname)

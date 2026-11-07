@@ -25,6 +25,7 @@ data class MateState(
     val pendingRequestCount: Int = 0,
     val searchQuery: String = "",
     val sportFilter: Sport? = null, // 11b-2 종목 칩. null이면 '전체'
+    val loadFailed: Boolean = false, // 목록을 불러오지 못함 → 16g 오류 화면
     val isLoading: Boolean = true,
     val now: Long = 0L,
 ) {
@@ -53,6 +54,7 @@ data class MateState(
 // 11c
 data class MateRequestState(
     val requests: List<MateRequest> = emptyList(),
+    val loadFailed: Boolean = false, // 신청 목록을 불러오지 못함 → 16g 오류 화면
     val processingRequestId: String? = null,
     val isLoading: Boolean = true,
 ) {
@@ -64,6 +66,7 @@ enum class ProfileButton { REQUEST, REQUESTED, NONE }
 
 data class MateProfileState(
     val profile: MateProfile? = null,
+    val loadFailed: Boolean = false, // 프로필을 불러오지 못함 → 16g 오류 화면
     val isSending: Boolean = false,
     val isRemoved: Boolean = false,
     val now: Long = 0L,
