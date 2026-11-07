@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.activity
 
+import com.example.myapplication.ui.common.sportLabel
+import com.example.myapplication.data.model.Sport
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,7 +34,6 @@ import com.example.myapplication.ui.theme.AppSpace
 import java.util.TimeZone
 
 // 호스트 탭 ← 13-H 모임 목록, 13-H2 빈 상태
-// 디자인의 종목 필터(전체·헬스·러닝·등산)는 헬스만 하는 범위라 만들지 않는다.
 @Composable
 fun HostActivityTab(
     upcoming: List<HostedMeetingItem>,
@@ -41,7 +42,12 @@ fun HostActivityTab(
     onMeetingClick: (meetingId: String) -> Unit,
     onCreateClick: () -> Unit, // 13-H2 '모임 개설하기' → 10a
     timeZone: TimeZone = TimeZone.getDefault(),
+    hasAny: Boolean = true, // 종목 필터를 빼고도 모임이 하나도 없으면 false
 ) {
+    if (upcoming.isEmpty() && past.isEmpty() && hasAny) {
+        FilteredEmpty()
+        return
+    }
     if (upcoming.isEmpty() && past.isEmpty()) {
         ActivityEmptyState(message = "아직 개설한 모임이 없어요", buttonText = "모임 개설하기", onClick = onCreateClick)
         return
@@ -58,6 +64,7 @@ fun HostActivityTab(
                     onClick = { onMeetingClick(item.meetingId) },
                     timeZone = timeZone,
                 ) {
+                    SportTag(item.sport, large = true)
                     HostedStatusChip(item)
                     if (item.status == HostedStatus.RECRUITING && item.pendingApplicantCount > 0) {
                         Box(Modifier.weight(1f))
@@ -77,6 +84,7 @@ fun HostActivityTab(
                     onClick = { onMeetingClick(item.meetingId) },
                     timeZone = timeZone,
                 ) {
+                    SportTag(item.sport, large = true)
                     HostedStatusChip(item)
                 }
             }
@@ -94,6 +102,47 @@ private fun HostedStatusChip(item: HostedMeetingItem) {
         HostedStatus.IN_PROGRESS -> StatusChip("진행중", AppColor.AccentSoft, AppColor.AccentStrong, large = true)
         HostedStatus.ENDED -> StatusChip("종료", AppColor.ChipNeutralBg, AppColor.TextSecondary, large = true)
         HostedStatus.CANCELLED -> StatusChip("취소", AppColor.ChipNeutralBg, AppColor.TextSecondary, large = true)
+    }
+}
+
+// 카드의 종목 칩 (13-H·13-P): 옅은 라임 바탕에 초록 글자
+@Composable
+internal fun SportTag(sport: Sport, large: Boolean) {
+    StatusChip(sportLabel(sport), AppColor.AccentSoft, AppColor.AccentStrong, large)
+}
+
+// 종목 필터로 거른 결과가 비었을 때
+@Composable
+internal fun FilteredEmpty() {
+    Box(Modifier.fillMaxWidth().padding(vertical = AppSpace.x5), contentAlignment = Alignment.Center) {
+        Text(text = "이 종목의 모임이 없어요", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextDisabled)
+    }
+}
+
+// 13-H 종목 필터: 전체·헬스·러닝·등산. 고른 칸은 라임 알약, 나머지는 테두리 알약.
+@Composable
+internal fun ActivitySportFilter(selected: Sport?, onSelect: (Sport?) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.md)) {
+        (listOf<Sport?>(null) + Sport.values().toList()).forEach { sport ->
+            val isSelected = sport == selected
+            Box(
+                modifier = Modifier
+                    .height(34.dp)
+                    .clip(RoundedCornerShape(AppRadius.pill))
+                    .background(if (isSelected) AppColor.Accent else AppColor.Surface)
+                    .then(if (isSelected) Modifier else Modifier.border(1.dp, AppColor.Border, RoundedCornerShape(AppRadius.pill)))
+                    .clickable { onSelect(sport) }
+                    .padding(horizontal = AppSpace.x4),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = if (sport == null) "전체" else sportLabel(sport),
+                    fontSize = 14.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (isSelected) AppColor.OnAccent else AppColor.TextBody,
+                )
+            }
+        }
     }
 }
 

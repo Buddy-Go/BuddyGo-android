@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.activity
 
+import com.example.myapplication.data.model.Sport
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,6 +21,11 @@ class ActivityViewModel(
     var state by mutableStateOf(ActivityState(now = System.currentTimeMillis()))
         private set
 
+    // 13-H·13-P 종목 필터
+    fun onSportFilterSelect(sport: Sport?) {
+        state = state.copy(sportFilter = sport)
+    }
+
     fun onTabSelect(tab: ActivityTab) {
         state = state.copy(selectedTab = tab)
     }
@@ -33,7 +39,7 @@ class ActivityViewModel(
                 state = state.copy(loadError = ErrorType.SERVER) // 16g. 실패 종류를 구분할 수 없어 서버 오류로 둔다
                 return@launch
             }
-            state = buildActivityState(meetings, me.id, System.currentTimeMillis(), state.selectedTab)
+            state = buildActivityState(meetings, me.id, System.currentTimeMillis(), state.selectedTab, state.sportFilter)
         }
     }
 }

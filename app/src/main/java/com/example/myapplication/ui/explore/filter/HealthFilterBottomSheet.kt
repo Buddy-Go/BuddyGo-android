@@ -167,7 +167,11 @@ private fun PartRangeSection(part: BodyPart, range: IntRange?, mine: Int?, onCha
         }
         RangeSlider(
             value = (range?.first ?: 0).toFloat()..(range?.last ?: max).toFloat(),
-            onValueChange = { onChange(it.start.toInt()..it.endInclusive.toInt()) },
+            onValueChange = { v ->
+                // 중량은 5kg 눈금, 턱걸이는 1회 단위로 맞춘다.
+                val a = Math.round(v.start); val b = Math.round(v.endInclusive)
+                onChange(if (part == BodyPart.BACK) a..b else snapWeight(a)..snapWeight(b))
+            },
             valueRange = 0f..max.toFloat(),
             steps = if (part == BodyPart.BACK) max - 1 else max / 5 - 1,
             colors = sliderColors(),

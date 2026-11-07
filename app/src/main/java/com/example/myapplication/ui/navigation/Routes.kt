@@ -14,6 +14,7 @@ object Routes {
 
     // 1~2 로그인 · 회원가입 · 종목 기록
     const val LOGIN = "login"
+    const val FIND_PASSWORD = "find_password"
     const val SIGN_UP_INFO = "sign_up_info"
     const val SIGN_UP_PROFILE = "sign_up_profile"
     const val PROFILE_RECORD = "profile/record/{$ARG_SPORT}"
@@ -57,6 +58,8 @@ object Routes {
     // 13~14 활동 내역 · 마이페이지
     const val ACTIVITY = "activity"
     const val MYPAGE = "mypage"
+    const val ACTIVITY_AREA = "mypage/area" // 위치 설정(활동 지역)
+    const val BLOCK_MANAGE = "mypage/block" // 신고 · 차단 관리
     const val MY_REVIEWS = "mypage/reviews"
     const val MATE_REVIEWS = "mate/profile/{$ARG_USER_ID}/reviews"
 

@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.data.local.BlockedUsersStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -28,8 +29,8 @@ class MateViewModel(private val repository: MateRepository) : ViewModel() {
             val workedOut = repository.getWorkedOut()
             val requests = repository.getRequests()
             state = state.copy(
-                mates = mates.getOrDefault(state.mates),
-                workedOut = workedOut.getOrDefault(state.workedOut),
+                mates = mates.getOrDefault(state.mates).filterNot { BlockedUsersStore.isBlocked(it.userId) },
+                workedOut = workedOut.getOrDefault(state.workedOut).filterNot { BlockedUsersStore.isBlocked(it.userId) },
                 pendingRequestCount = requests.map { it.size }.getOrDefault(state.pendingRequestCount),
                 loadFailed = mates.isFailure || workedOut.isFailure || requests.isFailure,
                 isLoading = false,
@@ -127,6 +128,22 @@ class MateProfileViewModel(
             repository.setMateNotification(userId, !enabled)
             state = state.copy(profile = repository.getProfile(userId).getOrNull() ?: state.profile)
         }
+    }
+
+    // 신고하기: 사유를 골라 보낸다. 서버 신고 API가 없어 지금은 접수 안내만 보여 준다. (정의서: 초기 범위 밖이라 임시)
+    fun onReport(reason: String) {
+        state = state.copy(reportedMessage = "신고가 접수됐어요")
+    }
+
+    fun onReportedMessageShown() {
+        state = state.copy(reportedMessage = null)
+    }
+
+    // 차단하기: 차단 목록에 넣고 화면을 닫는다.
+    fun onBlock() {
+        val p = state.profile ?: return
+        BlockedUsersStore.block(p.userId, p.nickname)
+        state = state.copy(isBlocked = true)
     }
 
     // 메이트 끊기. 확인 창은 화면(MateProfileScreen)이 공용 ConfirmDialog로 먼저 띄운다.

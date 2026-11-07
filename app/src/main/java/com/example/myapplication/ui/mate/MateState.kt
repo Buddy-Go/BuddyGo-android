@@ -69,6 +69,8 @@ data class MateProfileState(
     val loadFailed: Boolean = false, // 프로필을 불러오지 못함 → 16g 오류 화면
     val isSending: Boolean = false,
     val isRemoved: Boolean = false,
+    val isBlocked: Boolean = false, // 차단하면 화면을 닫는다
+    val reportedMessage: String? = null, // 신고를 보내면 잠깐 알린다
     val now: Long = 0L,
 ) {
     val isMate: Boolean get() = profile?.relation == MateRelation.MATE
@@ -84,8 +86,8 @@ data class MateProfileState(
             }
         }
 
-    // ⋯ 메뉴: 메이트일 때만 (메이트 알림 켜기·끄기, 메이트 끊기). 화면 디자인이 없어 Material 기본 메뉴
-    val showMenu: Boolean get() = isMate
+    // ⋯ 메뉴: 메이트일 때 알림 켜기·끄기와 메이트 끊기, 누구에게나 신고하기·차단하기. 화면 디자인이 없어 Material 기본 메뉴
+    val showMenu: Boolean get() = profile != null
 
     val notificationMenuLabel: String
         get() = if (profile?.notificationEnabled == false) "이 메이트 알림 켜기" else "이 메이트 알림 끄기"
@@ -138,14 +140,14 @@ fun calendarDaysBetween(from: Long, to: Long, timeZone: TimeZone = TimeZone.getD
 }
 
 // 11a 메이트 줄 아래 글자. 지금 운동 중이면 초록 점과 함께
-data class MateLine(val text: String, val isLive: Boolean)
+data class MateLine(val text: String, val isLive: Boolean, val sport: Sport? = null)
 
 fun MateSummary.line(now: Long, timeZone: TimeZone = TimeZone.getDefault()): MateLine {
     val a = nextActivity ?: return MateLine("예정된 모임 없어요", isLive = false)
     return if (a.kind == MateActivityKind.EXERCISING_NOW) {
-        MateLine("지금 운동 중 · ${a.title}", isLive = true)
+        MateLine("지금 운동 중 · ${sportLabel(a.sport)}", isLive = true)
     } else {
-        MateLine("${a.title} · ${whenText(now, a.startAtMillis, timeZone)}", isLive = false)
+        MateLine("${a.title} · ${whenText(now, a.startAtMillis, timeZone)}", isLive = false, sport = a.sport)
     }
 }
 

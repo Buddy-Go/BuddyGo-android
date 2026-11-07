@@ -1,5 +1,9 @@
 package com.example.myapplication.ui.mypage
 
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Path
+import com.example.myapplication.data.model.Sport
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -58,16 +62,20 @@ import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
 
 // 14 마이페이지
-// 위치 설정, 신고·차단 관리 줄은 정의서(1장, 13장)와 달라 넣지 않았다.
+// 위치 설정(활동 지역), 신고·차단 관리 줄은 정의서(1장, 13장)에는 없지만 디자인(14)에 있어 만들었다. 쓰임새는 아직 표시뿐이다.
 @Composable
 fun MyPageScreen(
     onLogout: () -> Unit,
     onAllReviewsClick: () -> Unit = {},
+    onLocationClick: () -> Unit = {},
+    onBlockManageClick: () -> Unit = {},
+    onEditRecord: (Sport) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: MyPageViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     var confirmLogout by remember { mutableStateOf(false) }
+    var pickRecordSport by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     when (val s = state) {
@@ -84,8 +92,30 @@ fun MyPageScreen(
                 ReviewSection(d.reviews, onAllReviewsClick)
                 Spacer(Modifier.height(AppSpace.xxl))
                 MenuRow("알림 설정", trailing = notificationStatusText(d.notificationEnabled), onClick = viewModel::onToggleNotification, leading = { BellIcon(AppColor.TextPrimary) })
+                MenuRow("위치 설정", trailing = d.activityArea ?: "미설정", onClick = onLocationClick, leading = { PinIcon() })
+                MenuRow("내 운동 기록", trailing = "수정", onClick = { pickRecordSport = true }, leading = { RecordIcon() })
+                MenuRow("신고 · 차단 관리", onClick = onBlockManageClick, leading = { ShieldIcon() })
                 MenuRow("로그아웃", muted = true, onClick = { confirmLogout = true }, leading = { LogoutIcon() })
                 Spacer(Modifier.height(AppSpace.x5))
+            }
+        }
+    }
+
+    if (pickRecordSport) {
+        // 수정할 종목을 고른다. 고르면 그 종목의 기록 입력 화면이 열린다.
+        ConfirmDialog(
+            title = "어떤 종목 기록을 고칠까요?",
+            confirmText = "",
+            dismissText = "닫기",
+            onConfirm = {},
+            onDismiss = { pickRecordSport = false },
+        ) {
+            Sport.entries.forEach { sport ->
+                Text(
+                    sportLabel(sport),
+                    Modifier.fillMaxWidth().clickable { pickRecordSport = false; onEditRecord(sport) }.padding(vertical = AppSpace.xl),
+                    color = AppColor.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Medium,
+                )
             }
         }
     }
@@ -118,7 +148,7 @@ private fun ProfileHeader(d: MyPageData) {
             Spacer(Modifier.width(AppSpace.xxl))
             Column {
                 Text(d.user.nickname, color = AppColor.TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                val subtitle = profileSubtitle(d.user)
+                val subtitle = profileSubtitle(d.user, d.activityArea)
                 if (subtitle.isNotEmpty()) Text(subtitle, color = AppColor.AccentStrong, fontSize = 14.sp)
             }
         }
@@ -128,9 +158,50 @@ private fun ProfileHeader(d: MyPageData) {
                 .padding(vertical = AppSpace.xl),
         ) {
             Stat("매너온도", formatTemperature(d.user.mannerTemperature), Modifier.weight(1.3f), thermometer = true)
+            StatDivider()
             Stat("받은 후기", d.stats.receivedReviewCount.toString(), Modifier.weight(1f))
+            StatDivider()
             Stat("개설한 모임", d.stats.hostedMeetingCount.toString(), Modifier.weight(1f))
         }
+    }
+}
+
+// 통계 칸 사이 세로 구분선 (디자인 14)
+@Composable
+private fun RowScope.StatDivider() {
+    Box(Modifier.width(1.dp).height(36.dp).align(Alignment.CenterVertically).background(Color.White.copy(alpha = .5f)))
+}
+
+@Composable
+private fun PinIcon() {
+    Canvas(Modifier.size(22.dp)) {
+        val w = size.width; val sw = 1.8.dp.toPx(); val c = AppColor.TextPrimary
+        drawCircle(c, w * .30f, Offset(w * .5f, w * .42f), style = Stroke(sw))
+        drawCircle(c, w * .10f, Offset(w * .5f, w * .42f))
+        drawLine(c, Offset(w * .5f, w * .72f), Offset(w * .5f, w * .95f), sw, StrokeCap.Round)
+    }
+}
+
+@Composable
+private fun ShieldIcon() {
+    Canvas(Modifier.size(22.dp)) {
+        val w = size.width; val sw = 1.8.dp.toPx(); val c = AppColor.TextPrimary
+        val p = Path().apply {
+            moveTo(w * .5f, w * .06f); lineTo(w * .88f, w * .2f); lineTo(w * .88f, w * .52f)
+            quadraticBezierTo(w * .86f, w * .8f, w * .5f, w * .95f)
+            quadraticBezierTo(w * .14f, w * .8f, w * .12f, w * .52f); lineTo(w * .12f, w * .2f); close()
+        }
+        drawPath(p, c, style = Stroke(sw))
+    }
+}
+
+@Composable
+private fun RecordIcon() {
+    Canvas(Modifier.size(22.dp)) {
+        val w = size.width; val sw = 1.8.dp.toPx(); val c = AppColor.TextPrimary
+        drawLine(c, Offset(w * .1f, w * .5f), Offset(w * .9f, w * .5f), sw, StrokeCap.Round)
+        drawLine(c, Offset(w * .22f, w * .28f), Offset(w * .22f, w * .72f), sw, StrokeCap.Round)
+        drawLine(c, Offset(w * .78f, w * .28f), Offset(w * .78f, w * .72f), sw, StrokeCap.Round)
     }
 }
 

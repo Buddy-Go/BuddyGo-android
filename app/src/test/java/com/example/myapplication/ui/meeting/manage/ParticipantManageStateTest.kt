@@ -6,7 +6,10 @@ import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.JoinRequest
 import com.example.myapplication.data.model.JoinRequestStatus
 import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.HikingStyle
+import com.example.myapplication.data.model.MeetingCriteria
 import com.example.myapplication.data.model.MeetingStatus
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.repository.FakeMeetingRepository
 import kotlinx.coroutines.runBlocking
@@ -28,6 +31,7 @@ class ParticipantManageStateTest {
         confirmedIds = listOf("u1", "u2"),
         confirmedCount = 2,
         status = MeetingStatus.RECRUITING,
+        criteria = MeetingCriteria.Health(emptySet()),
     )
     private val users = MockUsers.all.associateBy { it.id }
     private val requests = listOf(
@@ -63,6 +67,18 @@ class ParticipantManageStateTest {
         assertEquals("미설정", s.applicants[1].recordLabel)
         assertNull(healthRecordSummary(ExerciseRecord(runningPaceSec = 330))) // 러닝 기록만 있으면 헬스는 미설정
         assertEquals("등 0회", healthRecordSummary(ExerciseRecord(pullUpCount = 0)))
+    }
+
+    @Test
+    fun 종목별_신청자_기록_요약() {
+        val running = ExerciseRecord(runningPaceSec = 330)
+        val hiking = ExerciseRecord(hikingStyle = HikingStyle.PRO)
+        assertEquals("페이스 5'30\"", applicantRecordSummary(Sport.RUNNING, running))
+        assertNull(applicantRecordSummary(Sport.RUNNING, ExerciseRecord()))
+        assertEquals("전문", applicantRecordSummary(Sport.HIKING, hiking))
+        assertNull(applicantRecordSummary(Sport.HIKING, running))
+        // 헬스 모임이면 러닝 기록만 있어도 미설정
+        assertNull(applicantRecordSummary(Sport.HEALTH, running))
     }
 
     @Test

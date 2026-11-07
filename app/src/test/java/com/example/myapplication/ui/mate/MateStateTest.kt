@@ -37,9 +37,9 @@ class MateStateTest {
     @Test
     fun 메이트_줄_11a() {
         val live = MateSummary("a", "민준", MateActivity("x", MateActivityKind.EXERCISING_NOW, "아침 가슴 운동", "p", now))
-        assertEquals(MateLine("지금 운동 중 · 아침 가슴 운동", isLive = true), live.line(now, seoul))
+        assertEquals(MateLine("지금 운동 중 · 헬스", isLive = true), live.line(now, seoul))
         val hosting = MateSummary("b", "지훈", MateActivity("y", MateActivityKind.HOSTING, "퇴근 후 등 운동", "p", now + 11 * hour))
-        assertEquals(MateLine("퇴근 후 등 운동 · 오늘 오후 8:00", isLive = false), hosting.line(now, seoul))
+        assertEquals(MateLine("퇴근 후 등 운동 · 오늘 오후 8:00", isLive = false, sport = Sport.HEALTH), hosting.line(now, seoul))
         assertEquals("예정된 모임 없어요", MateSummary("c", "하늘", null).line(now, seoul).text)
     }
 
@@ -102,7 +102,9 @@ class MateStateTest {
         // 함께 운동한 적 없으면 신청 버튼 숨김 (정의서 13장 '15b 수정 필요')
         assertEquals(ProfileButton.NONE, MateProfileState(profile(MateRelation.NONE, false)).bottomButton)
         assertTrue(MateProfileState(profile(MateRelation.MATE, true)).showMenu)
-        assertFalse(MateProfileState(profile(MateRelation.NONE, true)).showMenu)
+        // 메이트가 아니어도 신고·차단 메뉴가 있어 프로필이 있으면 메뉴를 보인다
+        assertTrue(MateProfileState(profile(MateRelation.NONE, true)).showMenu)
+        assertFalse(MateProfileState().showMenu)
         assertEquals("후기 6", MateProfileState(profile(MateRelation.NONE, true)).reviewHeader)
     }
 

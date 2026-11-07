@@ -15,6 +15,7 @@ import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.filter.CriteriaDefaults
 import com.example.myapplication.ui.explore.filter.filterPartOrder
 import com.example.myapplication.ui.explore.filter.paceText
+import com.example.myapplication.ui.explore.filter.weightRangeAround
 import com.example.myapplication.ui.explore.formatStartTime
 import com.example.myapplication.ui.meeting.notice.noticeTimeText
 import com.example.myapplication.ui.record.bodyPartLabel
@@ -184,7 +185,7 @@ private fun healthPartDetail(part: BodyPart, record: ExerciseRecord?): String? =
             BodyPart.LEGS -> record?.squatKg
             else -> record?.overheadPressKg
         }
-        value?.let { "${(it - CriteriaDefaults.WEIGHT_MARGIN_KG).coerceAtLeast(0)}–${it + CriteriaDefaults.WEIGHT_MARGIN_KG}kg" }
+        value?.let { weightRangeAround(it).let { r -> "${r.first}–${r.last}kg" } }
     }
 }
 
@@ -274,7 +275,7 @@ fun bottomActionOf(
             if (role == MeetingRole.CONFIRMED && iCheckedIn)
                 BottomAction(DetailAction.REVIEW, "메이트 평가하기", "${meeting.confirmedCount}명 중 ${meeting.checkedInCount}명이 참여 완료")
             else BottomAction(DetailAction.NONE, "종료된 모임", enabled = false)
-        MeetingStatus.CANCELED -> BottomAction(DetailAction.NONE, "취소된 모임", enabled = false)
+        MeetingStatus.CANCELED -> BottomAction(DetailAction.NONE, "취소된 모임", "호스트가 모임을 취소했어요", enabled = false)
     }
 }
 

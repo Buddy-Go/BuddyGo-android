@@ -19,5 +19,6 @@ class RealUserRepository : UserRepository {
     override suspend fun isNotificationEnabled(): Result<Boolean> = TODO("서버 연결 후 구현")
     override suspend fun setNotificationEnabled(enabled: Boolean): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun logout(): Result<Unit> = TODO("서버 연결 후 구현")
+    override suspend fun requestPasswordReset(email: String): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun updateRecord(record: ExerciseRecord): Result<Unit> = TODO("서버 연결 후 구현")
 }

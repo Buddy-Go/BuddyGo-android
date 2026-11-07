@@ -56,6 +56,9 @@ class FakeUserRepository(
 
     override suspend fun logout(): Result<Unit> = Result.success(Unit)
 
+    // 메일은 보내지 않고 성공만 돌려준다. 실제 발송은 서버 몫이다.
+    override suspend fun requestPasswordReset(email: String): Result<Unit> = Result.success(Unit)
+
     override suspend fun updateRecord(record: ExerciseRecord): Result<Unit> {
         myRecord = record
         return Result.success(Unit)

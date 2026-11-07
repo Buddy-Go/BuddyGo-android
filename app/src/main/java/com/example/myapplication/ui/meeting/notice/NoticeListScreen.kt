@@ -1,5 +1,10 @@
 package com.example.myapplication.ui.meeting.notice
 
+import com.example.myapplication.ui.common.ConfirmDialog
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,13 +56,26 @@ fun NoticeListScreen(
 ) {
     // 작성·수정 화면에서 돌아왔을 때 목록을 새로 받는다.
     LaunchedEffect(Unit) { viewModel.refresh() }
+    // 지운 공지는 되돌릴 수 없어 먼저 확인한다. (디자인 없음: 공용 ConfirmDialog, 문구 임시)
+    var pendingDelete by remember { mutableStateOf<String?>(null) }
+    pendingDelete?.let { id ->
+        ConfirmDialog(
+            title = "공지를 삭제할까요?",
+            message = "삭제하면 되돌릴 수 없어요",
+            confirmText = "삭제",
+            dismissText = "취소",
+            destructive = true,
+            onConfirm = { pendingDelete = null; viewModel.onDelete(id) },
+            onDismiss = { pendingDelete = null },
+        )
+    }
     NoticeListContent(
         state = viewModel.state,
         onBack = onBack,
         onNoticeClick = onNoticeClick,
         onWriteClick = onWriteClick,
         onEditClick = onEditClick,
-        onDeleteClick = viewModel::onDelete,
+        onDeleteClick = { pendingDelete = it },
         onRetry = viewModel::refresh,
     )
 }

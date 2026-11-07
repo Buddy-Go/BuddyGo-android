@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.SportChip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +33,7 @@ import com.example.myapplication.ui.theme.AppSpace
 import java.util.TimeZone
 
 // 메이트 탭 ← 11a 목록, 11a-2 빈 상태
-// 디자인의 종목 칩(헬스·등산·러닝)은 헬스만 하는 범위라 빼고 '모임 제목 · 시각'만 보여준다.
+// 줄 아래: 지금 운동 중이면 '● 지금 운동 중 · 종목', 아니면 '종목 칩 + 모임 제목 · 시각'.
 @Composable
 fun MateListTab(
     mates: List<MateSummary>,
@@ -78,6 +79,7 @@ private fun MateRow(mate: MateSummary, line: MateLine, onClick: () -> Unit) {
                     if (line.isLive) {
                         Box(Modifier.size(7.dp).background(AppColor.Accent, RoundedCornerShape(AppRadius.pill)))
                     }
+                    line.sport?.let { SportChip(it, fontSize = 11) }
                     Text(
                         text = line.text,
                         fontSize = 13.sp,

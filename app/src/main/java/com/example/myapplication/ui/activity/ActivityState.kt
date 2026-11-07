@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.activity
 
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
@@ -8,7 +9,7 @@ import java.util.Calendar
 import java.util.TimeZone
 
 // 활동 내역 화면(13-H, 13-H2, 13-P, 13-P2, 13-R)의 상태.
-// 2026-10-30 범위 변경(헬스만): 디자인의 종목 필터(13-H)와 카드의 종목 칩은 만들지 않는다.
+// 종목 필터(13-H)와 카드의 종목 칩은 모든 종목으로 보여 준다.
 // 시각은 모두 epoch millis. 마감·평가 기한 같은 정책 시각은 서버가 계산해서 준다 (service-rules 0장).
 
 enum class ActivityTab { HOST, JOINED }
@@ -25,6 +26,7 @@ data class HostedMeetingItem(
     val status: HostedStatus,
     val pendingApplicantCount: Int = 0,
     val deadlineAt: Long? = null, // 모집중일 때 '마감까지'
+    val sport: Sport = Sport.HEALTH, // 카드의 종목 칩 · 종목 필터
 ) {
     val isUpcoming: Boolean get() = status in setOf(HostedStatus.RECRUITING, HostedStatus.CLOSED, HostedStatus.IN_PROGRESS)
 }
@@ -45,6 +47,7 @@ data class JoinedMeetingItem(
     val placeName: String,
     val distanceKm: Double? = null, // 내 위치에서의 거리. 위치를 모르면 null
     val status: JoinedStatus,
+    val sport: Sport = Sport.HEALTH, // 카드의 종목 칩 · 종목 필터
 ) {
     val isUpcoming: Boolean get() = status == JoinedStatus.PENDING || status == JoinedStatus.CONFIRMED
 }
@@ -66,6 +69,7 @@ data class ActivityState(
     val joined: List<JoinedMeetingItem> = emptyList(),
     val now: Long = 0L, // 남은 시간 계산 기준. ViewModel이 화면을 열 때 넣는다
     val loadError: ErrorType? = null, // 목록을 불러오지 못했을 때 16f·16g 오류 화면
+    val sportFilter: Sport? = null, // 13-H·13-P 종목 필터. null이면 '전체'
 ) {
     val statsText: String get() = "참여 $joinedTotal · 개설 $hostedTotal"
     val reviewHeader: String get() = "평가 대기 ${reviewPending.size}"
@@ -74,10 +78,16 @@ data class ActivityState(
     val hostTabLabel: String get() = "호스트 ${hosted.size}"
     val joinedTabLabel: String get() = "참여 ${joined.size}"
 
-    val hostedUpcoming: List<HostedMeetingItem> get() = hosted.filter { it.isUpcoming }.sortedBy { it.startAt }
-    val hostedPast: List<HostedMeetingItem> get() = hosted.filterNot { it.isUpcoming }.sortedByDescending { it.startAt }
-    val joinedUpcoming: List<JoinedMeetingItem> get() = joined.filter { it.isUpcoming }.sortedBy { it.startAt }
-    val joinedPast: List<JoinedMeetingItem> get() = joined.filterNot { it.isUpcoming }.sortedByDescending { it.startAt }
+    private fun <T> List<T>.bySport(sportOf: (T) -> Sport): List<T> = if (sportFilter == null) this else filter { sportOf(it) == sportFilter }
+
+    val hostedUpcoming: List<HostedMeetingItem> get() = hosted.bySport { it.sport }.filter { it.isUpcoming }.sortedBy { it.startAt }
+    val hostedPast: List<HostedMeetingItem> get() = hosted.bySport { it.sport }.filterNot { it.isUpcoming }.sortedByDescending { it.startAt }
+    val joinedUpcoming: List<JoinedMeetingItem> get() = joined.bySport { it.sport }.filter { it.isUpcoming }.sortedBy { it.startAt }
+    val joinedPast: List<JoinedMeetingItem> get() = joined.bySport { it.sport }.filterNot { it.isUpcoming }.sortedByDescending { it.startAt }
+
+    // 종목 필터는 모임이 4개 이상일 때만 보인다. (13-H는 6건에서 보이고 13-P는 3건에서 숨겨진다)
+    fun showSportFilter(tab: ActivityTab): Boolean =
+        (if (tab == ActivityTab.HOST) hosted.size else joined.size) >= SPORT_FILTER_MIN_COUNT
 }
 
 // ---------- 화면 글자 만들기 ----------
@@ -158,7 +168,15 @@ fun ReviewPendingItem.dueText(now: Long, timeZone: TimeZone = TimeZone.getDefaul
 private const val DEADLINE_BEFORE_START_MILLIS = 90 * 60_000L
 private const val REVIEW_WINDOW_MILLIS = 3 * 24 * 60 * 60_000L
 
-fun buildActivityState(meetings: List<Meeting>, myId: String, now: Long, selectedTab: ActivityTab = ActivityTab.HOST): ActivityState {
+const val SPORT_FILTER_MIN_COUNT = 4
+
+fun buildActivityState(
+    meetings: List<Meeting>,
+    myId: String,
+    now: Long,
+    selectedTab: ActivityTab = ActivityTab.HOST,
+    sportFilter: Sport? = null,
+): ActivityState {
     val hosted = meetings.filter { it.roleOf(myId) == MeetingRole.HOST }.map { m ->
         HostedMeetingItem(
             meetingId = m.id,
@@ -169,6 +187,7 @@ fun buildActivityState(meetings: List<Meeting>, myId: String, now: Long, selecte
             status = m.status.toHostedStatus(),
             pendingApplicantCount = m.pendingIds.size,
             deadlineAt = if (m.status == MeetingStatus.RECRUITING) m.startAtMillis - DEADLINE_BEFORE_START_MILLIS else null,
+            sport = m.sport,
         )
     }
     val joined = meetings.mapNotNull { m ->
@@ -188,6 +207,7 @@ fun buildActivityState(meetings: List<Meeting>, myId: String, now: Long, selecte
             placeName = m.place.name,
             distanceKm = m.distanceMeters?.let { it / 1000.0 },
             status = status,
+            sport = m.sport,
         )
     }
     // 끝난 모임 중 내가 호스트·확정이었고 평가 기한이 남은 것
@@ -205,6 +225,7 @@ fun buildActivityState(meetings: List<Meeting>, myId: String, now: Long, selecte
         hosted = hosted,
         joined = joined,
         now = now,
+        sportFilter = sportFilter,
     )
 }
 
@@ -216,7 +237,7 @@ private fun MeetingStatus.toHostedStatus(): HostedStatus = when (this) {
     MeetingStatus.CANCELED -> HostedStatus.CANCELLED
 }
 
-// ---------- 미리보기·테스트용 예시 (13-H·13-P 디자인과 비슷하게, 헬스만) ----------
+// ---------- 미리보기·테스트용 예시 (13-H·13-P 디자인과 비슷하게) ----------
 
 private const val S_MIN = 60_000L
 private const val S_HOUR = 60 * S_MIN
