@@ -6,6 +6,9 @@ import com.example.myapplication.data.model.JoinRequestStatus
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.SkillLevel
+import com.example.myapplication.data.model.Sport
+import com.example.myapplication.ui.explore.filter.paceText
+import com.example.myapplication.ui.record.hikingStyleLabel
 import com.example.myapplication.data.model.User
 
 // 참가자 관리 화면(7a~7d)의 상태. 호스트 전용.
@@ -27,7 +30,7 @@ data class ConfirmedMember(
 }
 
 // 대기 중인 신청 한 건 (7a). 호스트에게 가는 정보: 닉네임, 매너온도, 내 헬스 기록, 한마디 (service-rules 5장)
-// 2026-10-30 범위 변경으로 헬스만 있다. 디자인 7a의 '· 취미'(등산 성향) 자리에 헬스 기록 요약을 보여준다.
+// 디자인 7a의 '· 취미'(등산 성향) 자리에: 헬스는 기록 요약, 러닝은 페이스, 등산은 성향을 보여준다.
 data class Applicant(
     val applicationId: String,
     val userId: String,
@@ -101,12 +104,19 @@ fun buildParticipantState(
                     userId = r.applicantId,
                     nickname = r.applicantNickname,
                     mannerTemperature = r.applicantMannerTemperature.toDouble(),
-                    healthRecord = healthRecordSummary(r.applicantRecord),
+                    healthRecord = applicantRecordSummary(meeting.sport, r.applicantRecord),
                     message = r.message,
                 )
             },
         selectedTab = selectedTab,
     )
+}
+
+// 이 모임 종목의 신청자 기록 요약. 기록이 없으면 null → '미설정'
+fun applicantRecordSummary(sport: Sport, record: ExerciseRecord): String? = when (sport) {
+    Sport.HEALTH -> healthRecordSummary(record)
+    Sport.RUNNING -> record.runningPaceSec?.let { "페이스 ${paceText(it)}" }
+    Sport.HIKING -> record.hikingStyle?.let(::hikingStyleLabel)
 }
 
 // "가슴 80kg · 등 8회 · 팔 중급". 헬스 기록이 하나도 없으면 null (service-rules 5장: 없으면 '미설정')

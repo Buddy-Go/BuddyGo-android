@@ -1,7 +1,9 @@
 package com.example.myapplication
 
 import android.app.Application
+import com.example.myapplication.data.local.ActivityAreaStore
 import com.example.myapplication.data.local.AppStorage
+import com.example.myapplication.data.local.BlockedUsersStore
 import com.example.myapplication.ui.explore.filter.RecentDistrictStore
 import com.example.myapplication.ui.meeting.create.PlaceSelectionStore
 import com.kakao.vectormap.KakaoMapSdk
@@ -15,5 +17,7 @@ class BuddyGoApplication : Application() {
         AppStorage.init(this)
         RecentDistrictStore.attach(AppStorage.store)
         PlaceSelectionStore.attach(AppStorage.store)
+        ActivityAreaStore.attach(AppStorage.store)
+        BlockedUsersStore.attach(AppStorage.store)
     }
 }

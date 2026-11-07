@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate.review
 
+import com.example.myapplication.ui.common.InlineErrorBanner
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.ErrorType
 import androidx.compose.foundation.background
@@ -93,17 +94,21 @@ private fun ReviewListContent(
                     .height(1.dp)
                     .background(AppColor.DividerSoft),
             )
+            if (state.isExpired) {
+                // 디자인에 없는 상태: 기한이 지나면 안내 띠를 보이고 평가 버튼을 막는다.
+                InlineErrorBanner("평가 기한이 지나서 더 이상 평가할 수 없어요.", Modifier.padding(bottom = AppSpace.xl))
+            }
             Text(text = state.targetHeader, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColor.TextSecondary)
             state.targets.forEachIndexed { index, target ->
                 if (index > 0) Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.DividerSoft))
-                TargetRow(target = target, onReviewClick = { onReviewClick(target.userId) })
+                TargetRow(target = target, expired = state.isExpired, onReviewClick = { onReviewClick(target.userId) })
             }
         }
     }
 }
 
 @Composable
-private fun TargetRow(target: ReviewTargetInfo, onReviewClick: () -> Unit) {
+private fun TargetRow(target: ReviewTargetInfo, expired: Boolean, onReviewClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -121,6 +126,8 @@ private fun TargetRow(target: ReviewTargetInfo, onReviewClick: () -> Unit) {
         )
         if (target.isReviewed) {
             Text(text = "평가 완료 ✓", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColor.TextDisabled)
+        } else if (expired) {
+            Text(text = "기한 종료", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColor.TextDisabled)
         } else {
             Box(
                 modifier = Modifier

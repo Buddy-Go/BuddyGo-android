@@ -15,7 +15,12 @@ fun JoinedActivityTab(
     onMeetingClick: (meetingId: String) -> Unit,
     onExploreClick: () -> Unit, // 13-P2 '모임 찾아보기' → 탐색
     timeZone: TimeZone = TimeZone.getDefault(),
+    hasAny: Boolean = true,
 ) {
+    if (upcoming.isEmpty() && past.isEmpty() && hasAny) {
+        FilteredEmpty()
+        return
+    }
     if (upcoming.isEmpty() && past.isEmpty()) {
         ActivityEmptyState(message = "아직 신청한 모임이 없어요", buttonText = "모임 찾아보기", onClick = onExploreClick)
         return
@@ -42,6 +47,7 @@ private fun JoinedCard(item: JoinedMeetingItem, isPast: Boolean, onMeetingClick:
         onClick = { onMeetingClick(item.meetingId) },
         timeZone = timeZone,
     ) {
+        SportTag(item.sport, large = false)
         // 참여 확정·완료는 회색, 노쇼는 빨강 (13-P)
         if (item.status == JoinedStatus.NO_SHOW) {
             StatusChip(item.status.label, AppColor.DestructiveSoftBg, AppColor.Danger, large = false)

@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.record
 
 import androidx.lifecycle.ViewModel
+import com.example.myapplication.ui.explore.filter.snapWeight
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.repository.UserRepository
@@ -80,6 +81,7 @@ class RecordViewModel(sport: Sport = Sport.HEALTH, private val users: UserReposi
         _state.update(transform)
     }
 
+    // 5kg 눈금에서만 움직인다. 눈금에 안 맞는 옛 값은 가장 가까운 눈금으로 맞춘 뒤 한 칸 움직인다.
     private fun stepWeight(current: Int, delta: Int) =
-        (current + delta * RecordState.WEIGHT_STEP).coerceIn(0, RecordState.MAX_WEIGHT)
+        (snapWeight(current) + delta * RecordState.WEIGHT_STEP).coerceIn(0, RecordState.MAX_WEIGHT)
 }

@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.SportChip
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.ConfirmDialog
@@ -53,7 +54,6 @@ import com.example.myapplication.ui.theme.AppSpace
 import java.util.TimeZone
 
 // 메이트 프로필 ← 15a 메이트, 15b 메이트 아님, 15c 신청 보냄
-// 디자인의 '자주 하는 운동'은 헬스만 하는 범위라 만들지 않는다.
 @Composable
 fun MateProfileScreen(
     viewModel: MateProfileViewModel,
@@ -62,8 +62,8 @@ fun MateProfileScreen(
     onAllReviewsClick: () -> Unit, // '전체 >' (후기 전체 화면은 디자인 없음)
 ) {
     val state = viewModel.state
-    LaunchedEffect(state.isRemoved) {
-        if (state.isRemoved) onBack()
+    LaunchedEffect(state.isRemoved, state.isBlocked) {
+        if (state.isRemoved || state.isBlocked) onBack()
     }
     MateProfileContent(
         state = state,
@@ -73,6 +73,8 @@ fun MateProfileScreen(
         onSendRequest = viewModel::onSendRequest,
         onToggleNotification = viewModel::onToggleNotification,
         onRemoveMate = viewModel::onRemoveMate,
+        onReport = viewModel::onReport,
+        onBlock = viewModel::onBlock,
         onRetry = viewModel::reload,
     )
 }
@@ -87,10 +89,54 @@ private fun MateProfileContent(
     onSendRequest: () -> Unit,
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
+    onReport: (String) -> Unit = {},
+    onBlock: () -> Unit = {},
     onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     val profile = state.profile
+    var confirmBlock by remember { mutableStateOf(false) }
+    var showReport by remember { mutableStateOf(false) }
+    var reported by remember { mutableStateOf(false) }
+    if (confirmBlock) {
+        ConfirmDialog(
+            title = "${profile?.nickname ?: "이 사람"}님을 차단할까요?",
+            message = "차단하면 메이트와 함께 운동한 사람 목록에서 보이지 않아요. 마이페이지의 신고 · 차단 관리에서 풀 수 있어요.",
+            confirmText = "차단",
+            dismissText = "취소",
+            destructive = true,
+            onConfirm = { confirmBlock = false; onBlock() },
+            onDismiss = { confirmBlock = false },
+        )
+    }
+    if (showReport) {
+        // 신고 사유를 고르면 바로 보낸다. 디자인이 없어 공용 대화상자에 사유 목록을 넣은 임시 화면이다.
+        ConfirmDialog(
+            title = "신고 사유를 골라 주세요",
+            confirmText = "",
+            dismissText = "닫기",
+            onConfirm = {},
+            onDismiss = { showReport = false },
+        ) {
+            listOf("욕설·비매너", "노쇼", "허위 정보", "기타").forEach { reason ->
+                Text(
+                    reason,
+                    Modifier.fillMaxWidth().clickable { showReport = false; reported = true; onReport(reason) }.padding(vertical = AppSpace.xl),
+                    color = AppColor.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Medium,
+                )
+            }
+        }
+    }
+    if (reported) {
+        ConfirmDialog(
+            title = "신고가 접수됐어요",
+            message = "확인 후 필요한 조치를 할게요.",
+            confirmText = "확인",
+            dismissText = "",
+            onConfirm = { reported = false },
+            onDismiss = { reported = false },
+        )
+    }
     // 메이트 끊기는 되돌릴 수 없어 먼저 확인한다. 확인 창 디자인이 없어 공용 ConfirmDialog를 쓴다. (문구는 임시)
     var confirmRemove by remember { mutableStateOf(false) }
     if (confirmRemove) {
@@ -133,9 +179,12 @@ private fun MateProfileContent(
             Box(Modifier.weight(1f))
             if (state.showMenu) {
                 ProfileMenu(
+                    isMate = state.isMate,
                     notificationLabel = state.notificationMenuLabel,
                     onToggleNotification = onToggleNotification,
                     onRemoveMate = { confirmRemove = true },
+                    onReport = { showReport = true },
+                    onBlock = { confirmBlock = true },
                 )
             }
         }
@@ -173,6 +222,15 @@ private fun MateProfileContent(
                         verticalArrangement = Arrangement.spacedBy(AppSpace.md),
                     ) {
                         profile.topTags.forEachIndexed { index, tag -> TagCountChip(tag, highlight = index == 0) }
+                    }
+                }
+            }
+
+            // 자주 하는 운동 (15): 이 사람이 함께 운동한 종목
+            if (profile.frequentSports.isNotEmpty()) {
+                Section("자주 하는 운동") {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(AppSpace.md), verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
+                        profile.frequentSports.forEach { SportChip(it, fontSize = 14) }
                     }
                 }
             }
@@ -225,7 +283,14 @@ private fun MateProfileContent(
 }
 
 @Composable
-private fun ProfileMenu(notificationLabel: String, onToggleNotification: () -> Unit, onRemoveMate: () -> Unit) {
+private fun ProfileMenu(
+    isMate: Boolean,
+    notificationLabel: String,
+    onToggleNotification: () -> Unit,
+    onRemoveMate: () -> Unit,
+    onReport: () -> Unit,
+    onBlock: () -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         Icon(
@@ -239,19 +304,23 @@ private fun ProfileMenu(notificationLabel: String, onToggleNotification: () -> U
         )
         // 메이트별 알림·메이트 끊기는 정의서 10장에 있지만 화면 디자인이 없어 Material 기본 메뉴로 둔다
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, containerColor = AppColor.Surface) {
+            if (isMate) {
+                DropdownMenuItem(
+                    text = { Text(notificationLabel, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextPrimary) },
+                    onClick = { expanded = false; onToggleNotification() },
+                )
+                DropdownMenuItem(
+                    text = { Text("메이트 끊기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
+                    onClick = { expanded = false; onRemoveMate() },
+                )
+            }
             DropdownMenuItem(
-                text = { Text(notificationLabel, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextPrimary) },
-                onClick = {
-                    expanded = false
-                    onToggleNotification()
-                },
+                text = { Text("신고하기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextPrimary) },
+                onClick = { expanded = false; onReport() },
             )
             DropdownMenuItem(
-                text = { Text("메이트 끊기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
-                onClick = {
-                    expanded = false
-                    onRemoveMate()
-                },
+                text = { Text("차단하기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
+                onClick = { expanded = false; onBlock() },
             )
         }
     }
@@ -304,20 +373,7 @@ private fun ActivityCard(activity: MateActivity, now: Long, timeZone: TimeZone, 
         verticalArrangement = Arrangement.spacedBy(AppSpace.sm),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            val label = when (activity.kind) {
-                MateActivityKind.EXERCISING_NOW -> "운동 중"
-                MateActivityKind.HOSTING -> "개설"
-                MateActivityKind.JOINED -> "참여"
-            }
-            Box(
-                modifier = Modifier
-                    .height(22.dp)
-                    .background(AppColor.AccentSoft, RoundedCornerShape(AppRadius.pill))
-                    .padding(horizontal = AppSpace.sm),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppColor.AccentStrong)
-            }
+            SportChip(activity.sport)
             Box(Modifier.weight(1f))
             if (activity.capacity > 0) {
                 Text(

@@ -1,5 +1,10 @@
 package com.example.myapplication.ui.meeting.notice
 
+import com.example.myapplication.ui.common.ConfirmDialog
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -57,11 +62,23 @@ fun NoticeDetailScreen(
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onDeleted()
     }
+    var confirmDelete by remember { mutableStateOf(false) }
+    if (confirmDelete) {
+        ConfirmDialog(
+            title = "공지를 삭제할까요?",
+            message = "삭제하면 되돌릴 수 없어요",
+            confirmText = "삭제",
+            dismissText = "취소",
+            destructive = true,
+            onConfirm = { confirmDelete = false; viewModel.onDeleteNotice() },
+            onDismiss = { confirmDelete = false },
+        )
+    }
     NoticeDetailContent(
         state = state,
         onBack = onBack,
         onEditClick = { state.notice?.let { onEditClick(it.id) } },
-        onDeleteNotice = viewModel::onDeleteNotice,
+        onDeleteNotice = { confirmDelete = true },
         onCommentInputChange = viewModel::onCommentInputChange,
         onSend = viewModel::onSend,
         onDeleteComment = viewModel::onDeleteComment,

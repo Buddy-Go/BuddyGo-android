@@ -191,7 +191,7 @@ fun LoginScreen(
 }
 
 @Composable
-private fun LoginField(
+internal fun LoginField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,

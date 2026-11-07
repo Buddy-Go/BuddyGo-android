@@ -13,8 +13,8 @@ import java.util.TimeZone
 // 마이페이지의 표시 규칙. 화면 없이 테스트할 수 있게 순수 함수로 둔다.
 
 // 이름 아래 한 줄: 고른 종목과 내 기록 수준. "헬스 중급 · 러닝 5'30\" · 등산 취미"
-// 활동 지역은 쓰임새가 정해지지 않아 넣지 않는다. (service-rules 1장)
-fun profileSubtitle(user: User): String {
+// 활동 지역(마이페이지 '위치 설정')이 있으면 맨 앞에 붙인다. "마포구 · 헬스 중급 · 러닝 5'30\""
+fun profileSubtitle(user: User, area: String? = null): String {
     val parts = user.preferredSports.map { sport ->
         val detail = when (sport) {
             Sport.HEALTH -> user.record.armLevel?.let(::skillLevelLabel)
@@ -23,7 +23,7 @@ fun profileSubtitle(user: User): String {
         }
         listOfNotNull(sportLabel(sport), detail).joinToString(" ")
     }
-    return parts.joinToString(" · ")
+    return (listOfNotNull(area?.takeIf { it.isNotBlank() }) + parts).joinToString(" · ")
 }
 
 // 동그란 이름표 글자: 닉네임 첫 글자

@@ -67,6 +67,7 @@ class FakeMateRepository : MateRepository {
                     ProfileReview(MockUsers.me.id, MockUsers.me.nickname, now - 3 * DAY, "서로 배려해요", "운동 루틴을 잘 짜주셔서 도움이 많이 됐어요."),
                 ),
                 notificationEnabled = p.id !in mutedMates,
+                frequentSports = p.sports.toList(),
             ),
         )
     }
@@ -114,10 +115,10 @@ class FakeMateRepository : MateRepository {
 
         private val activities = mapOf(
             MockUsers.hostA.id to listOf(
-                MateActivity("a1", MateActivityKind.EXERCISING_NOW, "아침 가슴 운동", "에이블짐 홍대점", now - HOUR, 3, 3),
+                MateActivity("a1", MateActivityKind.EXERCISING_NOW, "아침 가슴 운동", "에이블짐 홍대점", now - HOUR, 3, 3, Sport.HEALTH),
             ),
             MockUsers.hostB.id to listOf(
-                MateActivity("a2", MateActivityKind.HOSTING, "퇴근 후 등·이두 같이 치실 분", "에이블짐 홍대점", now + 8 * HOUR, 1, 3),
+                MateActivity("a2", MateActivityKind.HOSTING, "퇴근 후 등·이두 같이 치실 분", "에이블짐 홍대점", now + 8 * HOUR, 1, 3, Sport.HEALTH),
             ),
         )
 

@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.navigation
 
+import com.example.myapplication.ui.mypage.BlockManageScreen
+import com.example.myapplication.ui.auth.FindPasswordScreen
+import com.example.myapplication.data.local.ActivityAreaStore
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -120,7 +123,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         }
                     },
                     onSignUpClick = { navController.navigate(Routes.SIGN_UP_INFO) },
+                    onFindPasswordClick = { navController.navigate(Routes.FIND_PASSWORD) },
                 )
+            }
+            composable(Routes.FIND_PASSWORD) {
+                FindPasswordScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.SIGN_UP_INFO) {
                 SignUpInfoScreen(
@@ -426,9 +433,27 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 val state by vm.state.collectAsState()
                 AllReviewsScreen("받은 후기", state, onBack = { navController.popBackStack() }, onRetry = vm::load)
             }
+            composable(Routes.ACTIVITY_AREA) {
+                // 활동 지역은 구·동 하나. 위치 검색(4g)을 그대로 쓰고, 적용하면 저장한다.
+                val area by ActivityAreaStore.area.collectAsState()
+                LocationSearchScreen(
+                    initialDistrict = area,
+                    onBack = { navController.popBackStack() },
+                    onApplied = { district ->
+                        ActivityAreaStore.set(district)
+                        navController.popBackStack()
+                    },
+                )
+            }
+            composable(Routes.BLOCK_MANAGE) {
+                BlockManageScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.MYPAGE) {
                 MyPageScreen(
                     onAllReviewsClick = { navController.navigate(Routes.MY_REVIEWS) },
+                    onLocationClick = { navController.navigate(Routes.ACTIVITY_AREA) },
+                    onBlockManageClick = { navController.navigate(Routes.BLOCK_MANAGE) },
+                    onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
                     onLogout = {
                         SessionReset.onLogout()
                         navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }

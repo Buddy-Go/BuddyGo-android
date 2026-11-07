@@ -21,6 +21,7 @@ data class MateActivity(
     val startAtMillis: Long,
     val confirmedCount: Int = 0,
     val capacity: Int = 0,
+    val sport: Sport = Sport.HEALTH, // 종목 칩
 )
 
 data class MateSummary(
@@ -66,4 +67,5 @@ data class MateProfile(
     val reviewCount: Int,
     val recentReviews: List<ProfileReview>,
     val notificationEnabled: Boolean = true, // 메이트 알림. 기본 ON
+    val frequentSports: List<Sport> = emptyList(), // 15 '자주 하는 운동'
 )

@@ -52,6 +52,9 @@ data class ReviewState(
 ) {
     val targets: List<ReviewTargetInfo> get() = session?.targets.orEmpty()
 
+    // 평가 기한이 지났으면 더 평가할 수 없다. (서버가 거절하므로 화면에서도 미리 막는다)
+    val isExpired: Boolean get() = session?.let { now >= it.reviewDueAtMillis } ?: false
+
     // ---------- 12a ----------
 
     // "9/14 · 스포애니 합정점 · 9/21까지 평가 가능"

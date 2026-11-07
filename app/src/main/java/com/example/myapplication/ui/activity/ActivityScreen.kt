@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.activity
 
+import com.example.myapplication.data.model.Sport
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +54,7 @@ fun ActivityScreen(
     ActivityContent(
         state = viewModel.state,
         onTabSelect = viewModel::onTabSelect,
+        onSportFilterSelect = viewModel::onSportFilterSelect,
         onReviewClick = onReviewClick,
         onMeetingClick = onMeetingClick,
         onCreateClick = onCreateClick,
@@ -64,6 +66,7 @@ fun ActivityScreen(
 private fun ActivityContent(
     state: ActivityState,
     onTabSelect: (ActivityTab) -> Unit,
+    onSportFilterSelect: (Sport?) -> Unit = {},
     onReviewClick: (String) -> Unit,
     onMeetingClick: (String) -> Unit,
     onCreateClick: () -> Unit,
@@ -112,6 +115,12 @@ private fun ActivityContent(
             ActivityTab.HOST -> state.hosted.isEmpty()
             ActivityTab.JOINED -> state.joined.isEmpty()
         }
+        // 13-H 종목 필터는 모임이 4개 이상일 때만 (13-P 3건에서는 숨김)
+        if (state.showSportFilter(state.selectedTab)) {
+            Box(Modifier.padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xxl)) {
+                ActivitySportFilter(selected = state.sportFilter, onSelect = onSportFilterSelect)
+            }
+        }
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -127,6 +136,7 @@ private fun ActivityContent(
                     onMeetingClick = onMeetingClick,
                     onCreateClick = onCreateClick,
                     timeZone = timeZone,
+                    hasAny = state.hosted.isNotEmpty(),
                 )
                 ActivityTab.JOINED -> JoinedActivityTab(
                     upcoming = state.joinedUpcoming,
@@ -134,6 +144,7 @@ private fun ActivityContent(
                     onMeetingClick = onMeetingClick,
                     onExploreClick = onExploreClick,
                     timeZone = timeZone,
+                    hasAny = state.joined.isNotEmpty(),
                 )
             }
         }

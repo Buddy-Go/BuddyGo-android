@@ -6,6 +6,7 @@ import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.ui.explore.filter.CriteriaDefaults
 import com.example.myapplication.ui.explore.filter.myValue
+import com.example.myapplication.ui.explore.filter.weightRangeAround
 import com.example.myapplication.ui.explore.filter.paceText
 
 // 기준 시트(5f 등산, 5h 헬스)에 보여 주는 '내 기록과의 비교' 규칙. 참고용이라 신청을 막지 않는다. (service-rules 8장)
@@ -17,8 +18,8 @@ enum class PartVerdict { INSIDE, ABOVE, BELOW, NO_MY_RECORD, HOST_HIDDEN }
 // 호스트가 기록을 숨겼으면 null이다.
 fun hostRangeOf(part: BodyPart, hostRecord: ExerciseRecord?): IntRange? {
     val host = myValue(part, hostRecord) ?: return null
-    val margin = if (part == BodyPart.BACK) CriteriaDefaults.PULL_UP_MARGIN else CriteriaDefaults.WEIGHT_MARGIN_KG
-    return (host - margin).coerceAtLeast(0)..(host + margin)
+    if (part != BodyPart.BACK) return weightRangeAround(host)
+    return (host - CriteriaDefaults.PULL_UP_MARGIN).coerceAtLeast(0)..(host + CriteriaDefaults.PULL_UP_MARGIN)
 }
 
 fun unitOf(part: BodyPart): String = if (part == BodyPart.BACK) "회" else "kg"

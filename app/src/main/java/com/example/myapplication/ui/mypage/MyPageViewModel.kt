@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mypage
 
+import com.example.myapplication.data.local.ActivityAreaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.ProfileStats
@@ -21,6 +22,7 @@ data class MyPageData(
     val stats: ProfileStats,
     val reviews: List<ReceivedReview>,
     val notificationEnabled: Boolean,
+    val activityArea: String? = null, // 마이페이지 '위치 설정'
 )
 
 class MyPageViewModel(
@@ -44,6 +46,7 @@ class MyPageViewModel(
                     stats = repository.getProfileStats(user.id).getOrThrow(),
                     reviews = repository.getReceivedReviews(user.id).getOrThrow(),
                     notificationEnabled = repository.isNotificationEnabled().getOrThrow(),
+                    activityArea = ActivityAreaStore.area.value,
                 )
             }.onSuccess { _state.value = UiState.Success(it) }
         }
@@ -59,6 +62,7 @@ class MyPageViewModel(
                     stats = repository.getProfileStats(user.id).getOrThrow(),
                     reviews = repository.getReceivedReviews(user.id).getOrThrow(),
                     notificationEnabled = repository.isNotificationEnabled().getOrThrow(),
+                    activityArea = ActivityAreaStore.area.value,
                 )
             }.fold(
                 onSuccess = { UiState.Success(it) },

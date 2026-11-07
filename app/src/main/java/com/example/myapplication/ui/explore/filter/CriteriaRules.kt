@@ -14,6 +14,7 @@ object CriteriaDefaults {
     const val PACE_MARGIN_SEC = 30      // 러닝: 내 페이스 ±30초
 
     // 슬라이더 범위
+    const val WEIGHT_TICK_KG = 5        // 헬스 중량은 5kg 단위(눈금·기록 입력·범위 모두)
     const val SLIDER_MAX_WEIGHT = 200  // 기록 입력 상한(400kg)보다 낮춰 슬라이더에서 구간이 너무 짧아지지 않게 한다
     const val SLIDER_MAX_PULL_UP = 30
     const val PACE_MIN_SEC = 240
@@ -39,9 +40,25 @@ fun myValue(part: BodyPart, record: ExerciseRecord?): Int? = when (part) {
 }
 
 // 내 기록 기준의 초기 범위: 중량 ±10kg, 턱걸이 ±2회. 슬라이더 범위 밖으로 나가지 않는다.
-private fun initialRange(part: BodyPart, value: Int): IntRange {
-    val margin = if (part == BodyPart.BACK) CriteriaDefaults.PULL_UP_MARGIN else CriteriaDefaults.WEIGHT_MARGIN_KG
-    return (value - margin).coerceAtLeast(0)..(value + margin).coerceAtMost(sliderMax(part))
+private fun initialRange(part: BodyPart, value: Int): IntRange =
+    if (part == BodyPart.BACK) {
+        (value - CriteriaDefaults.PULL_UP_MARGIN).coerceAtLeast(0)..(value + CriteriaDefaults.PULL_UP_MARGIN).coerceAtMost(sliderMax(part))
+    } else {
+        weightRangeAround(value).let { it.first..it.last.coerceAtMost(sliderMax(part)) }
+    }
+
+// 중량을 5kg 눈금에 맞춘다. 가장 가까운 눈금으로 반올림한다.
+fun snapWeight(kg: Int): Int {
+    val t = CriteriaDefaults.WEIGHT_TICK_KG
+    return ((kg + t / 2) / t) * t
+}
+
+// 중량 기준 범위: 기록 ±10kg를 5kg 눈금에 맞춘다. (아래는 내림, 위는 올림)
+fun weightRangeAround(value: Int): IntRange {
+    val t = CriteriaDefaults.WEIGHT_TICK_KG
+    val low = ((value - CriteriaDefaults.WEIGHT_MARGIN_KG).coerceAtLeast(0) / t) * t
+    val high = ((value + CriteriaDefaults.WEIGHT_MARGIN_KG + t - 1) / t) * t
+    return low..high
 }
 
 // ---- 헬스 ----
