@@ -163,9 +163,13 @@ class MeetingDetailViewModel(
     }
 
     // 다른 화면(공지, 참가자 관리)에서 돌아왔을 때 새로 받는다.
+    // 프로필 기록 수정 화면에서 돌아왔을 수도 있어서 내 기록도 새로 받는다. (기준 시트의 '내 기록'과 판정에 쓰인다)
     fun onResume() {
         if (_state.value.loaded == null) return
-        viewModelScope.launch { reloadMeeting() }
+        viewModelScope.launch {
+            userRepository.getCurrentUser().onSuccess { me -> _state.update { it.copy(myGender = me.gender, myRecord = me.record) } }
+            reloadMeeting()
+        }
     }
 
     // ---- 호스트 영역 (5a-H 계열) ----

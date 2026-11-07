@@ -54,7 +54,7 @@ import com.example.myapplication.ui.theme.AppSpace
 
 // 회원가입 3단계(2a, 2b, 2c~)가 같이 쓰는 위쪽 줄: 뒤로 가기 + 제목 + '단계 / 전체' + 진행 막대
 @Composable
-fun SignUpHeader(step: Int, total: Int, onBack: () -> Unit, modifier: Modifier = Modifier, title: String = "회원가입") {
+fun SignUpHeader(step: Int?, total: Int, onBack: () -> Unit, modifier: Modifier = Modifier, title: String = "회원가입") {
     Column(modifier) {
         Row(
             modifier = Modifier
@@ -72,11 +72,16 @@ fun SignUpHeader(step: Int, total: Int, onBack: () -> Unit, modifier: Modifier =
             }
             Spacer(Modifier.width(AppSpace.md))
             Text(title, color = AppColor.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-            Text("$step / $total", color = AppColor.TextDisabled, fontSize = 15.sp, modifier = Modifier.padding(end = AppSpace.md))
+            // step이 null이면 가입 단계가 아니라(프로필 기록 수정) 단계 글자와 진행 막대를 숨긴다.
+            if (step != null) Text("$step / $total", color = AppColor.TextDisabled, fontSize = 15.sp, modifier = Modifier.padding(end = AppSpace.md))
         }
-        Row(Modifier.fillMaxWidth().height(3.dp).background(AppColor.SurfaceMuted)) {
-            Box(Modifier.weight(step.toFloat()).height(3.dp).background(AppColor.Accent))
-            if (total > step) Spacer(Modifier.weight((total - step).toFloat()))
+        if (step != null) {
+            Row(Modifier.fillMaxWidth().height(3.dp).background(AppColor.SurfaceMuted)) {
+                Box(Modifier.weight(step.toFloat()).height(3.dp).background(AppColor.Accent))
+                if (total > step) Spacer(Modifier.weight((total - step).toFloat()))
+            }
+        } else {
+            Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Border))
         }
     }
 }

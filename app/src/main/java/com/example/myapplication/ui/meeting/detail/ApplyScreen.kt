@@ -71,6 +71,14 @@ fun ApplyScreen(
     ),
 ) {
     val state by viewModel.state.collectAsState()
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) viewModel.onResume()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     // 신청이 끝나면 화면을 닫고 모임 상세로 돌아간다.
     LaunchedEffect(state.done) { if (state.done) onApplied() }
 

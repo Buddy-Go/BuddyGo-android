@@ -1,6 +1,7 @@
 package com.example.myapplication.data.repository
 
 import com.example.myapplication.data.mock.MockUsers
+import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.ProfileStats
 import com.example.myapplication.data.model.ReceivedReview
 import com.example.myapplication.data.model.SignUpDraft
@@ -11,14 +12,16 @@ class FakeUserRepository(
     private val reviews: Map<String, List<ReceivedReview>> = mapOf(MockUsers.me.id to MockUsers.meReviews),
 ) : UserRepository {
     private var notificationEnabled = true
+    private var myRecord: ExerciseRecord? = null // 저장한 내 기록. 없으면 목데이터의 기록
+    private fun me(): User = MockUsers.me.copy(record = myRecord ?: MockUsers.me.record)
 
     override suspend fun login(email: String, password: String, keepLogin: Boolean): Result<User> =
         Result.success(MockUsers.me)
 
-    override suspend fun getCurrentUser(): Result<User> = Result.success(MockUsers.me)
+    override suspend fun getCurrentUser(): Result<User> = Result.success(me())
 
     override suspend fun getUser(userId: String): Result<User> =
-        MockUsers.all.firstOrNull { it.id == userId }
+        MockUsers.all.map { if (it.id == MockUsers.me.id) me() else it }.firstOrNull { it.id == userId }
             ?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException(userId))
 
@@ -52,4 +55,9 @@ class FakeUserRepository(
     }
 
     override suspend fun logout(): Result<Unit> = Result.success(Unit)
+
+    override suspend fun updateRecord(record: ExerciseRecord): Result<Unit> {
+        myRecord = record
+        return Result.success(Unit)
+    }
 }

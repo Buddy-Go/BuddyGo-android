@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.ProfileStats
 import com.example.myapplication.data.model.ReceivedReview
 import com.example.myapplication.data.model.SignUpDraft
@@ -26,4 +27,8 @@ interface UserRepository {
     suspend fun setNotificationEnabled(enabled: Boolean): Result<Unit>
 
     suspend fun logout(): Result<Unit>
+
+    // 내 운동 기록을 저장한다 (service-rules 1장). 모임 신청·기준 비교에 쓰이는 프로필 기록이다. 종목별로 일부만 바꿔도 전체를 보낸다.
+    // 이미 개설한 모임의 기록 복사본에는 영향이 없다. (개설 시점 값이 그대로 남는다)
+    suspend fun updateRecord(record: ExerciseRecord): Result<Unit>
 }
