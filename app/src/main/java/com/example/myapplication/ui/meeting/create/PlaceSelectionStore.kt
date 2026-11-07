@@ -43,6 +43,14 @@ object PlaceSelectionStore {
     }
 
     fun consumeConfirmed() { _confirmed.value = null }
+
+    // 로그아웃: 고르던 장소와 최근 장소를 비운다. 저장소가 붙어 있으면 저장된 값도 빈 목록이 된다.
+    fun reset() {
+        _pending.value = null
+        _confirmed.value = null
+        _recent.value = emptyList()
+        saveRecent()
+    }
     fun removeRecent(place: PlaceResult) {
         _recent.update { list -> list.filterNot { it.name == place.name && it.address == place.address } }
         saveRecent()
