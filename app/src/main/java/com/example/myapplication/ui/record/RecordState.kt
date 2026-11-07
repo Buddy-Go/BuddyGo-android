@@ -21,6 +21,8 @@ data class RecordState(
     val runningPaceSec: Int? = null, // 초/km. 고르지 않았으면 null
     // ---- 등산 (2e) ----
     val hikingStyle: HikingStyle? = null,
+    val saving: Boolean = false, // 프로필에 저장하는 중
+    val saveFailed: Boolean = false, // 저장하지 못했다. 한 번 안내하고 지운다
     val saved: Boolean = false, // 저장이 끝났는지. 화면이 보고 이전 화면으로 돌아간다.
 ) {
     // 가슴 · 등 · 하체 · 어깨 · 팔 순서로 고정

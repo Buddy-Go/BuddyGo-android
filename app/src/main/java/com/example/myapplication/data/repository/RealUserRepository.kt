@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.ProfileStats
 import com.example.myapplication.data.model.ReceivedReview
 import com.example.myapplication.data.model.SignUpDraft
@@ -18,4 +19,5 @@ class RealUserRepository : UserRepository {
     override suspend fun isNotificationEnabled(): Result<Boolean> = TODO("서버 연결 후 구현")
     override suspend fun setNotificationEnabled(enabled: Boolean): Result<Unit> = TODO("서버 연결 후 구현")
     override suspend fun logout(): Result<Unit> = TODO("서버 연결 후 구현")
+    override suspend fun updateRecord(record: ExerciseRecord): Result<Unit> = TODO("서버 연결 후 구현")
 }

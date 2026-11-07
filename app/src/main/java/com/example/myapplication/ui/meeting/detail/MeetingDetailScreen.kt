@@ -163,6 +163,7 @@ fun MeetingDetailScreen(
                 onToggleFavorite = viewModel::onToggleFavorite,
                 onPlaceClick = { viewModel.onOpenSheet(DetailSheet.PLACE) },
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
+                onShare = { shareMeeting(context, loaded.data) },
                 onHostAction = { action -> if (action == HostAction.EDIT) onEditMeeting() else viewModel.onHostAction(action) },
                 onManageParticipants = onManageParticipants,
                 onWriteNotice = onWriteNotice,
@@ -248,6 +249,7 @@ private fun DetailContent(
     onWriteNotice: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenNotice: (String) -> Unit,
+    onShare: () -> Unit,
     onAction: (DetailAction) -> Unit,
 ) {
     val role = state.role
@@ -257,6 +259,7 @@ private fun DetailContent(
             onBack,
             onLeave = if (state.leavePlan != null) onLeave else null,
             hostMenu = host?.let { { HostMoreMenu(actions = it.menuActions, onAction = onHostAction) } },
+            onShare = onShare,
         )
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
@@ -286,12 +289,18 @@ private fun DetailContent(
 
 // 위쪽 줄: 뒤로 가기, 나갈 수 있는 사람에게는 오른쪽에 ⋮ 메뉴(나가기)
 @Composable
-private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null, hostMenu: (@Composable () -> Unit)? = null) {
+private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null, hostMenu: (@Composable () -> Unit)? = null, onShare: (() -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = AppSpace.x4), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(40.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.CenterStart) {
             ChevronLeftIcon(AppColor.TextPrimary, size = 28.dp)
         }
         Spacer(Modifier.weight(1f))
+        // 5l 공유: 모임 소개 글을 다른 앱으로 보낸다. 모임을 불러온 뒤에만 보인다.
+        if (onShare != null) {
+            Box(Modifier.size(40.dp).clip(CircleShape).iconButton("공유하기", onShare), contentAlignment = Alignment.Center) {
+                ShareIcon(AppColor.TextPrimary)
+            }
+        }
         hostMenu?.invoke()
         if (onLeave != null) {
             var menuOpen by remember { mutableStateOf(false) }
@@ -310,6 +319,22 @@ private fun BackBar(onBack: () -> Unit, onLeave: (() -> Unit)? = null, hostMenu:
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ShareIcon(color: Color) {
+    androidx.compose.foundation.Canvas(Modifier.size(22.dp)) {
+        val w = size.width
+        val sw = 1.8.dp.toPx()
+        val cap = androidx.compose.ui.graphics.StrokeCap.Round
+        // 위로 올라가는 화살표와 받침 상자
+        drawLine(color, androidx.compose.ui.geometry.Offset(w * .5f, w * .62f), androidx.compose.ui.geometry.Offset(w * .5f, w * .1f), sw, cap)
+        drawLine(color, androidx.compose.ui.geometry.Offset(w * .3f, w * .3f), androidx.compose.ui.geometry.Offset(w * .5f, w * .1f), sw, cap)
+        drawLine(color, androidx.compose.ui.geometry.Offset(w * .7f, w * .3f), androidx.compose.ui.geometry.Offset(w * .5f, w * .1f), sw, cap)
+        drawLine(color, androidx.compose.ui.geometry.Offset(w * .22f, w * .45f), androidx.compose.ui.geometry.Offset(w * .22f, w * .88f), sw, cap)
+        drawLine(color, androidx.compose.ui.geometry.Offset(w * .78f, w * .45f), androidx.compose.ui.geometry.Offset(w * .78f, w * .88f), sw, cap)
+        drawLine(color, androidx.compose.ui.geometry.Offset(w * .22f, w * .88f), androidx.compose.ui.geometry.Offset(w * .78f, w * .88f), sw, cap)
     }
 }
 
@@ -547,4 +572,12 @@ private fun openRoute(context: android.content.Context, meeting: Meeting, onFail
     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, routeUrl(meeting).toUri())
         .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
     runCatching { context.startActivity(intent) }.onFailure { onFail() }
+}
+
+// 공유 창을 연다. 열 수 있는 앱이 없으면 아무 일도 하지 않는다.
+private fun shareMeeting(context: android.content.Context, meeting: Meeting) {
+    val send = android.content.Intent(android.content.Intent.ACTION_SEND)
+        .setType("text/plain")
+        .putExtra(android.content.Intent.EXTRA_TEXT, shareText(meeting))
+    runCatching { context.startActivity(android.content.Intent.createChooser(send, "모임 공유").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
 }
