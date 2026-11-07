@@ -91,7 +91,7 @@ fun BellIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 22.dp) {
     }
 }
 
-// 되돌리기 화살표 ('이 지역 재검색')
+// 되돌리기 화살표 ('현 지도에서 검색')
 @Composable
 fun RefreshIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 18.dp) {
     Canvas(modifier.size(size)) {

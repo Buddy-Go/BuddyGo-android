@@ -87,7 +87,7 @@ class ExploreViewModel(
     // 위치 권한은 앱을 켜고 한 번만 묻는다. 거절해도 화면을 열 때마다 다시 묻지 않는다.
     fun onLocationAsked() = _state.update { it.copy(locationAsked = true) }
 
-    // 사용자가 지도를 옮기면 '이 지역 재검색'이 나타나고, 그때 지도에 보이는 영역을 기억해 둔다.
+    // 사용자가 지도를 옮기면 '현 지도에서 검색'이 나타나고, 그때 지도에 보이는 영역을 기억해 둔다.
     fun onCameraMoved(bounds: MapBounds? = null) = _state.update { it.withCameraMoved(bounds) }
 
     // 재검색: 기억해 둔 지도 영역 안의 모임을 다시 받는다.

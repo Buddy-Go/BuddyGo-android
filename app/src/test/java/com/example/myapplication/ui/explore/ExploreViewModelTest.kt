@@ -310,4 +310,49 @@ class ExploreViewModelTest {
         FilterStore.apply(MeetingFilter(sport = Sport.HEALTH))
         assertEquals(mapo, vm.state.value.searchBounds)
     }
+
+    // ---- '현 지도에서 검색' 버튼 (네이버 지도 방식) ----
+
+    @Test
+    fun 처음에는_검색_버튼이_보이지_않는다() {
+        assertFalse(viewModel().state.value.showResearchButton)
+    }
+
+    @Test
+    fun 지도를_옮기면_버튼이_뜨지만_목록은_자동으로_다시_부르지_않는다() {
+        val vm = viewModel()
+        val before = vm.loaded()
+        vm.onCameraMoved(mapo)
+        assertTrue(vm.state.value.showResearchButton)
+        assertEquals("버튼을 누르기 전에는 목록이 그대로", before, vm.loaded())
+        assertNull(vm.state.value.searchBounds)
+    }
+
+    @Test
+    fun 검색을_누르면_버튼이_사라지고_새_범위로_불러온다() {
+        val vm = viewModel()
+        vm.onCameraMoved(mapo)
+        vm.onResearch()
+        assertFalse(vm.state.value.showResearchButton)
+        assertEquals(mapo, vm.state.value.searchBounds)
+    }
+
+    @Test
+    fun 핀을_고르는_동안에는_옮겨도_버튼을_숨긴다() {
+        val vm = viewModel()
+        vm.onCameraMoved(mapo)
+        vm.onSelectPin(vm.state.value.pins.first().key)
+        assertFalse(vm.state.value.showResearchButton)
+        vm.onClearPin()
+        assertTrue("핀 선택을 풀면 다시 보인다", vm.state.value.showResearchButton)
+    }
+
+    @Test
+    fun 다시_옮기면_버튼이_다시_뜬다() {
+        val vm = viewModel()
+        vm.onCameraMoved(mapo); vm.onResearch()
+        assertFalse(vm.state.value.showResearchButton)
+        vm.onCameraMoved(mapo)
+        assertTrue(vm.state.value.showResearchButton)
+    }
 }

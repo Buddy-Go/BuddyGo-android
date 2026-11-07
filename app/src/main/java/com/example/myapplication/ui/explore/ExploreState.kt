@@ -14,9 +14,9 @@ data class ExploreState(
     val favoriteOnly: Boolean = false,   // 상단 '찜' 칩
     // 적용된 검색 조건. 상단 종목 칩과 조건 설정 화면이 같은 값을 쓴다. (FilterStore)
     val filter: MeetingFilter = MeetingFilter(),
-    // 사용자가 지도를 움직인 뒤 '이 지역 재검색'을 보여 주기 위한 표시
+    // 사용자가 지도를 움직인 뒤 '현 지도에서 검색'을 보여 주기 위한 표시
     val cameraMoved: Boolean = false,
-    // 사용자가 마지막으로 옮긴 뒤 지도에 보이는 영역. '이 지역 재검색'을 누르면 이 영역이 검색 기준(searchBounds)이 된다.
+    // 사용자가 마지막으로 옮긴 뒤 지도에 보이는 영역. '현 지도에서 검색'을 누르면 이 영역이 검색 기준(searchBounds)이 된다.
     val cameraBounds: MapBounds? = null,
     val searchBounds: MapBounds? = null,
     val hasUnreadNotifications: Boolean = false, // 알림 벨의 빨간 점
@@ -60,7 +60,10 @@ data class ExploreState(
 
     fun isSelected(pin: PinGroup) = pin.key == selectedPinKey
 
-    // 지도를 움직이면 '이 지역 재검색'이 나타난다. 위치 조건이 있어도 결과는 그대로이고 버튼만 보인다.
+    // '현 지도에서 검색' 버튼은 지도를 옮긴 뒤에만, 그리고 핀을 고르지 않았을 때만 보인다.
+    val showResearchButton: Boolean get() = cameraMoved && selectedPin == null
+
+    // 지도를 움직이면 '현 지도에서 검색'이 나타난다. 위치 조건이 있어도 결과는 그대로이고 버튼만 보인다.
     fun withCameraMoved(bounds: MapBounds? = null) = copy(cameraMoved = true, cameraBounds = bounds ?: cameraBounds)
 
     // 재검색: 위치 조건이 풀리고 지도 범위 기준이 된다. 다른 조건(종목·찜 등)은 유지한다. (2장)
