@@ -8,6 +8,7 @@ import com.example.myapplication.data.model.MateProfile
 import com.example.myapplication.data.model.MateRelation
 import com.example.myapplication.data.model.MateRequest
 import com.example.myapplication.data.model.MateSummary
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.model.WorkedOutPerson
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -57,6 +58,27 @@ class MateStateTest {
         assertEquals("'민' 이름의 사람이 없어요", s.copy(searchQuery = "민").workedOutEmptyText)
         assertEquals("아직 함께 운동한 사람이 없어요", MateState().workedOutEmptyText)
         assertEquals("마지막 운동 9/5", s.workedOut[0].lastText(seoul))
+    }
+
+    @Test
+    fun 종목_칩_11b_2_11b_3() {
+        val s = MateState(
+            workedOut = listOf(
+                WorkedOutPerson("a", "서연", now, MateRelation.NONE, setOf(Sport.HEALTH, Sport.RUNNING)),
+                WorkedOutPerson("b", "우진", now, MateRelation.NONE, setOf(Sport.HEALTH)),
+                WorkedOutPerson("c", "태윤", now, MateRelation.NONE, setOf(Sport.HIKING)),
+            ),
+        )
+        assertEquals(3, s.sportCount(null))
+        assertEquals(2, s.sportCount(Sport.HEALTH))
+        assertEquals(1, s.sportCount(Sport.RUNNING))
+        assertEquals(listOf("a", "b"), s.copy(sportFilter = Sport.HEALTH).filteredWorkedOut.map { it.userId })
+        // 종목과 이름을 같이 걸면 둘 다 맞는 사람만
+        assertEquals(listOf("b"), s.copy(sportFilter = Sport.HEALTH, searchQuery = "우").filteredWorkedOut.map { it.userId })
+        // 11b-3: 그 종목을 함께한 사람이 없으면
+        val none = s.copy(workedOut = s.workedOut.filter { Sport.RUNNING !in it.sports }, sportFilter = Sport.RUNNING)
+        assertEquals("러닝을 함께한 사람이 아직 없어요", none.workedOutEmptyText)
+        assertEquals(0, none.sportCount(Sport.RUNNING))
     }
 
     @Test

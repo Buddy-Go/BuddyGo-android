@@ -8,6 +8,7 @@ import com.example.myapplication.data.model.MateRelation
 import com.example.myapplication.data.model.MateRequest
 import com.example.myapplication.data.model.MateSummary
 import com.example.myapplication.data.model.ProfileReview
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.model.TagCount
 import com.example.myapplication.data.model.WorkedOutPerson
 
@@ -23,7 +24,7 @@ class FakeMateRepository : MateRepository {
     )
 
     override suspend fun getWorkedOut(): Result<List<WorkedOutPerson>> = Result.success(
-        people.mapNotNull { p -> p.lastWorkedOutAt?.let { WorkedOutPerson(p.id, p.nickname, it, p.relation) } }
+        people.mapNotNull { p -> p.lastWorkedOutAt?.let { WorkedOutPerson(p.id, p.nickname, it, p.relation, p.sports) } }
             .sortedByDescending { it.lastWorkedOutAtMillis },
     )
 
@@ -91,6 +92,7 @@ class FakeMateRepository : MateRepository {
         val manner: Float,
         val relation: MateRelation,
         val lastWorkedOutAt: Long?, // null이면 함께 운동한 적 없음
+        val sports: Set<Sport> = setOf(Sport.HEALTH),
     )
 
     companion object {
@@ -99,13 +101,13 @@ class FakeMateRepository : MateRepository {
         private val now = System.currentTimeMillis()
 
         private val people = mutableListOf(
-            Person(MockUsers.hostA.id, MockUsers.hostA.nickname, MockUsers.hostA.mannerTemperature, MateRelation.MATE, now - 5 * DAY),
+            Person(MockUsers.hostA.id, MockUsers.hostA.nickname, MockUsers.hostA.mannerTemperature, MateRelation.MATE, now - 5 * DAY, setOf(Sport.HEALTH, Sport.RUNNING)),
             Person(MockUsers.hostB.id, MockUsers.hostB.nickname, MockUsers.hostB.mannerTemperature, MateRelation.MATE, now - 14 * DAY),
-            Person("mt1", "하늘", 38.0f, MateRelation.MATE, now - 30 * DAY),
-            Person(MockUsers.noRecord.id, MockUsers.noRecord.nickname, MockUsers.noRecord.mannerTemperature, MateRelation.NONE, now - DAY),
+            Person("mt1", "하늘", 38.0f, MateRelation.MATE, now - 30 * DAY, setOf(Sport.HIKING)),
+            Person(MockUsers.noRecord.id, MockUsers.noRecord.nickname, MockUsers.noRecord.mannerTemperature, MateRelation.NONE, now - DAY, setOf(Sport.RUNNING)),
             Person("mt2", "우진", 37.9f, MateRelation.REQUESTED, now - DAY),
-            Person("mt3", "태윤", 40.2f, MateRelation.NONE, now - 16 * DAY),
-            Person("mt4", "수아", 39.8f, MateRelation.NONE, now - 20 * DAY), // 나에게 신청함
+            Person("mt3", "태윤", 40.2f, MateRelation.NONE, now - 16 * DAY, setOf(Sport.HEALTH, Sport.HIKING)),
+            Person("mt4", "수아", 39.8f, MateRelation.NONE, now - 20 * DAY, setOf(Sport.RUNNING)), // 나에게 신청함
             Person("mt5", "준호", 42.5f, MateRelation.NONE, now - 25 * DAY), // 나에게 신청함
             Person("mt6", "소영", 36.5f, MateRelation.NONE, null), // 함께 운동한 적 없음 → 15b에서 신청 버튼 숨김
         )

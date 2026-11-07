@@ -6,12 +6,14 @@ import com.example.myapplication.data.model.MateProfile
 import com.example.myapplication.data.model.MateRelation
 import com.example.myapplication.data.model.MateRequest
 import com.example.myapplication.data.model.MateSummary
+import com.example.myapplication.data.model.Sport
+import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.data.model.WorkedOutPerson
 import java.util.Calendar
 import java.util.TimeZone
 
 // 메이트 화면들의 상태 (11a·11b 탭 화면, 11c 받은 신청, 15 프로필).
-// 2026-10-30 범위 변경(헬스만): 11b 종목 필터(11b-2, 11b-3)와 종목 칩, 15의 '자주 하는 운동'은 만들지 않는다.
+// 15의 '자주 하는 운동'은 만들지 않는다. 11b의 종목 칩(11b-2)과 필터 결과 빈 상태(11b-3)는 모든 종목으로 만든다.
 
 enum class MateTab { MATES, WORKED_OUT }
 
@@ -22,22 +24,30 @@ data class MateState(
     val workedOut: List<WorkedOutPerson> = emptyList(),
     val pendingRequestCount: Int = 0,
     val searchQuery: String = "",
+    val sportFilter: Sport? = null, // 11b-2 종목 칩. null이면 '전체'
     val isLoading: Boolean = true,
     val now: Long = 0L,
 ) {
     // 받은 신청이 있을 때만 위에 배너 (11a-2에는 없음)
     val bannerText: String? get() = if (pendingRequestCount > 0) "메이트 신청 ${pendingRequestCount}명이 기다리고 있어요" else null
 
-    // 11b 이름으로 찾기
+    // 11b-2 칩 숫자: 이름 찾기와 상관없이 그 종목을 함께한 사람 수
+    fun sportCount(sport: Sport?): Int = if (sport == null) workedOut.size else workedOut.count { sport in it.sports }
+
+    // 11b 이름으로 찾기 + 11b-2 종목 칩 (둘 다 맞는 사람만)
     val filteredWorkedOut: List<WorkedOutPerson>
         get() {
             val q = searchQuery.trim()
-            return if (q.isEmpty()) workedOut else workedOut.filter { it.nickname.contains(q) }
+            return workedOut.filter { (sportFilter == null || sportFilter in it.sports) && (q.isEmpty() || it.nickname.contains(q)) }
         }
 
-    // 11b 빈 문구 (디자인에 없어서 임시)
+    // 11b·11b-3 빈 문구. 종목 칩 문구는 디자인(11b-3), 나머지는 임시
     val workedOutEmptyText: String
-        get() = if (workedOut.isEmpty()) "아직 함께 운동한 사람이 없어요" else "'${searchQuery.trim()}' 이름의 사람이 없어요"
+        get() = when {
+            workedOut.isEmpty() -> "아직 함께 운동한 사람이 없어요"
+            sportFilter != null && sportCount(sportFilter) == 0 -> "${sportLabel(sportFilter)}을 함께한 사람이 아직 없어요"
+            else -> "'${searchQuery.trim()}' 이름의 사람이 없어요"
+        }
 }
 
 // 11c
