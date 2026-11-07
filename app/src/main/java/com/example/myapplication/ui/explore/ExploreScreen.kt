@@ -76,7 +76,10 @@ fun ExploreScreen(
         }
     }
     // 화면이 다시 보일 때마다 읽지 않은 알림 여부를 새로 확인한다.
-    LaunchedEffect(Unit) { viewModel.refreshNotifications() }
+    LaunchedEffect(Unit) {
+        viewModel.refreshNotifications()
+        viewModel.refreshMeetings()
+    }
     // 앱 키가 없으면 지도를 시작하지 않는다. (local.properties의 KAKAO_NATIVE_APP_KEY)
     var mapFailed by remember { mutableStateOf(BuildConfig.KAKAO_NATIVE_APP_KEY.isBlank()) }
 

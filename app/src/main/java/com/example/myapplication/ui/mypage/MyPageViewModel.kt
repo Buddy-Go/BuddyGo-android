@@ -33,6 +33,22 @@ class MyPageViewModel(
         load()
     }
 
+    // 다른 화면(기록 수정 등)에서 돌아왔을 때: 화면을 비우지 않고 새로 받는다. 실패하면 보던 내용을 그대로 둔다.
+    fun refresh() {
+        if (_state.value !is UiState.Success) return
+        viewModelScope.launch {
+            runCatching {
+                val user = repository.getCurrentUser().getOrThrow()
+                MyPageData(
+                    user = user,
+                    stats = repository.getProfileStats(user.id).getOrThrow(),
+                    reviews = repository.getReceivedReviews(user.id).getOrThrow(),
+                    notificationEnabled = repository.isNotificationEnabled().getOrThrow(),
+                )
+            }.onSuccess { _state.value = UiState.Success(it) }
+        }
+    }
+
     fun load() {
         _state.value = UiState.Loading
         viewModelScope.launch {

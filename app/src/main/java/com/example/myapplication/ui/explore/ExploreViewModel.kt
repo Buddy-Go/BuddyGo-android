@@ -50,6 +50,16 @@ class ExploreViewModel(
         }
     }
 
+    // 개설·신청 같은 일을 하고 돌아왔을 때: 목록을 비우지 않고 새로 받는다. 실패하면 보던 목록을 그대로 둔다.
+    fun refreshMeetings() {
+        if (_state.value.meetings !is UiState.Success) return
+        viewModelScope.launch {
+            repository.getMeetings(_state.value.searchBounds).onSuccess { list ->
+                _state.update { it.copy(meetings = UiState.Success(list)) }
+            }
+        }
+    }
+
     fun load() {
         _state.update { it.copy(meetings = UiState.Loading) }
         viewModelScope.launch {

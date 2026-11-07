@@ -27,8 +27,7 @@ app/
 ├─ ui/
 │   ├─ navigation/                          화면 이동
 │   │   ├─ Routes.kt                        화면 이름표 목록
-│   │   ├─ AppNavHost.kt                    이름표와 실제 화면을 연결 (하단 탭 바 표시 포함)
-│   │   └─ TempScreen.kt                    아직 안 만든 화면 자리. 화면을 만들면 AppNavHost에서 교체
+│   │   └─ AppNavHost.kt                    이름표와 실제 화면을 연결 (하단 탭 바 표시 포함)
 │   │
 │   ├─ theme/                               색·글자·여백 기준
 │   │   └─ AppTokens.kt                     AppColor, AppRadius, AppSpace 토큰 (이 파일이 이름 기준)

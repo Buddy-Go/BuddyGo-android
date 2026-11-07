@@ -71,7 +71,6 @@ private const val KEY_APPLIED = "applied"
 
 
 // 이름표(Routes)와 실제 화면을 연결한다.
-// 화면을 만든 사람은 해당 줄의 TempScreen(...)을 자기 화면으로 바꾼다.
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -85,6 +84,15 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val mateRepository = remember { FakeMateRepository() }
     val reviewRepository = remember { FakeReviewRepository() }
 
+    // 탭으로 옮기는 방법은 하나로 맞춘다. 같은 탭 화면이 겹겹이 쌓이지 않고, 탭의 상태가 남는다.
+    val goTab: (String) -> Unit = { route ->
+        navController.navigate(route) {
+            popUpTo(Routes.EXPLORE) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     // 탭 5개 화면에서만 하단 탭 바를 보여 준다.
     Scaffold(
         modifier = modifier,
@@ -92,13 +100,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             if (currentRoute in Routes.bottomTabs) {
                 BottomNavBar(
                     currentRoute = currentRoute,
-                    onTabClick = { route ->
-                        navController.navigate(route) {
-                            popUpTo(Routes.EXPLORE) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
+                    onTabClick = goTab,
                 )
             }
         },
@@ -222,7 +224,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onOpenNotices = { navController.navigate(Routes.noticeList(meetingId)) },
                     onOpenNotice = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
                     onEditMeeting = { navController.navigate(Routes.meetingEdit(meetingId)) },
-                    // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
                     onAddRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
                 )
             }
@@ -236,7 +237,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         navController.previousBackStackEntry?.savedStateHandle?.set(KEY_APPLIED, true)
                         navController.popBackStack()
                     },
-                    // TODO(임시) 지금은 회원가입용 종목 기록 화면을 연다. 프로필의 기록 수정 흐름이 생기면 그쪽으로 바꾼다.
                     onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
                 )
             }
@@ -394,7 +394,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 ReviewDoneScreen(
                     viewModel = viewModel<ReviewViewModel>(parent, key = "review-${parent.meetingId()}"),
                     onGoActivity = {
-                        navController.navigate(Routes.ACTIVITY) { popUpTo(Routes.REVIEW_LIST) { inclusive = true } }
+                        navController.navigate(Routes.ACTIVITY) {
+                            popUpTo(Routes.REVIEW_LIST) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     },
                 )
             }
@@ -405,8 +408,8 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     viewModel = viewModel { ActivityViewModel(meetingRepository, userRepository) },
                     onReviewClick = { meetingId -> navController.navigate(Routes.reviewList(meetingId)) },
                     onMeetingClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
-                    onCreateClick = { navController.navigate(Routes.MEETING_CREATE) },
-                    onExploreClick = { navController.navigate(Routes.EXPLORE) },
+                    onCreateClick = { goTab(Routes.MEETING_CREATE) },
+                    onExploreClick = { goTab(Routes.EXPLORE) },
                 )
             }
             composable(Routes.MY_REVIEWS) {

@@ -52,6 +52,8 @@ fun NoticeDetailScreen(
     onDeleted: () -> Unit, // 공지를 지운 뒤 목록으로
 ) {
     val state = viewModel.state
+    // 수정 화면에서 돌아왔을 때 공지를 새로 받는다.
+    LaunchedEffect(Unit) { viewModel.refresh() }
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onDeleted()
     }
