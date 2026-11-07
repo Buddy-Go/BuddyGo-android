@@ -63,9 +63,9 @@ class CriteriaRulesTest {
         val low = ExerciseRecord(pullUpCount = 0, benchPressKg = 5)
         val on = HealthFilter(parts = setOf(BodyPart.BACK, BodyPart.CHEST)).withCriteriaOn(true, low)
         assertEquals(0..2, on.ranges[BodyPart.BACK])
-        assertEquals(0..15, on.ranges[BodyPart.CHEST])
-        val high = ExerciseRecord(benchPressKg = 195)
-        assertEquals(185..200, HealthFilter(parts = setOf(BodyPart.CHEST)).withCriteriaOn(true, high).ranges[BodyPart.CHEST])
+        assertEquals(30..30, on.ranges[BodyPart.CHEST]) // 슬라이더 최솟값(30kg)보다 낮은 기록은 최솟값에 붙는다
+        val high = ExerciseRecord(benchPressKg = 155)
+        assertEquals(145..150, HealthFilter(parts = setOf(BodyPart.CHEST)).withCriteriaOn(true, high).ranges[BodyPart.CHEST])
     }
 
     @Test
@@ -120,7 +120,7 @@ class CriteriaRulesTest {
     @Test
     fun 슬라이더_최대값은_등이_횟수_나머지는_킬로그램이다() {
         assertEquals(30, sliderMax(BodyPart.BACK))
-        assertEquals(200, sliderMax(BodyPart.CHEST))
+        assertEquals(150, sliderMax(BodyPart.CHEST))
     }
 
     // ---- 상세 조건 ----

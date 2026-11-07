@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 디자인 v4 15번 메이트 프로필의 세로 점 세 개 ⋮. 색은 Icon의 tint로 정한다. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M10.2,5 A1.8,1.8 0 1,0 13.8,5 A1.8,1.8 0 1,0 10.2,5 Z M10.2,12 A1.8,1.8 0 1,0 13.8,12 A1.8,1.8 0 1,0 10.2,12 Z M10.2,19 A1.8,1.8 0 1,0 13.8,19 A1.8,1.8 0 1,0 10.2,19 Z" />
+</vector>

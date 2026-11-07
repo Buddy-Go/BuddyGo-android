@@ -128,7 +128,7 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onClear: () -
         SearchIcon(AppColor.TextSecondary, size = 20.dp)
         Spacer(Modifier.width(AppSpace.xl))
         Box(Modifier.weight(1f)) {
-            if (query.isEmpty()) Text("지역 이름으로 검색", fontSize = 16.sp, color = AppColor.TextDisabled)
+            if (query.isEmpty()) Text("구 · 동 이름으로 검색", fontSize = 16.sp, color = AppColor.TextDisabled)
             BasicTextField(
                 value = query, onValueChange = onChange, singleLine = true,
                 textStyle = TextStyle(fontSize = 16.sp, color = AppColor.TextPrimary),

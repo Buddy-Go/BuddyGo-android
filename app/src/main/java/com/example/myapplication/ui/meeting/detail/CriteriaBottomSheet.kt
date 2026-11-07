@@ -128,8 +128,11 @@ private fun RangeCard(part: BodyPart, host: ExerciseRecord?, mine: ExerciseRecor
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(partTitle(part), fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary, modifier = Modifier.weight(1f))
             Text(
-                if (range == null) "비공개" else "${range.first} – ${range.last}$unit",
-                fontSize = if (range == null) 15.sp else 22.sp, fontWeight = FontWeight.Medium,
+                if (range == null) androidx.compose.ui.text.AnnotatedString("비공개") else androidx.compose.ui.text.buildAnnotatedString {
+                    append("${range.first} – ${range.last}")
+                    pushStyle(androidx.compose.ui.text.SpanStyle(fontSize = 13.sp)); append(unit); pop() // 단위는 숫자보다 작게 (디자인 5h)
+                },
+                fontSize = if (range == null) 15.sp else 20.sp, fontWeight = FontWeight.Medium,
                 color = if (range == null) AppColor.TextSecondary else AppColor.TextPrimary,
             )
         }

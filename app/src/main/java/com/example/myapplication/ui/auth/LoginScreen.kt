@@ -62,6 +62,7 @@ fun LoginScreen(
     onLoginClick: (email: String, password: String, keepLogin: Boolean) -> Unit = { _, _, _ -> },
     onSignUpClick: () -> Unit = {},
     onFindPasswordClick: () -> Unit = {},
+    onKakaoClick: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -115,7 +116,7 @@ fun LoginScreen(
             },
             trailing = {
                 EyeIcon(
-                    crossed = !passwordVisible,
+                    crossed = passwordVisible,
                     modifier = Modifier.clickable { passwordVisible = !passwordVisible },
                 )
             },
@@ -171,7 +172,38 @@ fun LoginScreen(
             )
         }
 
+        // 간편 로그인(디자인 1): 카카오. 처음이면 이름·닉네임·성별만 입력한다(service-rules 1장). 실제 카카오 인증은 서버·SDK 연동 때 붙인다.
         Spacer(Modifier.height(AppSpace.x5))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f).height(1.dp).background(AppColor.Border))
+            Text("간편 로그인", color = AppColor.TextDisabled, fontSize = 13.sp, modifier = Modifier.padding(horizontal = AppSpace.xl))
+            Box(Modifier.weight(1f).height(1.dp).background(AppColor.Border))
+        }
+        Spacer(Modifier.height(AppSpace.xl))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .clip(RoundedCornerShape(AppRadius.lg))
+                .background(Color(0xFFFEE500))
+                .clickable(onClick = onKakaoClick),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Canvas(Modifier.size(20.dp)) {
+                drawOval(Color(0xFF191919), Offset(0f, size.height * 0.05f), Size(size.width, size.height * 0.8f))
+                val tail = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(size.width * 0.25f, size.height * 0.75f)
+                    lineTo(size.width * 0.2f, size.height)
+                    lineTo(size.width * 0.5f, size.height * 0.8f)
+                    close()
+                }
+                drawPath(tail, Color(0xFF191919))
+            }
+            Spacer(Modifier.width(AppSpace.md))
+            Text("카카오로 계속하기", color = Color(0xFF191919), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(AppSpace.xl))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
