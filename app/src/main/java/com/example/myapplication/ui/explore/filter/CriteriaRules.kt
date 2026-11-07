@@ -15,7 +15,8 @@ object CriteriaDefaults {
 
     // 슬라이더 범위
     const val WEIGHT_TICK_KG = 5        // 헬스 중량은 5kg 단위(눈금·기록 입력·범위 모두)
-    const val SLIDER_MAX_WEIGHT = 200  // 기록 입력 상한(400kg)보다 낮춰 슬라이더에서 구간이 너무 짧아지지 않게 한다
+    const val SLIDER_MIN_WEIGHT = 30   // 슬라이더 범위를 좁혀 ±10kg 구간이 디자인(4d)처럼 눈에 보이게 한다
+    const val SLIDER_MAX_WEIGHT = 150  // 기록 입력 상한(400kg)보다 낮춘 값
     const val SLIDER_MAX_PULL_UP = 30
     const val PACE_MIN_SEC = 240
     const val PACE_MAX_SEC = 480
@@ -27,6 +28,8 @@ val filterPartOrder: List<BodyPart> =
     listOf(BodyPart.CHEST, BodyPart.BACK, BodyPart.ARM, BodyPart.LEGS, BodyPart.SHOULDER)
 
 // 이 부위의 슬라이더 최대값 (등은 횟수, 나머지는 kg)
+fun sliderMin(part: BodyPart): Int = if (part == BodyPart.BACK) 0 else CriteriaDefaults.SLIDER_MIN_WEIGHT
+
 fun sliderMax(part: BodyPart): Int =
     if (part == BodyPart.BACK) CriteriaDefaults.SLIDER_MAX_PULL_UP else CriteriaDefaults.SLIDER_MAX_WEIGHT
 
@@ -44,7 +47,10 @@ private fun initialRange(part: BodyPart, value: Int): IntRange =
     if (part == BodyPart.BACK) {
         (value - CriteriaDefaults.PULL_UP_MARGIN).coerceAtLeast(0)..(value + CriteriaDefaults.PULL_UP_MARGIN).coerceAtMost(sliderMax(part))
     } else {
-        weightRangeAround(value).let { it.first..it.last.coerceAtMost(sliderMax(part)) }
+        weightRangeAround(value).let { r ->
+            val lo = r.first.coerceIn(sliderMin(part), sliderMax(part))
+            lo..r.last.coerceIn(lo, sliderMax(part)) // 기록이 슬라이더 최솟값보다 낮아도 범위가 뒤집히지 않게
+        }
     }
 
 // 중량을 5kg 눈금에 맞춘다. 가장 가까운 눈금으로 반올림한다.

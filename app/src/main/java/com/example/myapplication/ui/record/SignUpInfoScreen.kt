@@ -117,7 +117,7 @@ private fun SignUpInfoContent(
                     onValueChange = onPasswordChange,
                     keyboardType = KeyboardType.Password,
                     visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailing = { EyeIcon(crossed = !state.passwordVisible, modifier = Modifier.clickable(onClick = onTogglePasswordVisible)) },
+                    trailing = { EyeIcon(crossed = state.passwordVisible, modifier = Modifier.clickable(onClick = onTogglePasswordVisible)) },
                     hint = "영문·숫자·특수문자 조합 8자 이상",
                     hintIsError = state.passwordRuleError,
                     onFocusLost = onPasswordFocusLost,
@@ -130,7 +130,7 @@ private fun SignUpInfoContent(
                     visualTransformation = if (state.confirmVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailing = {
                         if (state.passwordMatches) CheckMark(AppColor.AccentStrong)
-                        else EyeIcon(crossed = !state.confirmVisible, modifier = Modifier.clickable(onClick = onToggleConfirmVisible))
+                        else EyeIcon(crossed = state.confirmVisible, modifier = Modifier.clickable(onClick = onToggleConfirmVisible))
                     },
                     message = state.confirmMessage,
                 )

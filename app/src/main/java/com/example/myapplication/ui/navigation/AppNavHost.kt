@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.navigation
 
+import androidx.compose.runtime.produceState
 import com.example.myapplication.ui.mypage.BlockManageScreen
 import com.example.myapplication.ui.auth.FindPasswordScreen
 import com.example.myapplication.data.local.ActivityAreaStore
@@ -100,9 +101,15 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            if (currentRoute in Routes.bottomTabs) {
+            // 개설(10a)은 디자인이 탭 바 없는 전체 화면이라 개설 화면에서는 탭 바를 숨긴다. X로 닫으면 이전 화면으로 돌아간다.
+            if (currentRoute in Routes.bottomTabs && currentRoute != Routes.MEETING_CREATE) {
+                // 받은 메이트 신청이 있으면 메이트 탭에 점을 보인다. 화면을 옮길 때마다 새로 센다.
+                val mateBadge by produceState(false, currentRoute) {
+                    value = mateRepository.getRequests().getOrNull()?.isNotEmpty() == true
+                }
                 BottomNavBar(
                     currentRoute = currentRoute,
+                    mateBadge = mateBadge,
                     onTabClick = goTab,
                 )
             }
@@ -124,6 +131,12 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     },
                     onSignUpClick = { navController.navigate(Routes.SIGN_UP_INFO) },
                     onFindPasswordClick = { navController.navigate(Routes.FIND_PASSWORD) },
+                    // TODO(임시) 카카오 인증은 서버·SDK 연동 전이라 로그인처럼 바로 탐색으로 이동한다.
+                    onKakaoClick = {
+                        navController.navigate(Routes.EXPLORE) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                    },
                 )
             }
             composable(Routes.FIND_PASSWORD) {

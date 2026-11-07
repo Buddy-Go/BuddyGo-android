@@ -495,9 +495,10 @@ private fun InfoRow(title: String, value: String, onClick: (() -> Unit)? = null,
         Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).padding(horizontal = AppSpace.xxl, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, fontSize = 17.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
+        Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
+        Spacer(Modifier.width(AppSpace.xl))
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-            Text(value, fontSize = 16.sp, color = AppColor.TextPrimary, textAlign = TextAlign.End)
+            Text(value, fontSize = 15.sp, color = AppColor.TextPrimary, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth())
             if (sub != null) Text(sub, fontSize = 13.sp, color = AppColor.TextSecondary, textAlign = TextAlign.End)
         }
         if (onClick != null) {

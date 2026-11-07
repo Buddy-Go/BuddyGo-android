@@ -261,7 +261,7 @@ private fun StepperCard(name: String, value: Int, unit: String, onMinus: () -> U
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .height(48.dp)
             .clip(shape)
             .border(1.dp, AppColor.Border, shape)
             .padding(horizontal = AppSpace.xxl - 1.dp),
@@ -271,11 +271,11 @@ private fun StepperCard(name: String, value: Int, unit: String, onMinus: () -> U
         Spacer(Modifier.width(AppSpace.xl))
         Text(name, color = AppColor.TextPrimary, fontSize = 17.sp, modifier = Modifier.weight(1f))
         StepButton(plus = false, onClick = onMinus)
-        Box(Modifier.width(76.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.width(70.dp), contentAlignment = Alignment.Center) {
             Text(
                 text = buildAnnotatedString {
-                    withStyle(SpanStyle(color = AppColor.TextPrimary, fontSize = 26.sp, fontWeight = FontWeight.Medium)) { append(value.toString()) }
-                    withStyle(SpanStyle(color = AppColor.TextSecondary, fontSize = 14.sp)) { append(unit) }
+                    withStyle(SpanStyle(color = AppColor.TextPrimary, fontSize = 21.sp, fontWeight = FontWeight.Medium)) { append(value.toString()) }
+                    withStyle(SpanStyle(color = AppColor.TextSecondary, fontSize = 12.sp)) { append(unit) }
                 },
             )
         }
@@ -287,8 +287,8 @@ private fun StepperCard(name: String, value: Int, unit: String, onMinus: () -> U
 private fun StepButton(plus: Boolean, onClick: () -> Unit) {
     val bg = if (plus) AppColor.AccentSoft else AppColor.SurfaceMuted
     val fg = if (plus) AppColor.AccentStrong else AppColor.TextSecondary
-    Box(Modifier.size(40.dp).clip(CircleShape).background(bg).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.size(16.dp)) {
+    Box(Modifier.size(32.dp).clip(CircleShape).background(bg).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.size(14.dp)) {
             val sw = 2.2.dp.toPx()
             drawLine(fg, Offset(size.width * .1f, size.height / 2), Offset(size.width * .9f, size.height / 2), sw, StrokeCap.Round)
             if (plus) drawLine(fg, Offset(size.width / 2, size.height * .1f), Offset(size.width / 2, size.height * .9f), sw, StrokeCap.Round)

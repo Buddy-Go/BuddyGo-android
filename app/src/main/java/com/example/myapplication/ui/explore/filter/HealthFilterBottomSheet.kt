@@ -154,26 +154,30 @@ private fun partTitle(part: BodyPart): String = when (part) {
 @Composable
 private fun PartRangeSection(part: BodyPart, range: IntRange?, mine: Int?, onChange: (IntRange) -> Unit) {
     val unit = if (part == BodyPart.BACK) "회" else "kg"
+    val min = sliderMin(part)
     val max = sliderMax(part)
     Column(verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(partTitle(part), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, modifier = Modifier.weight(1f))
             // 내 기록이 없는 부위는 범위를 직접 정하기 전까지 '직접 정하기'로 보인다.
             Text(
-                if (range == null) "직접 정하기" else "${range.first} – ${range.last}$unit",
+                if (range == null) androidx.compose.ui.text.AnnotatedString("직접 정하기") else androidx.compose.ui.text.buildAnnotatedString {
+                    append("${range.first} – ${range.last}")
+                    pushStyle(androidx.compose.ui.text.SpanStyle(fontSize = 13.sp)); append(unit); pop() // 단위는 숫자보다 작게 (디자인 4d)
+                },
                 fontSize = if (range == null) 14.sp else 20.sp, fontWeight = FontWeight.Bold,
                 color = if (range == null) AppColor.TextSecondary else AppColor.TextPrimary,
             )
         }
         RangeSlider(
-            value = (range?.first ?: 0).toFloat()..(range?.last ?: max).toFloat(),
+            value = (range?.first ?: min).coerceIn(min, max).toFloat()..(range?.last ?: max).coerceIn(min, max).toFloat(),
             onValueChange = { v ->
                 // 중량은 5kg 눈금, 턱걸이는 1회 단위로 맞춘다.
                 val a = Math.round(v.start); val b = Math.round(v.endInclusive)
                 onChange(if (part == BodyPart.BACK) a..b else snapWeight(a)..snapWeight(b))
             },
-            valueRange = 0f..max.toFloat(),
-            steps = if (part == BodyPart.BACK) max - 1 else max / 5 - 1,
+            valueRange = min.toFloat()..max.toFloat(),
+            steps = if (part == BodyPart.BACK) max - min - 1 else (max - min) / 5 - 1,
             colors = sliderColors(),
             startThumb = { RangeThumb() },
             endThumb = { RangeThumb() },
@@ -277,7 +281,7 @@ private fun sliderColors() = SliderDefaults.colors(
 
 @Composable
 private fun RangeThumb() {
-    Box(Modifier.size(28.dp).background(AppColor.Surface, CircleShape).border(3.dp, AppColor.Accent, CircleShape))
+    Box(Modifier.size(24.dp).background(AppColor.Surface, CircleShape).border(3.dp, AppColor.Accent, CircleShape))
 }
 
 @Composable
