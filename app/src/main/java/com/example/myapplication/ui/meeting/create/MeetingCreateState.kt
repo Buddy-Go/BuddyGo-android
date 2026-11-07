@@ -4,16 +4,20 @@ import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.Gender
 import com.example.myapplication.data.model.GenderLimit
+import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
 import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.SkillLevel
+import com.example.myapplication.data.model.Sport
+import com.example.myapplication.ui.explore.filter.paceText
+import com.example.myapplication.ui.record.hikingStyleLabel
 import java.util.Calendar
 import java.util.TimeZone
 
 
 // 모임 개설 화면(10a, 10a-2)의 상태.
-// 2026-10-30 범위 변경: 헬스 모임만 개설한다. 종목 선택·러닝·등산(10b, 10c)은 없다 (service-rules 4장).
+// 헬스(10a), 러닝(10b), 등산(10c) 모임을 개설·수정한다. 종목에 따라 기준(헬스 부위 / 러닝 거리·페이스 / 등산 성향)과 정원 범위가 달라진다. (service-rules 4장)
 // 값의 정의와 화면에 보일 글자(계산 속성)만 둔다. 값을 바꾸는 코드는 MeetingCreateViewModel에 있다.
 // 개설 요청을 보낼 때 이 값들을 공용 Meeting 모델로 옮겨 담는다 (MeetingRepository에 개설 호출이 생기면).
 
@@ -66,6 +70,8 @@ val GenderLimit.label: String
 // 모임 개설 화면 위에 뜨는 시트
 enum class CreateSheet {
     HEALTH_CRITERIA, // 10d
+    RUNNING_CRITERIA, // 10b 러닝 기준: 거리 + 내 페이스
+    HIKING_CRITERIA, // 10c 등산 기준: 취미 / 전문
     DESCRIPTION, // 10e
     TIME, // 10f
     CAPACITY, // 정원·성별
@@ -74,6 +80,29 @@ enum class CreateSheet {
 
 // 상세주소 최대 글자 수. 정해진 값이 없어 임시로 둔다.
 const val DETAIL_ADDRESS_MAX_LENGTH = 50
+
+// 러닝·등산 정원은 호스트 포함 2명 이상이다. 위쪽 한도는 정의서에 없어 임시로 둔다. (service-rules 4장)
+const val GROUP_CAPACITY_MAX = 20
+
+// 종목별 정원 범위. 헬스는 2~3명, 러닝·등산은 2명 이상이다.
+fun capacityRangeOf(sport: Sport): IntRange = if (sport == Sport.HEALTH) 2..3 else 2..GROUP_CAPACITY_MAX
+
+// 러닝 기준: 거리(km)와 호스트 본인 페이스 한 값 (service-rules 4장)
+data class RunningCriteria(
+    val distanceKm: Float? = null,
+    val paceSec: Int? = null, // 초/km
+) {
+    val isFilled: Boolean get() = distanceKm != null && paceSec != null
+
+    // 10b "6km · 6'00" 페이스"
+    val summary: String
+        get() = "${formatDistanceKm(distanceKm ?: 0f)}km · ${paceText(paceSec ?: 0)} 페이스"
+}
+
+// 거리 선택지(km). 3~21km 사이의 흔한 값만 둔다.
+val RUNNING_DISTANCE_OPTIONS = listOf(3f, 5f, 7f, 10f, 15f, 21f)
+
+fun formatDistanceKm(km: Float): String = km.toString().removeSuffix(".0")
 
 // 설명 최대 글자 수. service-rules 4장의 임시값이라 바뀌면 여기만 고친다.
 const val DESCRIPTION_MAX_LENGTH = 300
@@ -127,7 +156,10 @@ data class MeetingCreateState(
     val selectedDateIndex: Int? = null,
     val startMinutes: Int? = null, // 자정부터 분. 19:00 → 1140
     val durationMinutes: Int? = null,
+    val sport: Sport = Sport.HEALTH,
     val healthCriteria: HealthCriteria = HealthCriteria(),
+    val runningCriteria: RunningCriteria = RunningCriteria(),
+    val hikingStyle: HikingStyle? = null,
     val place: PlaceSelection? = null,
     val capacity: Int? = null, // 호스트 포함. 헬스 2~3명 (서버 설정값)
     val gender: GenderLimit = GenderLimit.ANYONE,
@@ -145,10 +177,26 @@ data class MeetingCreateState(
     val updated: Boolean = false,          // 수정이 끝났다: 화면을 닫는다
 ) {
     val isEditMode: Boolean get() = editMeetingId != null
-    val isCriteriaFilled: Boolean get() = healthCriteria.isFilled
+
+    // 이 종목의 정원 범위
+    val capacityRange: IntRange get() = capacityRangeOf(sport)
+    val isCriteriaFilled: Boolean
+        get() = when (sport) {
+            Sport.HEALTH -> healthCriteria.isFilled
+            Sport.RUNNING -> runningCriteria.isFilled
+            Sport.HIKING -> hikingStyle != null
+        }
 
     // 비어 있으면 null → 화면에서 '미입력'으로 보인다.
-    val criteriaSummary: String? get() = if (isCriteriaFilled) healthCriteria.summary else null
+    val criteriaSummary: String?
+        get() = if (!isCriteriaFilled) null else when (sport) {
+            Sport.HEALTH -> healthCriteria.summary
+            Sport.RUNNING -> runningCriteria.summary
+            Sport.HIKING -> hikingStyle?.let(::hikingStyleLabel)
+        }
+
+    // 기준 행 이름: 10a·10b는 '기준', 10c는 '등산 기준'
+    val criteriaTitle: String get() = if (sport == Sport.HIKING) "등산 기준" else "기준"
 
     val placeSummary: String? get() = place?.summary
 
@@ -208,9 +256,14 @@ data class MeetingCreateState(
             set(date.year, date.month - 1, date.day, 0, 0, 0)
         }.timeInMillis + start * 60_000L
         val record = healthCriteria.myRecord.takeIf { healthCriteria.showMyRecord && healthCriteria.hasAnyRecord }
+        val criteria: MeetingCriteria = when (sport) {
+            Sport.HEALTH -> MeetingCriteria.Health(parts = healthCriteria.parts.toSet(), hostRecord = record)
+            Sport.RUNNING -> MeetingCriteria.Running(runningCriteria.distanceKm ?: return null, runningCriteria.paceSec ?: return null)
+            Sport.HIKING -> MeetingCriteria.Hiking(hikingStyle ?: return null)
+        }
         return Meeting(
             title = title.trim(),
-            criteria = MeetingCriteria.Health(parts = healthCriteria.parts.toSet(), hostRecord = record),
+            criteria = criteria,
             place = place?.toMeetingPlace() ?: MeetingPlace(),
             startAtMillis = startAt,
             durationMinutes = durationMinutes ?: 0,
@@ -272,7 +325,7 @@ fun buildDateOptions(
 }
 
 // 고칠 모임을 화면 상태로 바꾼다. myRecord는 '내 기록 표시'를 다시 켤 때 보여 줄 현재 프로필 기록이다.
-// 헬스 모임만 고칠 수 있다. 다른 종목이면 기준이 비어 있어 제출할 수 없고 안내를 띄운다.
+// 헬스·러닝·등산 모두 고칠 수 있다. 종목은 바꿀 수 없고, 기준은 그 종목 것만 채운다.
 fun editStateOf(
     meeting: Meeting,
     myRecord: ExerciseRecord,
@@ -285,7 +338,10 @@ fun editStateOf(
         it.year == start.get(Calendar.YEAR) && it.month == start.get(Calendar.MONTH) + 1 && it.day == start.get(Calendar.DAY_OF_MONTH)
     }.takeIf { it >= 0 }
     val health = meeting.criteria as? MeetingCriteria.Health
+    val running = meeting.criteria as? MeetingCriteria.Running
+    val hiking = meeting.criteria as? MeetingCriteria.Hiking
     return MeetingCreateState(
+        sport = meeting.sport,
         title = meeting.title,
         dateOptions = options,
         selectedDateIndex = dateIndex,
@@ -296,6 +352,8 @@ fun editStateOf(
             showMyRecord = health?.hostRecord != null,
             myRecord = health?.hostRecord ?: myRecord,
         ),
+        runningCriteria = RunningCriteria(running?.distanceKm, running?.hostPaceSec),
+        hikingStyle = hiking?.style,
         place = PlaceSelection(
             meeting.place.name, meeting.place.detailAddress, meeting.place.address,
             meeting.place.lotAddress, meeting.place.latitude, meeting.place.longitude,
@@ -306,7 +364,6 @@ fun editStateOf(
         editMeetingId = meeting.id,
         original = meeting,
         lockedCore = meeting.confirmedCount > 1,
-        errorMessage = if (health == null) "이 종목은 아직 수정할 수 없어요" else null,
     )
 }
 

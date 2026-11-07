@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.update
 // attach로 저장소를 붙이면 최근 장소가 앱을 다시 켜도 남는다. 저장된 값이 없는 첫 실행에만 예시 장소로 시작한다.
 object PlaceSelectionStore {
     private const val KEY = "recent_places"
+
+    // 지금 장소를 고르는 모임의 종목. 헬스는 가게 위치 그대로(10g-3), 러닝·등산은 지도에서 집결지를 지정한다(10g-4).
+    var sport: com.example.myapplication.data.model.Sport = com.example.myapplication.data.model.Sport.HEALTH
     private var store: KeyValueStore? = null
 
     // 검색 결과에서 고른 장소. 장소 확인 화면이 읽는다.

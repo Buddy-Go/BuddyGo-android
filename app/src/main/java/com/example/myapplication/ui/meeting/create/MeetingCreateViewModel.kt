@@ -7,10 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.BodyPart
 import com.example.myapplication.data.model.GenderLimit
+import com.example.myapplication.data.model.HikingStyle
+import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.UserRepository
-import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlinx.coroutines.launch
 
 class MeetingCreateViewModel(
     private val userRepository: UserRepository,
@@ -87,9 +89,33 @@ class MeetingCreateViewModel(
         state = state.copy(openSheet = CreateSheet.TIME)
     }
 
+    // 종목을 바꾼다 (10a·10b·10c 위쪽 종목 카드). 수정 모드에서는 종목을 바꿀 수 없다.
+    // 종목마다 기준을 따로 들고 있어서 다른 종목으로 갔다 와도 입력이 남는다. 정원이 새 종목의 범위를 벗어나면 다시 고르게 비운다.
+    fun onSportSelect(sport: Sport) {
+        if (state.isEditMode || state.sport == sport) return
+        val capacity = state.capacity?.takeIf { it in capacityRangeOf(sport) }
+        state = state.copy(sport = sport, capacity = capacity, openSheet = null)
+    }
+
     fun onCriteriaClick() {
         if (state.lockedCore) return
-        state = state.copy(openSheet = CreateSheet.HEALTH_CRITERIA)
+        state = state.copy(
+            openSheet = when (state.sport) {
+                Sport.HEALTH -> CreateSheet.HEALTH_CRITERIA
+                Sport.RUNNING -> CreateSheet.RUNNING_CRITERIA
+                Sport.HIKING -> CreateSheet.HIKING_CRITERIA
+            },
+        )
+    }
+
+    // 10b 러닝 기준 적용: 거리와 내 페이스를 둘 다 골라야 한다.
+    fun onRunningCriteriaApply(distanceKm: Float, paceSec: Int) {
+        state = state.copy(runningCriteria = RunningCriteria(distanceKm, paceSec), openSheet = null)
+    }
+
+    // 10c 등산 기준 적용
+    fun onHikingCriteriaApply(style: HikingStyle) {
+        state = state.copy(hikingStyle = style, openSheet = null)
     }
 
     fun onCapacityClick() {
@@ -99,11 +125,16 @@ class MeetingCreateViewModel(
 
     // 정원·성별 적용. 호스트와 다른 성별 제한은 받지 않는다. (service-rules 4장 가정)
     fun onCapacityApply(capacity: Int, gender: GenderLimit) {
-        if (capacity !in HEALTH_CAPACITY_RANGE || gender !in allowedGenderLimits(state.hostGender)) return
+        if (capacity !in state.capacityRange || gender !in allowedGenderLimits(state.hostGender)) return
         state = state.copy(capacity = capacity, gender = gender, openSheet = null)
     }
 
     // 수정 모드에서 장소 행을 누르면 상세주소만 고친다. (장소 자체를 바꾸는 화면 10g는 아직 없다)
+    // 장소 행을 누르면 장소 검색으로 가는데, 그 전에 종목을 알려 준다(헬스 10g-3 / 러닝·등산 10g-4).
+    fun onPlaceClick() {
+        placeStore.sport = state.sport
+    }
+
     fun onDetailAddressClick() {
         state = state.copy(openSheet = CreateSheet.DETAIL_ADDRESS)
     }
