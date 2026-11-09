@@ -203,7 +203,7 @@ class MeetingDetailViewModelTest {
         assertNull(vm.state.value.checkIn)
         assertEquals("체크인했어요", vm.state.value.notice)
         assertEquals(2, vm.state.value.loaded!!.checkedInCount)
-        assertEquals("체크인 완료", vm.state.value.bottomAction?.title)
+        assertEquals("✓ 체크인 완료", vm.state.value.bottomAction?.title)
         vm.onNoticeShown()
         assertNull(vm.state.value.notice)
     }

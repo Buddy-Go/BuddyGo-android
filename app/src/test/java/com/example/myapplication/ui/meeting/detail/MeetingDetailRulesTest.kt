@@ -298,7 +298,7 @@ class MeetingDetailRulesTest {
         val start = millis(9, 8, 7)
         val m = meeting(MeetingStatus.IN_PROGRESS, start = start, confirmed = 2, members = listOf(MeetingMember(me, "민준", true)))
         val a = action(m, MeetingRole.CONFIRMED, start + minute)!!
-        assertEquals("체크인 완료", a.title)
+        assertEquals("✓ 체크인 완료", a.title)
         assertFalse(a.enabled)
         assertNull("체크인 시각이 없으면 보조 문구도 없다", a.subtitle)
     }
@@ -309,7 +309,7 @@ class MeetingDetailRulesTest {
         val m = meeting(MeetingStatus.IN_PROGRESS, start = start, confirmed = 2,
             members = listOf(MeetingMember(me, "민준", true, checkedInAtMillis = start + 2 * minute)))
         val a = action(m, MeetingRole.CONFIRMED, start + 5 * minute)!!
-        assertEquals("체크인 완료", a.title)
+        assertEquals("✓ 체크인 완료", a.title)
         assertEquals(formatCheckInTime(start + 2 * minute), a.subtitle)
     }
 

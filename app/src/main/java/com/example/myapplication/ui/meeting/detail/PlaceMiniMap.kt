@@ -37,7 +37,7 @@ import com.kakao.vectormap.label.LabelStyles
 // 장소 시트(5e)의 작은 지도. 모임 장소 한 곳에 핀을 꽂아 보여 주기만 하고 손으로 움직일 수 없다.
 // 앱 키가 없거나 지도가 뜨지 못하면 안내 문구를 보여 준다.
 @Composable
-fun PlaceMiniMap(latitude: Double, longitude: Double, sport: Sport, modifier: Modifier = Modifier) {
+fun PlaceMiniMap(latitude: Double, longitude: Double, sport: Sport, modifier: Modifier = Modifier, look: PinLook = PinLook.Default) {
     var failed by remember { mutableStateOf(BuildConfig.KAKAO_NATIVE_APP_KEY.isBlank()) }
     if (failed) {
         Box(modifier.background(AppColor.SurfaceMuted), contentAlignment = Alignment.Center) {
@@ -60,7 +60,7 @@ fun PlaceMiniMap(latitude: Double, longitude: Double, sport: Sport, modifier: Mo
                 override fun onMapReady(map: KakaoMap) {
                     // 보기만 하는 지도라서 모든 손짓을 막는다.
                     GestureType.entries.forEach { runCatching { map.setGestureEnable(it, false) } }
-                    val bitmap = PinBitmap.create(context, PinStyle(sport, PinLook.Default), count = 1, hasFavorite = false)
+                    val bitmap = PinBitmap.create(context, PinStyle(sport, look), count = 1, hasFavorite = false)
                     map.labelManager?.layer?.addLabel(
                         LabelOptions.from(position)
                             .setStyles(LabelStyles.from(LabelStyle.from(bitmap).setApplyDpScale(false).setAnchorPoint(0.5f, 1f))),

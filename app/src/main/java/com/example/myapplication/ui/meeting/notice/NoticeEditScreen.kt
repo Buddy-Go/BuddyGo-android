@@ -83,8 +83,8 @@ private fun NoticeEditContent(
             Text(
                 text = state.submitLabel,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (state.canSubmit) AppColor.AccentStrong else AppColor.TextSecondary,
+                fontWeight = if (state.canSubmit) FontWeight.Bold else FontWeight.Medium,
+                color = if (state.canSubmit) AppColor.AccentStrong else AppColor.TextDisabled,
                 modifier = Modifier.clickable(enabled = state.canSubmit, onClick = onSubmit),
             )
         }

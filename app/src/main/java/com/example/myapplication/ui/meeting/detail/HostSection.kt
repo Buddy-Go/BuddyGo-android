@@ -59,7 +59,7 @@ fun HostMoreMenu(
     var expanded by remember { mutableStateOf(false) }
     Box {
         Icon(
-            painter = painterResource(R.drawable.ic_more),
+            painter = painterResource(R.drawable.ic_more_vert),
             contentDescription = "모임 더보기",
             tint = AppColor.TextPrimary,
             modifier = Modifier

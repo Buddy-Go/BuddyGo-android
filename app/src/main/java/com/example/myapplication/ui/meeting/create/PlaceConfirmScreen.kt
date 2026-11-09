@@ -75,7 +75,7 @@ fun PlaceConfirmScreen(
             Spacer(Modifier.width(AppSpace.xl))
             Text("장소 확인", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         }
-        PlaceMiniMap(picked.latitude, picked.longitude, Sport.HEALTH, Modifier.fillMaxWidth().height(200.dp))
+        PlaceMiniMap(picked.latitude, picked.longitude, Sport.HEALTH, Modifier.fillMaxWidth().height(200.dp), look = com.example.myapplication.ui.explore.PinLook.Selected) // 디자인 10g-3: 라임 핀
         Column(Modifier.weight(1f).padding(horizontal = AppSpace.x4)) {
             Text(picked.name, Modifier.padding(top = AppSpace.x4), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
             Text(picked.address, Modifier.padding(top = AppSpace.md, bottom = AppSpace.x4), fontSize = 15.sp, color = AppColor.TextSecondary)

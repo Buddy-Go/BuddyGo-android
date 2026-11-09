@@ -272,13 +272,13 @@ private fun DetailContent(
             if (host != null) {
                 // 5a-H 계열: 확정 명단, 정보 카드, '내가 호스트', 공지, 모임 소개
                 HostRosterSection(host, onRosterClick = onManageParticipants)
-                InfoCard(meeting, onPlaceClick, onCriteriaClick)
+                InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
                 HostSelfRow(meeting.hostNickname)
                 HostNoticeSection(host, onWriteClick = onWriteNotice, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice)
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
             } else {
                 ParticipantsSection(meeting, state.nowMillis)
-                InfoCard(meeting, onPlaceClick, onCriteriaClick)
+                InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
                 HostCard(meeting)
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
             }
@@ -311,7 +311,8 @@ private fun BackBar(
             }
         }
         // 5l 북마크: 하단 하트와 같은 찜이다. 누르면 켜고 끄며, 켜져 있으면 채워 보인다.
-        if (onToggleFavorite != null) {
+        // 호스트 화면(5a-H)은 디자인에 북마크가 없어 hostMenu가 있으면 숨긴다.
+        if (onToggleFavorite != null && hostMenu == null) {
             Box(Modifier.size(40.dp).clip(CircleShape).iconButton(favoriteLabel(isFavorite), onToggleFavorite), contentAlignment = Alignment.Center) {
                 BookmarkIcon(filled = isFavorite, color = AppColor.TextPrimary)
             }
@@ -460,11 +461,12 @@ private fun Avatar(text: String, size: androidx.compose.ui.unit.Dp) {
 }
 
 @Composable
-private fun InfoCard(meeting: Meeting, onPlaceClick: () -> Unit, onCriteriaClick: () -> Unit) {
+// showDuration: 호스트 화면(5a-H)은 디자인이 일시 줄에 진행 시간을 붙이지 않는다.
+private fun InfoCard(meeting: Meeting, onPlaceClick: () -> Unit, onCriteriaClick: () -> Unit, showDuration: Boolean = true) {
     val shape = RoundedCornerShape(AppRadius.lg)
     val judgement = judgementViewOf(meeting)
     Column(Modifier.fillMaxWidth().clip(shape).border1(AppColor.Border, shape)) {
-        InfoRow("일시", formatDetailDateTime(meeting.startAtMillis, meeting.durationMinutes))
+        InfoRow("일시", formatDetailDateTime(meeting.startAtMillis, if (showDuration) meeting.durationMinutes else 0))
         Divider()
         InfoRow(
             "장소", placeLine(meeting), onClick = onPlaceClick,
