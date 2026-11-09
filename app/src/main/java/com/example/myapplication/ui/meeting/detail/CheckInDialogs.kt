@@ -66,7 +66,7 @@ fun CheckInDialog(
                     Text(line, fontSize = 17.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary, modifier = Modifier.weight(1f))
                     if (texts.canRefresh) {
                         Box(Modifier.size(32.dp).clip(CircleShape).iconButton("거리 다시 재기", onRefresh), contentAlignment = Alignment.Center) {
-                            RefreshIcon(AppColor.TextSecondary, size = 20.dp)
+                            DualRefreshIcon(AppColor.TextSecondary, size = 20.dp)
                         }
                     }
                 }
@@ -91,5 +91,23 @@ private fun PinIcon(color: Color) {
         }
         drawPath(path, color, style = Stroke(1.8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
         drawCircle(color, w * .1f, Offset(w * .5f, w * .45f), style = Stroke(1.8.dp.toPx()))
+    }
+}
+
+// 체크인 확인(9a·9b)의 '거리 다시 재기' 아이콘: 서로 쫓는 두 개의 화살표 (디자인)
+@Composable
+private fun DualRefreshIcon(color: androidx.compose.ui.graphics.Color, size: androidx.compose.ui.unit.Dp) {
+    androidx.compose.foundation.Canvas(Modifier.size(size)) {
+        val w = this.size.width
+        val sw = 1.8.dp.toPx()
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(sw, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
+        val box = androidx.compose.ui.geometry.Size(w * .68f, w * .68f)
+        val tl = androidx.compose.ui.geometry.Offset(w * .16f, w * .16f)
+        drawArc(color, startAngle = 200f, sweepAngle = 140f, useCenter = false, topLeft = tl, size = box, style = stroke)
+        drawArc(color, startAngle = 20f, sweepAngle = 140f, useCenter = false, topLeft = tl, size = box, style = stroke)
+        val a1 = androidx.compose.ui.graphics.Path().apply { moveTo(w * .62f, w * .08f); lineTo(w * .82f, w * .2f); lineTo(w * .62f, w * .32f) }
+        val a2 = androidx.compose.ui.graphics.Path().apply { moveTo(w * .38f, w * .92f); lineTo(w * .18f, w * .8f); lineTo(w * .38f, w * .68f) }
+        drawPath(a1, color, style = stroke)
+        drawPath(a2, color, style = stroke)
     }
 }

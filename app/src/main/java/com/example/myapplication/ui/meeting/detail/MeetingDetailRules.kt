@@ -284,7 +284,7 @@ private fun checkInAction(meeting: Meeting, alreadyCheckedIn: Boolean, nowMillis
     val opens = meeting.startAtMillis - CHECK_IN_OPENS_BEFORE_MINUTES * MINUTE
     val closes = meeting.startAtMillis + CHECK_IN_CLOSES_AFTER_MINUTES * MINUTE
     return when {
-        alreadyCheckedIn -> BottomAction(DetailAction.NONE, "체크인 완료", checkedInAtMillis?.let { formatCheckInTime(it) }, enabled = false)
+        alreadyCheckedIn -> BottomAction(DetailAction.NONE, "✓ 체크인 완료", checkedInAtMillis?.let { formatCheckInTime(it) }, enabled = false)
         nowMillis < opens -> BottomAction(DetailAction.NONE, "체크인하기", "시작 10분 전부터 할 수 있어요", enabled = false)
         nowMillis > closes -> BottomAction(DetailAction.NONE, "체크인하기", "체크인 시간이 지났어요", enabled = false)
         else -> BottomAction(DetailAction.CHECK_IN, "체크인하기")

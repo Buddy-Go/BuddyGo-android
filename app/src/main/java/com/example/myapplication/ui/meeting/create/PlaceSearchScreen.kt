@@ -143,7 +143,16 @@ private fun NearbyRow(onClick: () -> Unit) {
         Modifier.fillMaxWidth().clickable(onClickLabel = "현재 위치 주변에서 찾기", onClick = onClick).padding(horizontal = AppSpace.x4, vertical = AppSpace.x4),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("◎", fontSize = 20.sp, color = AppColor.TextPrimary)
+        androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+            val w = size.width; val c = androidx.compose.ui.geometry.Offset(w / 2, w / 2); val sw = 1.8.dp.toPx()
+            drawCircle(AppColor.TextPrimary, w * .26f, c, style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
+            drawCircle(AppColor.TextPrimary, w * .08f, c)
+            listOf(0f to -1f, 0f to 1f, -1f to 0f, 1f to 1f).forEach { }
+            drawLine(AppColor.TextPrimary, androidx.compose.ui.geometry.Offset(w / 2, w * .02f), androidx.compose.ui.geometry.Offset(w / 2, w * .2f), sw, androidx.compose.ui.graphics.StrokeCap.Round)
+            drawLine(AppColor.TextPrimary, androidx.compose.ui.geometry.Offset(w / 2, w * .8f), androidx.compose.ui.geometry.Offset(w / 2, w * .98f), sw, androidx.compose.ui.graphics.StrokeCap.Round)
+            drawLine(AppColor.TextPrimary, androidx.compose.ui.geometry.Offset(w * .02f, w / 2), androidx.compose.ui.geometry.Offset(w * .2f, w / 2), sw, androidx.compose.ui.graphics.StrokeCap.Round)
+            drawLine(AppColor.TextPrimary, androidx.compose.ui.geometry.Offset(w * .8f, w / 2), androidx.compose.ui.geometry.Offset(w * .98f, w / 2), sw, androidx.compose.ui.graphics.StrokeCap.Round)
+        }
         Spacer(Modifier.width(AppSpace.xl))
         Text("현재 위치 주변에서 찾기", Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
         ChevronRightIcon(AppColor.TextSecondary)

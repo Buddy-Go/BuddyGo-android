@@ -215,6 +215,7 @@ private fun HikingCriteria(host: HikingStyle, myRecord: ExerciseRecord?, onAddRe
         NoteRow(
             text = note ?: "내 등산 성향을 아직 안 적었어요",
             good = myRecord?.hikingStyle == host,
+            neutral = true,
             action = if (note == null) ("기록 추가" to onAddRecord) else null,
             useDash = false,
         )
@@ -277,9 +278,10 @@ private fun ReadOnlyOption(text: String, selected: Boolean, modifier: Modifier) 
 
 // 내 기록과의 비교 한 줄. 맞으면 체크, 아니면 줄표(또는 안내 아이콘 없이 글자만)
 @Composable
-private fun NoteRow(text: String, good: Boolean, action: Pair<String, () -> Unit>?, useDash: Boolean = true) {
+private fun NoteRow(text: String, good: Boolean, action: Pair<String, () -> Unit>?, useDash: Boolean = true, neutral: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        val color = if (good) AppColor.AccentStrong else AppColor.TextSecondary
+        // neutral: 등산 기준(5f)처럼 맞음 표시가 검정 체크·진회색 글자인 곳
+        val color = if (good) (if (neutral) AppColor.TextBody else AppColor.AccentStrong) else AppColor.TextSecondary
         if (good) CheckMark(color) else if (useDash) Box(Modifier.width(10.dp).height(2.dp).background(color))
         if (good || useDash) Spacer(Modifier.width(AppSpace.md))
         Text(text, fontSize = 14.sp, color = color, fontWeight = if (good) FontWeight.Medium else FontWeight.Normal, modifier = Modifier.weight(1f))

@@ -81,7 +81,12 @@ data class ReviewState(
     // 판정을 골라야 태그·한마디가 나온다 (12b-1 → 12b-2)
     val showDetails: Boolean get() = draft.verdict != null
 
-    val tagQuestion: String get() = if (draft.verdict == ReviewVerdict.BAD) "어떤 점이 아쉬웠나요?" else "어떤 점이 좋았나요?"
+    val tagQuestion: String
+        get() = when (draft.verdict) {
+            ReviewVerdict.BAD -> "어떤 점이 아쉬웠나요?"
+            ReviewVerdict.NORMAL -> "어떤 점이 기억에 남나요?"
+            else -> "어떤 점이 좋았나요?"
+        }
 
     val availableTags: List<ReviewTag>
         get() = when (draft.verdict) {
