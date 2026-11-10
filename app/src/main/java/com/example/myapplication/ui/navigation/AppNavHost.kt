@@ -153,12 +153,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         onInputChange = loginViewModel::onInputChanged,
                         onSignUpClick = { navController.navigate(Routes.SIGN_UP_INFO) },
                         onFindPasswordClick = { navController.navigate(Routes.FIND_PASSWORD) },
-                        // TODO(임시) 카카오 인증은 서버·SDK 연동 전이라 로그인처럼 바로 탐색으로 이동한다.
-                        onKakaoClick = {
-                            navController.navigate(Routes.EXPLORE) {
-                                popUpTo(Routes.LOGIN) { inclusive = true }
-                            }
-                        },
                     )
                 }
                 composable(Routes.FIND_PASSWORD) {
