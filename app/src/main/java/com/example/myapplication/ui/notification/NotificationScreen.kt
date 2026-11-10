@@ -71,7 +71,7 @@ fun NotificationScreen(
                 val sections = groupNotifications(s.data, nowMillis)
                 if (sections.isEmpty) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("아직 받은 알림이 없어요", color = AppColor.TextDisabled, fontSize = 15.sp)
+                        Text("아직 받은 알림이 없어요", color = AppColor.TextSecondary, fontSize = 15.sp)
                     }
                 } else {
                     val click: (Notification) -> Unit = { n ->

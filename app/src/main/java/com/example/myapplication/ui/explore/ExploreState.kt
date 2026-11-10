@@ -9,6 +9,7 @@ import com.example.myapplication.ui.explore.filter.MeetingFilter
 
 data class ExploreState(
     val meetings: UiState<List<Meeting>> = UiState.Loading,
+    val firstLoad: Boolean = true,       // 아직 한 번도 목록을 못 받았다: 16a 스켈레톤. 받은 뒤 다시 불러오면 16e 스피너
     val sheetExpanded: Boolean = true,   // 3-After(올림) / 3-2-After(내림)
     val selectedPinKey: String? = null,
     val favoriteOnly: Boolean = false,   // 상단 '찜' 칩

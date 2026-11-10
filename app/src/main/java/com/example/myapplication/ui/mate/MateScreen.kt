@@ -58,7 +58,7 @@ fun MateScreen(
 ) {
     LaunchedEffect(Unit) { viewModel.refresh() }
     if (viewModel.state.loadFailed) {
-        FullScreenError(type = ErrorType.SERVER, onRetry = viewModel::refresh)
+        FullScreenError(type = ErrorType.SERVER, onRetry = viewModel::refresh, showHome = false)
         return
     }
     MateContent(

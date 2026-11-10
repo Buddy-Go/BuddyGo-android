@@ -67,6 +67,7 @@ class ExploreViewModel(
             val result = repository.getMeetings(_state.value.searchBounds)
             _state.update {
                 it.copy(
+                    firstLoad = it.firstLoad && result.isFailure,
                     meetings = result.fold(
                         onSuccess = { list -> UiState.Success(list) },
                         onFailure = { e -> UiState.Error(if (e is IOException) ErrorType.NETWORK else ErrorType.SERVER) },

@@ -7,6 +7,7 @@ import com.example.myapplication.data.local.ActivityAreaStore
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,6 +30,7 @@ import com.example.myapplication.ui.activity.ActivityScreen
 import com.example.myapplication.ui.activity.ActivityViewModel
 import com.example.myapplication.ui.auth.LoginScreen
 import com.example.myapplication.ui.common.BottomNavBar
+import com.example.myapplication.ui.common.LocalGoHome
 import com.example.myapplication.ui.explore.ExploreScreen
 import com.example.myapplication.ui.explore.filter.FilterScreen
 import com.example.myapplication.ui.explore.filter.FilterViewModel
@@ -115,363 +117,365 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             }
         },
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Routes.LOGIN,
-            modifier = Modifier.padding(innerPadding),
-        ) {
-            // 1~2 로그인 · 회원가입 · 종목 기록
-            composable(Routes.LOGIN) {
-                LoginScreen(
-                    // TODO(임시) 인증은 아직 연결하지 않아 누르면 바로 탐색으로 이동한다.
-                    onLoginClick = { _, _, _ ->
-                        navController.navigate(Routes.EXPLORE) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    },
-                    onSignUpClick = { navController.navigate(Routes.SIGN_UP_INFO) },
-                    onFindPasswordClick = { navController.navigate(Routes.FIND_PASSWORD) },
-                    // TODO(임시) 카카오 인증은 서버·SDK 연동 전이라 로그인처럼 바로 탐색으로 이동한다.
-                    onKakaoClick = {
-                        navController.navigate(Routes.EXPLORE) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    },
-                )
-            }
-            composable(Routes.FIND_PASSWORD) {
-                FindPasswordScreen(onBack = { navController.popBackStack() })
-            }
-            composable(Routes.SIGN_UP_INFO) {
-                SignUpInfoScreen(
-                    onBack = { navController.popBackStack() },
-                    onNext = { navController.navigate(Routes.SIGN_UP_PROFILE) },
-                )
-            }
-            composable(Routes.SIGN_UP_PROFILE) {
-                SignUpProfileScreen(
-                    onBack = { navController.popBackStack() },
-                    onEditRecord = { sport -> navController.navigate(Routes.record(sport)) },
-                    // 가입이 끝나면 로그인·회원가입 화면을 모두 지우고 탐색으로 이동한다.
-                    onComplete = {
-                        navController.navigate(Routes.EXPLORE) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    },
-                )
-            }
-            composable(
-                Routes.RECORD,
-                listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
-            ) { entry ->
-                val sport = Sport.valueOf(entry.arguments?.getString(Routes.ARG_SPORT) ?: Sport.HEALTH.name)
-                RecordScreen(sport = sport, onBack = { navController.popBackStack() })
-            }
-
-            // 프로필 기록 수정: 모임 신청·상세의 '기록 추가'·'기준 줄'에서 들어온다. 저장하면 내 프로필 기록이 바뀐다.
-            composable(
-                Routes.PROFILE_RECORD,
-                listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
-            ) { entry ->
-                val sport = Sport.valueOf(entry.arguments?.getString(Routes.ARG_SPORT) ?: Sport.HEALTH.name)
-                RecordScreen(
-                    sport = sport,
-                    onBack = { navController.popBackStack() },
-                    profileEdit = true,
-                    viewModel = viewModel(key = "profile-record-${sport.name}") { RecordViewModel(sport, userRepository) },
-                )
-            }
-
-            // 3~4 탐색 · 조건 설정 · 알림
-            composable(Routes.EXPLORE) {
-                ExploreScreen(
-                    onFilterClick = { navController.navigate(Routes.FILTER) },
-                    onNotificationClick = { navController.navigate(Routes.NOTIFICATION) },
-                    onMeetingClick = { navController.navigate(Routes.meetingDetail(it)) },
-                )
-            }
-            composable(Routes.FILTER) { entry ->
-                val filterViewModel: FilterViewModel = viewModel(entry)
-                // 위치 검색에서 돌아오면 고른 구·동(빈 문자열이면 해제)을 조건에 넣는다.
-                val picked by entry.savedStateHandle.getStateFlow(KEY_DISTRICT_RESULT, NO_RESULT).collectAsState()
-                LaunchedEffect(picked) {
-                    if (picked != NO_RESULT) {
-                        filterViewModel.onSetDistrict(picked)
-                        entry.savedStateHandle[KEY_DISTRICT_RESULT] = NO_RESULT
-                    }
+        CompositionLocalProvider(LocalGoHome provides { goTab(Routes.EXPLORE) }) {
+            NavHost(
+                navController = navController,
+                startDestination = Routes.LOGIN,
+                modifier = Modifier.padding(innerPadding),
+            ) {
+                // 1~2 로그인 · 회원가입 · 종목 기록
+                composable(Routes.LOGIN) {
+                    LoginScreen(
+                        // TODO(임시) 인증은 아직 연결하지 않아 누르면 바로 탐색으로 이동한다.
+                        onLoginClick = { _, _, _ ->
+                            navController.navigate(Routes.EXPLORE) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
+                        },
+                        onSignUpClick = { navController.navigate(Routes.SIGN_UP_INFO) },
+                        onFindPasswordClick = { navController.navigate(Routes.FIND_PASSWORD) },
+                        // TODO(임시) 카카오 인증은 서버·SDK 연동 전이라 로그인처럼 바로 탐색으로 이동한다.
+                        onKakaoClick = {
+                            navController.navigate(Routes.EXPLORE) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
+                        },
+                    )
                 }
-                FilterScreen(
-                    onClose = { navController.popBackStack() },
-                    onApplied = { navController.popBackStack() },
-                    onLocationClick = { current ->
-                        entry.savedStateHandle[KEY_DISTRICT_CURRENT] = current.orEmpty()
-                        navController.navigate(Routes.LOCATION_SEARCH)
-                    },
-                    viewModel = filterViewModel,
-                )
-            }
-            composable(Routes.LOCATION_SEARCH) {
-                val filterEntry = navController.previousBackStackEntry
-                LocationSearchScreen(
-                    initialDistrict = filterEntry?.savedStateHandle?.get<String>(KEY_DISTRICT_CURRENT)?.takeIf { it.isNotBlank() },
-                    onBack = { navController.popBackStack() },
-                    onApplied = { district ->
-                        filterEntry?.savedStateHandle?.set(KEY_DISTRICT_RESULT, district.orEmpty())
-                        navController.popBackStack()
-                    },
-                )
-            }
-            composable(Routes.NOTIFICATION) {
-                NotificationScreen(
-                    onBack = { navController.popBackStack() },
-                    onOpen = { navController.navigate(it) },
-                )
-            }
+                composable(Routes.FIND_PASSWORD) {
+                    FindPasswordScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.SIGN_UP_INFO) {
+                    SignUpInfoScreen(
+                        onBack = { navController.popBackStack() },
+                        onNext = { navController.navigate(Routes.SIGN_UP_PROFILE) },
+                    )
+                }
+                composable(Routes.SIGN_UP_PROFILE) {
+                    SignUpProfileScreen(
+                        onBack = { navController.popBackStack() },
+                        onEditRecord = { sport -> navController.navigate(Routes.record(sport)) },
+                        // 가입이 끝나면 로그인·회원가입 화면을 모두 지우고 탐색으로 이동한다.
+                        onComplete = {
+                            navController.navigate(Routes.EXPLORE) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
+                        },
+                    )
+                }
+                composable(
+                    Routes.RECORD,
+                    listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
+                ) { entry ->
+                    val sport = Sport.valueOf(entry.arguments?.getString(Routes.ARG_SPORT) ?: Sport.HEALTH.name)
+                    RecordScreen(sport = sport, onBack = { navController.popBackStack() })
+                }
 
-            // 5~6 모임 상세 · 참가 신청
-            composable(Routes.MEETING_DETAIL, meetingArgs()) { entry ->
-                val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
-                val applied by entry.savedStateHandle.getStateFlow(KEY_APPLIED, false).collectAsState()
-                MeetingDetailScreen(
-                    meetingId = meetingId,
-                    justApplied = applied,
-                    onAppliedHandled = { entry.savedStateHandle[KEY_APPLIED] = false },
-                    onBack = { navController.popBackStack() },
-                    onApply = { navController.navigate(Routes.apply(meetingId)) },
-                    onReview = { navController.navigate(Routes.reviewList(meetingId)) },
-                    onManageParticipants = { navController.navigate(Routes.participantManage(meetingId)) },
-                    onWriteNotice = { navController.navigate(Routes.noticeEdit(meetingId)) },
-                    onOpenNotices = { navController.navigate(Routes.noticeList(meetingId)) },
-                    onOpenNotice = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
-                    onEditMeeting = { navController.navigate(Routes.meetingEdit(meetingId)) },
-                    onAddRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
-                )
-            }
-            composable(Routes.APPLY, meetingArgs()) { entry ->
-                val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
-                ApplyScreen(
-                    meetingId = meetingId,
-                    onClose = { navController.popBackStack() },
-                    onApplied = {
-                        // 모임 상세가 신청 결과를 다시 불러오도록 알리고 돌아간다.
-                        navController.previousBackStackEntry?.savedStateHandle?.set(KEY_APPLIED, true)
-                        navController.popBackStack()
-                    },
-                    onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
-                )
-            }
+                // 프로필 기록 수정: 모임 신청·상세의 '기록 추가'·'기준 줄'에서 들어온다. 저장하면 내 프로필 기록이 바뀐다.
+                composable(
+                    Routes.PROFILE_RECORD,
+                    listOf(navArgument(Routes.ARG_SPORT) { type = NavType.StringType }),
+                ) { entry ->
+                    val sport = Sport.valueOf(entry.arguments?.getString(Routes.ARG_SPORT) ?: Sport.HEALTH.name)
+                    RecordScreen(
+                        sport = sport,
+                        onBack = { navController.popBackStack() },
+                        profileEdit = true,
+                        viewModel = viewModel(key = "profile-record-${sport.name}") { RecordViewModel(sport, userRepository) },
+                    )
+                }
 
-            // 7 참가자 관리
-            composable(Routes.PARTICIPANT_MANAGE, meetingArgs()) { entry ->
-                val meetingId = entry.meetingId()
-                ParticipantManageScreen(
-                    viewModel = viewModel { ParticipantManageViewModel(meetingId, meetingRepository, userRepository) },
-                    onBack = { navController.popBackStack() },
-                )
-            }
-
-            // 8 공지
-            composable(Routes.NOTICE_LIST, meetingArgs()) { entry ->
-                val meetingId = entry.meetingId()
-                NoticeListScreen(
-                    viewModel = viewModel { NoticeListViewModel(meetingId, noticeRepository, meetingRepository, userRepository) },
-                    onBack = { navController.popBackStack() },
-                    onNoticeClick = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
-                    onWriteClick = { navController.navigate(Routes.noticeEdit(meetingId)) },
-                    onEditClick = { noticeId -> navController.navigate(Routes.noticeEdit(meetingId, noticeId)) },
-                )
-            }
-            composable(
-                Routes.NOTICE_DETAIL,
-                listOf(
-                    navArgument(Routes.ARG_MEETING_ID) { type = NavType.StringType },
-                    navArgument(Routes.ARG_NOTICE_ID) { type = NavType.StringType },
-                ),
-            ) { entry ->
-                val meetingId = entry.meetingId()
-                val noticeId = entry.arguments?.getString(Routes.ARG_NOTICE_ID).orEmpty()
-                NoticeDetailScreen(
-                    viewModel = viewModel {
-                        NoticeDetailViewModel(meetingId, noticeId, noticeRepository, meetingRepository, userRepository)
-                    },
-                    onBack = { navController.popBackStack() },
-                    onEditClick = { id -> navController.navigate(Routes.noticeEdit(meetingId, id)) },
-                    onDeleted = { navController.popBackStack() },
-                )
-            }
-            composable(
-                Routes.NOTICE_EDIT,
-                listOf(
-                    navArgument(Routes.ARG_MEETING_ID) { type = NavType.StringType },
-                    navArgument(Routes.ARG_NOTICE_ID) {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                    },
-                ),
-            ) { entry ->
-                val meetingId = entry.meetingId()
-                val noticeId = entry.arguments?.getString(Routes.ARG_NOTICE_ID)
-                NoticeEditScreen(
-                    viewModel = viewModel { NoticeEditViewModel(meetingId, noticeId, noticeRepository) },
-                    onClose = { navController.popBackStack() },
-                    onDone = { navController.popBackStack() },
-                )
-            }
-
-            // 10 모임 개설
-            composable(Routes.MEETING_CREATE) {
-                MeetingCreateScreen(
-                    viewModel = viewModel { MeetingCreateViewModel(userRepository, meetingRepository) },
-                    onClose = { navController.popBackStack() },
-                    onPlaceClick = { navController.navigate(Routes.PLACE_SEARCH) },
-                    onCreated = { meetingId ->
-                        navController.navigate(Routes.meetingDetail(meetingId)) {
-                            popUpTo(Routes.MEETING_CREATE) { inclusive = true }
+                // 3~4 탐색 · 조건 설정 · 알림
+                composable(Routes.EXPLORE) {
+                    ExploreScreen(
+                        onFilterClick = { navController.navigate(Routes.FILTER) },
+                        onNotificationClick = { navController.navigate(Routes.NOTIFICATION) },
+                        onMeetingClick = { navController.navigate(Routes.meetingDetail(it)) },
+                    )
+                }
+                composable(Routes.FILTER) { entry ->
+                    val filterViewModel: FilterViewModel = viewModel(entry)
+                    // 위치 검색에서 돌아오면 고른 구·동(빈 문자열이면 해제)을 조건에 넣는다.
+                    val picked by entry.savedStateHandle.getStateFlow(KEY_DISTRICT_RESULT, NO_RESULT).collectAsState()
+                    LaunchedEffect(picked) {
+                        if (picked != NO_RESULT) {
+                            filterViewModel.onSetDistrict(picked)
+                            entry.savedStateHandle[KEY_DISTRICT_RESULT] = NO_RESULT
                         }
-                    },
-                )
-            }
-            composable(Routes.MEETING_EDIT, meetingArgs()) { entry ->
-                val meetingId = entry.meetingId()
-                MeetingCreateScreen(
-                    viewModel = viewModel(key = "edit-$meetingId") { MeetingCreateViewModel(userRepository, meetingRepository, editMeetingId = meetingId) },
-                    onClose = { navController.popBackStack() },
-                    onPlaceClick = {},
-                    onCreated = {},
-                    onUpdated = { navController.popBackStack() },
-                )
-            }
-            composable(Routes.PLACE_SEARCH) {
-                PlaceSearchScreen(
-                    onBack = { navController.popBackStack() },
-                    onSelected = { navController.navigate(Routes.PLACE_CONFIRM) },
-                )
-            }
-            composable(Routes.PLACE_CONFIRM) {
-                PlaceConfirmScreen(
-                    onBack = { navController.popBackStack() },
-                    // 설정하면 장소 검색까지 닫고 개설 화면으로 돌아간다.
-                    onConfirmed = { navController.popBackStack(Routes.MEETING_CREATE, inclusive = false) },
-                )
-            }
+                    }
+                    FilterScreen(
+                        onClose = { navController.popBackStack() },
+                        onApplied = { navController.popBackStack() },
+                        onLocationClick = { current ->
+                            entry.savedStateHandle[KEY_DISTRICT_CURRENT] = current.orEmpty()
+                            navController.navigate(Routes.LOCATION_SEARCH)
+                        },
+                        viewModel = filterViewModel,
+                    )
+                }
+                composable(Routes.LOCATION_SEARCH) {
+                    val filterEntry = navController.previousBackStackEntry
+                    LocationSearchScreen(
+                        initialDistrict = filterEntry?.savedStateHandle?.get<String>(KEY_DISTRICT_CURRENT)?.takeIf { it.isNotBlank() },
+                        onBack = { navController.popBackStack() },
+                        onApplied = { district ->
+                            filterEntry?.savedStateHandle?.set(KEY_DISTRICT_RESULT, district.orEmpty())
+                            navController.popBackStack()
+                        },
+                    )
+                }
+                composable(Routes.NOTIFICATION) {
+                    NotificationScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpen = { navController.navigate(it) },
+                    )
+                }
 
-            // 11, 15 메이트
-            composable(Routes.MATE) {
-                MateScreen(
-                    viewModel = viewModel { MateViewModel(mateRepository) },
-                    onRequestsClick = { navController.navigate(Routes.MATE_REQUEST) },
-                    onProfileClick = { userId -> navController.navigate(Routes.mateProfile(userId)) },
-                )
-            }
-            composable(Routes.MATE_REQUEST) {
-                MateRequestScreen(
-                    viewModel = viewModel { MateRequestViewModel(mateRepository) },
-                    onBack = { navController.popBackStack() },
-                    onProfileClick = { userId -> navController.navigate(Routes.mateProfile(userId)) },
-                )
-            }
-            composable(
-                Routes.MATE_PROFILE,
-                listOf(navArgument(Routes.ARG_USER_ID) { type = NavType.StringType }),
-            ) { entry ->
-                val userId = entry.arguments?.getString(Routes.ARG_USER_ID).orEmpty()
-                MateProfileScreen(
-                    viewModel = viewModel { MateProfileViewModel(userId, mateRepository) },
-                    onBack = { navController.popBackStack() },
-                    onActivityClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
-                    onAllReviewsClick = { navController.navigate(Routes.mateReviews(userId)) },
-                )
-            }
+                // 5~6 모임 상세 · 참가 신청
+                composable(Routes.MEETING_DETAIL, meetingArgs()) { entry ->
+                    val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
+                    val applied by entry.savedStateHandle.getStateFlow(KEY_APPLIED, false).collectAsState()
+                    MeetingDetailScreen(
+                        meetingId = meetingId,
+                        justApplied = applied,
+                        onAppliedHandled = { entry.savedStateHandle[KEY_APPLIED] = false },
+                        onBack = { navController.popBackStack() },
+                        onApply = { navController.navigate(Routes.apply(meetingId)) },
+                        onReview = { navController.navigate(Routes.reviewList(meetingId)) },
+                        onManageParticipants = { navController.navigate(Routes.participantManage(meetingId)) },
+                        onWriteNotice = { navController.navigate(Routes.noticeEdit(meetingId)) },
+                        onOpenNotices = { navController.navigate(Routes.noticeList(meetingId)) },
+                        onOpenNotice = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
+                        onEditMeeting = { navController.navigate(Routes.meetingEdit(meetingId)) },
+                        onAddRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
+                    )
+                }
+                composable(Routes.APPLY, meetingArgs()) { entry ->
+                    val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
+                    ApplyScreen(
+                        meetingId = meetingId,
+                        onClose = { navController.popBackStack() },
+                        onApplied = {
+                            // 모임 상세가 신청 결과를 다시 불러오도록 알리고 돌아간다.
+                            navController.previousBackStackEntry?.savedStateHandle?.set(KEY_APPLIED, true)
+                            navController.popBackStack()
+                        },
+                        onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
+                    )
+                }
 
-            // 12 메이트 평가: 12a·12b·12c가 한 모임의 평가 흐름이라 같은 ViewModel을 나눠 쓴다. (12a 화면이 주인)
-            composable(Routes.REVIEW_LIST, meetingArgs()) { entry ->
-                val meetingId = entry.meetingId()
-                ReviewListScreen(
-                    viewModel = viewModel(key = "review-$meetingId") { ReviewViewModel(meetingId, reviewRepository, mateRepository) },
-                    onBack = { navController.popBackStack() },
-                    onStartReview = { navController.navigate(Routes.memberReview(meetingId, "next")) },
-                )
-            }
-            composable(
-                Routes.MEMBER_REVIEW,
-                listOf(
-                    navArgument(Routes.ARG_MEETING_ID) { type = NavType.StringType },
-                    navArgument(Routes.ARG_USER_ID) { type = NavType.StringType },
-                ),
-            ) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
-                MemberReviewScreen(
-                    viewModel = viewModel<ReviewViewModel>(parent, key = "review-${entry.meetingId()}"),
-                    onClose = { navController.popBackStack() },
-                    onAllDone = {
-                        navController.navigate(Routes.REVIEW_DONE) { popUpTo(Routes.MEMBER_REVIEW) { inclusive = true } }
-                    },
-                )
-            }
-            composable(Routes.REVIEW_DONE) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
-                ReviewDoneScreen(
-                    viewModel = viewModel<ReviewViewModel>(parent, key = "review-${parent.meetingId()}"),
-                    onGoActivity = {
-                        navController.navigate(Routes.ACTIVITY) {
-                            popUpTo(Routes.REVIEW_LIST) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                )
-            }
+                // 7 참가자 관리
+                composable(Routes.PARTICIPANT_MANAGE, meetingArgs()) { entry ->
+                    val meetingId = entry.meetingId()
+                    ParticipantManageScreen(
+                        viewModel = viewModel { ParticipantManageViewModel(meetingId, meetingRepository, userRepository) },
+                        onBack = { navController.popBackStack() },
+                    )
+                }
 
-            // 13~14 활동 내역 · 마이페이지
-            composable(Routes.ACTIVITY) {
-                ActivityScreen(
-                    viewModel = viewModel { ActivityViewModel(meetingRepository, userRepository) },
-                    onReviewClick = { meetingId -> navController.navigate(Routes.reviewList(meetingId)) },
-                    onMeetingClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
-                    onCreateClick = { goTab(Routes.MEETING_CREATE) },
-                    onExploreClick = { goTab(Routes.EXPLORE) },
-                )
-            }
-            composable(Routes.MY_REVIEWS) {
-                val vm = viewModel<AllReviewsViewModel>(key = "my-reviews") { AllReviewsViewModel(users = userRepository) }
-                val state by vm.state.collectAsState()
-                AllReviewsScreen("받은 후기", state, onBack = { navController.popBackStack() }, onRetry = vm::load)
-            }
-            composable(
-                Routes.MATE_REVIEWS,
-                listOf(navArgument(Routes.ARG_USER_ID) { type = NavType.StringType }),
-            ) { entry ->
-                val userId = entry.arguments?.getString(Routes.ARG_USER_ID).orEmpty()
-                val vm = viewModel<AllReviewsViewModel>(key = "mate-reviews-$userId") { AllReviewsViewModel(userId, userRepository, mateRepository) }
-                val state by vm.state.collectAsState()
-                AllReviewsScreen("받은 후기", state, onBack = { navController.popBackStack() }, onRetry = vm::load)
-            }
-            composable(Routes.ACTIVITY_AREA) {
-                // 활동 지역은 구·동 하나. 위치 검색(4g)을 그대로 쓰고, 적용하면 저장한다.
-                val area by ActivityAreaStore.area.collectAsState()
-                LocationSearchScreen(
-                    initialDistrict = area,
-                    onBack = { navController.popBackStack() },
-                    onApplied = { district ->
-                        ActivityAreaStore.set(district)
-                        navController.popBackStack()
-                    },
-                )
-            }
-            composable(Routes.BLOCK_MANAGE) {
-                BlockManageScreen(onBack = { navController.popBackStack() })
-            }
-            composable(Routes.MYPAGE) {
-                MyPageScreen(
-                    onAllReviewsClick = { navController.navigate(Routes.MY_REVIEWS) },
-                    onLocationClick = { navController.navigate(Routes.ACTIVITY_AREA) },
-                    onBlockManageClick = { navController.navigate(Routes.BLOCK_MANAGE) },
-                    onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
-                    onLogout = {
-                        SessionReset.onLogout()
-                        navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
-                    },
-                )
+                // 8 공지
+                composable(Routes.NOTICE_LIST, meetingArgs()) { entry ->
+                    val meetingId = entry.meetingId()
+                    NoticeListScreen(
+                        viewModel = viewModel { NoticeListViewModel(meetingId, noticeRepository, meetingRepository, userRepository) },
+                        onBack = { navController.popBackStack() },
+                        onNoticeClick = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
+                        onWriteClick = { navController.navigate(Routes.noticeEdit(meetingId)) },
+                        onEditClick = { noticeId -> navController.navigate(Routes.noticeEdit(meetingId, noticeId)) },
+                    )
+                }
+                composable(
+                    Routes.NOTICE_DETAIL,
+                    listOf(
+                        navArgument(Routes.ARG_MEETING_ID) { type = NavType.StringType },
+                        navArgument(Routes.ARG_NOTICE_ID) { type = NavType.StringType },
+                    ),
+                ) { entry ->
+                    val meetingId = entry.meetingId()
+                    val noticeId = entry.arguments?.getString(Routes.ARG_NOTICE_ID).orEmpty()
+                    NoticeDetailScreen(
+                        viewModel = viewModel {
+                            NoticeDetailViewModel(meetingId, noticeId, noticeRepository, meetingRepository, userRepository)
+                        },
+                        onBack = { navController.popBackStack() },
+                        onEditClick = { id -> navController.navigate(Routes.noticeEdit(meetingId, id)) },
+                        onDeleted = { navController.popBackStack() },
+                    )
+                }
+                composable(
+                    Routes.NOTICE_EDIT,
+                    listOf(
+                        navArgument(Routes.ARG_MEETING_ID) { type = NavType.StringType },
+                        navArgument(Routes.ARG_NOTICE_ID) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                    ),
+                ) { entry ->
+                    val meetingId = entry.meetingId()
+                    val noticeId = entry.arguments?.getString(Routes.ARG_NOTICE_ID)
+                    NoticeEditScreen(
+                        viewModel = viewModel { NoticeEditViewModel(meetingId, noticeId, noticeRepository) },
+                        onClose = { navController.popBackStack() },
+                        onDone = { navController.popBackStack() },
+                    )
+                }
+
+                // 10 모임 개설
+                composable(Routes.MEETING_CREATE) {
+                    MeetingCreateScreen(
+                        viewModel = viewModel { MeetingCreateViewModel(userRepository, meetingRepository) },
+                        onClose = { navController.popBackStack() },
+                        onPlaceClick = { navController.navigate(Routes.PLACE_SEARCH) },
+                        onCreated = { meetingId ->
+                            navController.navigate(Routes.meetingDetail(meetingId)) {
+                                popUpTo(Routes.MEETING_CREATE) { inclusive = true }
+                            }
+                        },
+                    )
+                }
+                composable(Routes.MEETING_EDIT, meetingArgs()) { entry ->
+                    val meetingId = entry.meetingId()
+                    MeetingCreateScreen(
+                        viewModel = viewModel(key = "edit-$meetingId") { MeetingCreateViewModel(userRepository, meetingRepository, editMeetingId = meetingId) },
+                        onClose = { navController.popBackStack() },
+                        onPlaceClick = {},
+                        onCreated = {},
+                        onUpdated = { navController.popBackStack() },
+                    )
+                }
+                composable(Routes.PLACE_SEARCH) {
+                    PlaceSearchScreen(
+                        onBack = { navController.popBackStack() },
+                        onSelected = { navController.navigate(Routes.PLACE_CONFIRM) },
+                    )
+                }
+                composable(Routes.PLACE_CONFIRM) {
+                    PlaceConfirmScreen(
+                        onBack = { navController.popBackStack() },
+                        // 설정하면 장소 검색까지 닫고 개설 화면으로 돌아간다.
+                        onConfirmed = { navController.popBackStack(Routes.MEETING_CREATE, inclusive = false) },
+                    )
+                }
+
+                // 11, 15 메이트
+                composable(Routes.MATE) {
+                    MateScreen(
+                        viewModel = viewModel { MateViewModel(mateRepository) },
+                        onRequestsClick = { navController.navigate(Routes.MATE_REQUEST) },
+                        onProfileClick = { userId -> navController.navigate(Routes.mateProfile(userId)) },
+                    )
+                }
+                composable(Routes.MATE_REQUEST) {
+                    MateRequestScreen(
+                        viewModel = viewModel { MateRequestViewModel(mateRepository) },
+                        onBack = { navController.popBackStack() },
+                        onProfileClick = { userId -> navController.navigate(Routes.mateProfile(userId)) },
+                    )
+                }
+                composable(
+                    Routes.MATE_PROFILE,
+                    listOf(navArgument(Routes.ARG_USER_ID) { type = NavType.StringType }),
+                ) { entry ->
+                    val userId = entry.arguments?.getString(Routes.ARG_USER_ID).orEmpty()
+                    MateProfileScreen(
+                        viewModel = viewModel { MateProfileViewModel(userId, mateRepository) },
+                        onBack = { navController.popBackStack() },
+                        onActivityClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
+                        onAllReviewsClick = { navController.navigate(Routes.mateReviews(userId)) },
+                    )
+                }
+
+                // 12 메이트 평가: 12a·12b·12c가 한 모임의 평가 흐름이라 같은 ViewModel을 나눠 쓴다. (12a 화면이 주인)
+                composable(Routes.REVIEW_LIST, meetingArgs()) { entry ->
+                    val meetingId = entry.meetingId()
+                    ReviewListScreen(
+                        viewModel = viewModel(key = "review-$meetingId") { ReviewViewModel(meetingId, reviewRepository, mateRepository) },
+                        onBack = { navController.popBackStack() },
+                        onStartReview = { navController.navigate(Routes.memberReview(meetingId, "next")) },
+                    )
+                }
+                composable(
+                    Routes.MEMBER_REVIEW,
+                    listOf(
+                        navArgument(Routes.ARG_MEETING_ID) { type = NavType.StringType },
+                        navArgument(Routes.ARG_USER_ID) { type = NavType.StringType },
+                    ),
+                ) { entry ->
+                    val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
+                    MemberReviewScreen(
+                        viewModel = viewModel<ReviewViewModel>(parent, key = "review-${entry.meetingId()}"),
+                        onClose = { navController.popBackStack() },
+                        onAllDone = {
+                            navController.navigate(Routes.REVIEW_DONE) { popUpTo(Routes.MEMBER_REVIEW) { inclusive = true } }
+                        },
+                    )
+                }
+                composable(Routes.REVIEW_DONE) { entry ->
+                    val parent = remember(entry) { navController.getBackStackEntry(Routes.REVIEW_LIST) }
+                    ReviewDoneScreen(
+                        viewModel = viewModel<ReviewViewModel>(parent, key = "review-${parent.meetingId()}"),
+                        onGoActivity = {
+                            navController.navigate(Routes.ACTIVITY) {
+                                popUpTo(Routes.REVIEW_LIST) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                    )
+                }
+
+                // 13~14 활동 내역 · 마이페이지
+                composable(Routes.ACTIVITY) {
+                    ActivityScreen(
+                        viewModel = viewModel { ActivityViewModel(meetingRepository, userRepository) },
+                        onReviewClick = { meetingId -> navController.navigate(Routes.reviewList(meetingId)) },
+                        onMeetingClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
+                        onCreateClick = { goTab(Routes.MEETING_CREATE) },
+                        onExploreClick = { goTab(Routes.EXPLORE) },
+                    )
+                }
+                composable(Routes.MY_REVIEWS) {
+                    val vm = viewModel<AllReviewsViewModel>(key = "my-reviews") { AllReviewsViewModel(users = userRepository) }
+                    val state by vm.state.collectAsState()
+                    AllReviewsScreen("받은 후기", state, onBack = { navController.popBackStack() }, onRetry = vm::load)
+                }
+                composable(
+                    Routes.MATE_REVIEWS,
+                    listOf(navArgument(Routes.ARG_USER_ID) { type = NavType.StringType }),
+                ) { entry ->
+                    val userId = entry.arguments?.getString(Routes.ARG_USER_ID).orEmpty()
+                    val vm = viewModel<AllReviewsViewModel>(key = "mate-reviews-$userId") { AllReviewsViewModel(userId, userRepository, mateRepository) }
+                    val state by vm.state.collectAsState()
+                    AllReviewsScreen("받은 후기", state, onBack = { navController.popBackStack() }, onRetry = vm::load)
+                }
+                composable(Routes.ACTIVITY_AREA) {
+                    // 활동 지역은 구·동 하나. 위치 검색(4g)을 그대로 쓰고, 적용하면 저장한다.
+                    val area by ActivityAreaStore.area.collectAsState()
+                    LocationSearchScreen(
+                        initialDistrict = area,
+                        onBack = { navController.popBackStack() },
+                        onApplied = { district ->
+                            ActivityAreaStore.set(district)
+                            navController.popBackStack()
+                        },
+                    )
+                }
+                composable(Routes.BLOCK_MANAGE) {
+                    BlockManageScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Routes.MYPAGE) {
+                    MyPageScreen(
+                        onAllReviewsClick = { navController.navigate(Routes.MY_REVIEWS) },
+                        onLocationClick = { navController.navigate(Routes.ACTIVITY_AREA) },
+                        onBlockManageClick = { navController.navigate(Routes.BLOCK_MANAGE) },
+                        onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
+                        onLogout = {
+                            SessionReset.onLogout()
+                            navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+                        },
+                    )
+                }
             }
         }
     }
