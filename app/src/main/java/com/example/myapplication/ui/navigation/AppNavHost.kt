@@ -25,8 +25,6 @@ import com.example.myapplication.data.api.Api
 import com.example.myapplication.data.local.SessionEvents
 import com.example.myapplication.data.local.SessionReset
 import com.example.myapplication.data.model.Sport
-import com.example.myapplication.data.repository.FakeMateRepository
-import com.example.myapplication.data.repository.FakeReviewRepository
 import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.ui.activity.ActivityScreen
 import com.example.myapplication.ui.activity.ActivityViewModel
