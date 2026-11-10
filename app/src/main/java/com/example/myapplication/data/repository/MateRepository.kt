@@ -14,6 +14,9 @@ interface MateRepository {
     suspend fun acceptRequest(requestId: String): Result<Unit>
     suspend fun rejectRequest(requestId: String): Result<Unit>
     suspend fun sendRequest(userId: String): Result<Unit>
+
+    // 내가 보낸 대기 중인 신청을 취소한다. 취소한 신청은 남지 않는다.
+    suspend fun cancelRequest(requestId: String): Result<Unit> = Result.failure(UnsupportedOperationException())
     suspend fun getProfile(userId: String): Result<MateProfile> // 15
     suspend fun removeMate(userId: String): Result<Unit> // 메이트 끊기 (화면 디자인 없음)
     suspend fun setMateNotification(userId: String, enabled: Boolean): Result<Unit> // 메이트별 알림 (화면 디자인 없음)

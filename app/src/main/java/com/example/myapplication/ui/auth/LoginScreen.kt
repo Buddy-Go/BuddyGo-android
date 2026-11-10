@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.common.EyeIcon
+import com.example.myapplication.ui.common.InlineErrorBanner
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
@@ -63,6 +64,9 @@ fun LoginScreen(
     onSignUpClick: () -> Unit = {},
     onFindPasswordClick: () -> Unit = {},
     onKakaoClick: () -> Unit = {},
+    submitting: Boolean = false,
+    errorMessage: String? = null,
+    onInputChange: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -98,7 +102,7 @@ fun LoginScreen(
         LoginField(
             label = "이메일",
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { email = it; onInputChange() },
             keyboardType = KeyboardType.Email,
             leading = {
                 PersonIcon()
@@ -108,7 +112,7 @@ fun LoginScreen(
         LoginField(
             label = "비밀번호",
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { password = it; onInputChange() },
             keyboardType = KeyboardType.Password,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             leading = {
@@ -123,16 +127,30 @@ fun LoginScreen(
         )
 
         Spacer(Modifier.height(AppSpace.xxl))
+        if (errorMessage != null) {
+            InlineErrorBanner(errorMessage)
+            Spacer(Modifier.height(AppSpace.xl))
+        }
+        // 제출 중에는 회색 버튼으로 바꾸고 누를 수 없게 한다. 실패하면 문구가 '다시 시도'로 바뀐다. (16c, 16i)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp)
                 .clip(RoundedCornerShape(AppRadius.lg))
-                .background(AppColor.Accent)
-                .clickable { onLoginClick(email, password, keepLogin) },
+                .background(if (submitting) AppColor.SkeletonBase else AppColor.Accent)
+                .clickable(enabled = !submitting) { onLoginClick(email, password, keepLogin) },
             contentAlignment = Alignment.Center,
         ) {
-            Text("로그인", color = AppColor.TextPrimary, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = when {
+                    submitting -> "로그인하는 중"
+                    errorMessage != null -> "다시 시도"
+                    else -> "로그인"
+                },
+                color = if (submitting) AppColor.TextDisabled else AppColor.TextPrimary,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+            )
         }
 
         Spacer(Modifier.height(AppSpace.xl))
