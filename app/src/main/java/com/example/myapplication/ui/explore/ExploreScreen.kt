@@ -82,7 +82,7 @@ fun ExploreScreen(
 
     // 목록을 못 불러오면 화면 전체를 오류로 덮는다. (16f, 16g)
     (state.meetings as? UiState.Error)?.let {
-        FullScreenError(type = it.type, onRetry = viewModel::load, modifier = modifier)
+        FullScreenError(type = it.type, onRetry = viewModel::load, modifier = modifier, showHome = false)
         return
     }
 

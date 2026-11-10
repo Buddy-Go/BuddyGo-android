@@ -48,7 +48,7 @@ fun ActivityScreen(
 ) {
     LaunchedEffect(Unit) { viewModel.onResume() }
     viewModel.state.loadError?.let { error ->
-        FullScreenError(type = error, onRetry = viewModel::onResume)
+        FullScreenError(type = error, onRetry = viewModel::onResume, showHome = false)
         return
     }
     ActivityContent(

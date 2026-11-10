@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -26,6 +27,9 @@ import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
+// 서버 오류의 "홈으로"가 갈 곳. 앱 내비게이션이 넣어 준다.
+val LocalGoHome = staticCompositionLocalOf<(() -> Unit)?> { null }
+
 // 화면 전체를 덮는 오류 상태. 뒤로 가기 화살표는 화면이 그린다.
 // 16f NETWORK: 다시 시도만. 16g SERVER: 다시 시도 + 홈으로 (onHome이 null이면 홈으로는 숨김)
 @Composable
@@ -33,7 +37,8 @@ fun FullScreenError(
     type: ErrorType,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    onHome: (() -> Unit)? = null,
+    showHome: Boolean = true, // 홈인 탭 화면은 홈으로 버튼이 필요 없어 false
+    onHome: (() -> Unit)? = if (showHome) LocalGoHome.current else null,
 ) {
     Column(
         modifier = modifier

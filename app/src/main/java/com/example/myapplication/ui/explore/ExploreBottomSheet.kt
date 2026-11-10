@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.ui.common.SkeletonList
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
@@ -126,8 +127,8 @@ private fun SheetBody(
     onToggleFavorite: (String) -> Unit,
 ) {
     when (state.meetings) {
-        // 16e 부분 로딩: 지도는 그대로 두고 목록 자리만 스켈레톤으로 채운다.
-        UiState.Loading -> Column(
+        // 16a 첫 로딩은 스켈레톤 카드. 16e 부분 로딩(다시 불러올 때)은 지도는 그대로 두고 목록 자리에 스피너.
+        UiState.Loading -> if (state.firstLoad) SkeletonList() else Column(
             Modifier.fillMaxWidth().padding(top = AppSpace.x5 * 3),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {

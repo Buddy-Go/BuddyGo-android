@@ -50,6 +50,7 @@ import com.example.myapplication.ui.common.InlineErrorBanner
 import com.example.myapplication.ui.common.SkeletonDetail
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.filter.ChevronRightIcon
+import com.example.myapplication.ui.record.InfoIcon
 import com.example.myapplication.ui.explore.filter.CloseIcon
 import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.theme.AppColor
@@ -126,6 +127,7 @@ private fun ColumnScope.ApplyForm(
         Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
         verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
     ) {
+        if (state.failed) InlineErrorBanner("신청을 보내지 못했어요. 다시 시도해주세요.")
         Column(verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
             Text(meeting.title, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, lineHeight = 34.sp)
             Text(applySubtitle(meeting), fontSize = 15.sp, color = AppColor.TextSecondary)
@@ -155,8 +157,7 @@ private fun ColumnScope.ApplyForm(
     Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Border))
         Column(Modifier.padding(horizontal = AppSpace.x4, vertical = AppSpace.xl), verticalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
-            // 16i 제출 실패: 띠로 알리고 버튼을 '다시 시도'로 바꾼다. 16c 제출 중에는 버튼이 '신청하는 중'이다.
-            if (state.failed) InlineErrorBanner("신청을 보내지 못했어요. 다시 시도해주세요.")
+            // 16i 제출 실패: 버튼을 '다시 시도'로 바꾸고 띠는 화면 위에 보인다. 16c 제출 중에는 버튼이 '신청하는 중'이다.
             ActionButton(
                 text = if (state.failed) "다시 시도" else "신청하기",
                 loadingText = "신청하는 중",
@@ -188,7 +189,11 @@ private fun RecordRow(summary: String?, onClick: () -> Unit) {
             )
             ChevronRightIcon(AppColor.TextSecondary)
         }
-        if (summary == null) Text("기록을 설정하면 호스트가 판단하기 쉬워요", fontSize = 14.sp, color = AppColor.TextSecondary)
+        if (summary == null) Row(verticalAlignment = Alignment.CenterVertically) {
+            InfoIcon(AppColor.IconMuted, size = 16.dp)
+            Spacer(Modifier.width(AppSpace.md))
+            Text("기록을 설정하면 호스트가 판단하기 쉬워요", fontSize = 14.sp, color = AppColor.TextSecondary)
+        }
     }
 }
 

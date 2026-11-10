@@ -83,7 +83,7 @@ fun MyPageScreen(
             Text("마이페이지", Modifier.padding(AppSpace.xxl), fontSize = 20.sp, fontWeight = FontWeight.Bold)
             SkeletonList(Modifier.padding(horizontal = AppSpace.xxl))
         }
-        is UiState.Error -> FullScreenError(type = s.type, onRetry = viewModel::load, modifier = modifier)
+        is UiState.Error -> FullScreenError(type = s.type, onRetry = viewModel::load, modifier = modifier, showHome = false)
         is UiState.Success -> {
             val d = s.data
             Column(modifier.fillMaxSize().background(AppColor.Surface).verticalScroll(rememberScrollState())) {
