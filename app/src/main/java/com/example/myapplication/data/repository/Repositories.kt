@@ -3,9 +3,8 @@ package com.example.myapplication.data.repository
 import com.example.myapplication.data.api.Api
 import com.example.myapplication.data.api.KakaoRegionLookup
 
-// TODO(임시) 서버가 준비되기 전까지 모든 화면이 같은 목 저장소를 나눠 쓴다.
-// 화면마다 따로 만들면 한 화면에서 신청·찜·읽음 처리한 결과가 다른 화면에 보이지 않는다.
-// 서버가 준비되면 여기만 Real 구현으로 바꾼다. 화면과 ViewModel은 그대로다.
+// 모든 화면이 같은 저장소를 나눠 쓴다. 화면마다 따로 만들면 한 화면에서 신청·찜·읽음 처리한 결과가 다른 화면에 보이지 않는다.
+// 앱이 뜬 경우에는 서버와 연결된 Real 구현을, JVM 단위 테스트처럼 앱이 뜨지 않은 곳에서는 목(Fake) 구현을 준다.
 object Repositories {
     // 모임 목록·상세·신청·체크인·개설 등은 서버와 연결했다. (서버는 헬스 모임만 지원한다)
     val meetings: MeetingRepository by lazy {

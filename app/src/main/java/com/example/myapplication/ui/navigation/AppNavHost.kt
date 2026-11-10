@@ -84,8 +84,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    // TODO(임시): 서버 연결 전까지 가짜 저장소를 앱 전체에서 하나씩 같이 쓴다.
-    // (화면마다 새로 만들면 수락·공지 작성 결과가 다른 화면에 안 보인다)
+    // 저장소는 Repositories에서 하나씩 같이 쓴다. (화면마다 새로 만들면 수락·공지 작성 결과가 다른 화면에 안 보인다)
     val meetingRepository = Repositories.meetings
     val userRepository = Repositories.users
     val noticeRepository = Repositories.notices

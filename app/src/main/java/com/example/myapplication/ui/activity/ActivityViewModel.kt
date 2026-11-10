@@ -13,7 +13,7 @@ import com.example.myapplication.ui.common.ErrorType
 import kotlinx.coroutines.launch
 
 // 활동 내역 (13-H, 13-H2, 13-P, 13-P2, 13-R)
-// TODO(임시): 지금은 모임 전체 목록에서 내 역할로 골라낸다. 서버에 '내 활동' 조회가 생기면 그걸 쓴다.
+// 내가 개설했거나 신청·참여한 모임은 getMyMeetings(서버 '내 활동' 조회)로 받는다.
 class ActivityViewModel(
     private val meetingRepository: MeetingRepository,
     private val userRepository: UserRepository,

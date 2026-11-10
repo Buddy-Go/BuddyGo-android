@@ -194,7 +194,8 @@ fun buildActivityState(
         val status = when (m.roleOf(myId)) {
             MeetingRole.PENDING -> JoinedStatus.PENDING
             MeetingRole.CONFIRMED -> when (m.status) {
-                MeetingStatus.ENDED -> JoinedStatus.ATTENDED // TODO(임시): 체크인 결과(노쇼)가 모델에 생기면 나눈다
+                // 끝난 모임에서 내가 체크인하지 않았으면 노쇼. 명단·체크인 정보가 없으면 참여 완료로 본다.
+                MeetingStatus.ENDED -> if (m.members.firstOrNull { it.userId == myId }?.checkedIn == false) JoinedStatus.NO_SHOW else JoinedStatus.ATTENDED
                 MeetingStatus.CANCELED -> JoinedStatus.CANCELLED
                 else -> JoinedStatus.CONFIRMED
             }
