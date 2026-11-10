@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.activity
 
 import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.MeetingMember
 import com.example.myapplication.data.model.MeetingStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -54,5 +55,20 @@ class ActivityBuildTest {
     @Test
     fun keepsSelectedTab() {
         assertEquals(ActivityTab.JOINED, buildActivityState(meetings, me, now, ActivityTab.JOINED).selectedTab)
+    }
+
+    @Test
+    fun 끝난_모임에서_체크인하지_않았으면_노쇼다() {
+        val ended = Meeting(
+            id = "e1", hostId = "u3", confirmedIds = listOf("u3", me), startAtMillis = now - 200 * hour, status = MeetingStatus.ENDED,
+            members = listOf(MeetingMember("u3", "호스트", checkedIn = true), MeetingMember(me, "나", checkedIn = false)),
+        )
+        val attended = ended.copy(id = "e2", members = listOf(MeetingMember("u3", "호스트", true), MeetingMember(me, "나", true)))
+
+        val s = buildActivityState(listOf(ended, attended), me, now)
+
+        assertEquals(JoinedStatus.NO_SHOW, s.joined.first { it.meetingId == "e1" }.status)
+        assertEquals(JoinedStatus.ATTENDED, s.joined.first { it.meetingId == "e2" }.status)
+        assertEquals(1, s.joinedTotal) // '참여 n'은 참여 완료만 센다
     }
 }

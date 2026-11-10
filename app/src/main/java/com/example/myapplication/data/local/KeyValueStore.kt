@@ -17,8 +17,8 @@ class InMemoryKeyValueStore : KeyValueStore {
 }
 
 // SharedPreferences에 저장한다. 저장은 비동기(apply)라 화면을 막지 않는다.
-class SharedPrefsKeyValueStore(context: Context) : KeyValueStore {
-    private val prefs = context.applicationContext.getSharedPreferences("buddygo_recents", Context.MODE_PRIVATE)
+class SharedPrefsKeyValueStore(context: Context, name: String = "buddygo_recents") : KeyValueStore {
+    private val prefs = context.applicationContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     override fun get(key: String): String? = prefs.getString(key, null)
     override fun put(key: String, value: String) { prefs.edit().putString(key, value).apply() }
 }

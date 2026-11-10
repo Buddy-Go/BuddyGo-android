@@ -3,7 +3,7 @@ package com.example.myapplication.ui.record
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.Gender
-import com.example.myapplication.data.repository.FakeUserRepository
+import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.SignUpDraftStore
 import com.example.myapplication.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SignUpInfoViewModel(
-    private val repository: UserRepository = FakeUserRepository(),
+    private val repository: UserRepository = Repositories.users,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SignUpInfoState())
     val state: StateFlow<SignUpInfoState> = _state.asStateFlow()

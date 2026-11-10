@@ -11,6 +11,9 @@ composeBom = "2026.02.01"
 navigationCompose = "2.9.0"
 lifecycleViewmodelCompose = "2.9.0"
 kakaoMap = "2.15.2"
+retrofit = "3.0.0"
+okhttp = "4.12.0"
+serialization = "1.8.1"
 coroutinesTest = "1.9.0" # 앱이 쓰는 kotlinx-coroutines-core(1.9.0)와 같은 버전
 
 [libraries]
@@ -31,9 +34,16 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 kakao-map = { group = "com.kakao.maps.open", name = "android", version.ref = "kakaoMap" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

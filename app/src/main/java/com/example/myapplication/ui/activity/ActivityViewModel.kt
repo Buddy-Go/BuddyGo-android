@@ -7,15 +7,18 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.MeetingRepository
+import com.example.myapplication.data.repository.ReviewRepository
 import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import kotlinx.coroutines.launch
 
 // 활동 내역 (13-H, 13-H2, 13-P, 13-P2, 13-R)
-// TODO(임시): 지금은 모임 전체 목록에서 내 역할로 골라낸다. 서버에 '내 활동' 조회가 생기면 그걸 쓴다.
+// 내가 개설했거나 신청·참여한 모임은 getMyMeetings(서버 '내 활동' 조회)로 받는다.
 class ActivityViewModel(
     private val meetingRepository: MeetingRepository,
     private val userRepository: UserRepository,
+    // 있으면 '평가 대기'를 서버가 판정한 목록으로 쓴다. 없거나 못 받으면 모임 목록으로 직접 계산한 값을 쓴다.
+    private val reviewRepository: ReviewRepository? = null,
 ) : ViewModel() {
 
     var state by mutableStateOf(ActivityState(now = System.currentTimeMillis()))
@@ -34,12 +37,17 @@ class ActivityViewModel(
     fun onResume() {
         viewModelScope.launch {
             val me = userRepository.getCurrentUser().getOrNull()
-            val meetings = meetingRepository.getMeetings().getOrNull()
+            val meetings = meetingRepository.getMyMeetings().getOrNull()
             if (me == null || meetings == null) {
                 state = state.copy(loadError = ErrorType.SERVER) // 16g. 실패 종류를 구분할 수 없어 서버 오류로 둔다
                 return@launch
             }
             state = buildActivityState(meetings, me.id, System.currentTimeMillis(), state.selectedTab, state.sportFilter)
+            reviewRepository?.getPendingReviews()?.getOrNull()?.let { pending ->
+                state = state.copy(
+                    reviewPending = pending.map { ReviewPendingItem(it.meetingId, it.title, endedAt = it.endedAtMillis, reviewDueAt = it.reviewDueAtMillis) },
+                )
+            }
         }
     }
 }

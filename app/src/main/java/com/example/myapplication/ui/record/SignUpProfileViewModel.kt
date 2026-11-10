@@ -3,7 +3,7 @@ package com.example.myapplication.ui.record
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.Sport
-import com.example.myapplication.data.repository.FakeUserRepository
+import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.SignUpDraftStore
 import com.example.myapplication.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SignUpProfileViewModel(
-    private val repository: UserRepository = FakeUserRepository(),
+    private val repository: UserRepository = Repositories.users,
 ) : ViewModel() {
     private data class Submit(val submitting: Boolean = false, val error: Boolean = false, val completed: Boolean = false)
 

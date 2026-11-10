@@ -28,6 +28,10 @@ interface UserRepository {
 
     suspend fun logout(): Result<Unit>
 
+    // 푸시 토큰(FCM)을 서버에 등록한다. 로그아웃하면 서버에서 지워 이 기기로 푸시가 가지 않게 한다.
+    // 푸시를 쓰지 않는 저장소(목)는 아무 일도 하지 않는다.
+    suspend fun registerPushToken(token: String): Result<Unit> = Result.success(Unit)
+
     // 비밀번호 찾기: 이 이메일로 재설정 메일을 보낸다. 가입된 이메일인지는 알려 주지 않는다. (보안상 항상 같은 안내)
     suspend fun requestPasswordReset(email: String): Result<Unit>
 

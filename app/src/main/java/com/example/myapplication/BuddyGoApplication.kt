@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.app.Application
+import com.example.myapplication.data.api.Api
 import com.example.myapplication.data.local.ActivityAreaStore
 import com.example.myapplication.data.local.AppStorage
 import com.example.myapplication.data.local.BlockedUsersStore
@@ -15,6 +16,7 @@ class BuddyGoApplication : Application() {
         runCatching { KakaoMapSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY) }
         // 최근 검색 지역과 최근 장소를 앱을 껐다 켜도 남긴다.
         AppStorage.init(this)
+        Api.init(this)
         RecentDistrictStore.attach(AppStorage.store)
         PlaceSelectionStore.attach(AppStorage.store)
         ActivityAreaStore.attach(AppStorage.store)

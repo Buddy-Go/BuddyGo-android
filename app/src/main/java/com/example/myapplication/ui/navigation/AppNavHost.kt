@@ -21,16 +21,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myapplication.data.api.Api
+import com.example.myapplication.data.local.SessionEvents
 import com.example.myapplication.data.local.SessionReset
 import com.example.myapplication.data.model.Sport
-import com.example.myapplication.data.repository.FakeMateRepository
-import com.example.myapplication.data.repository.FakeReviewRepository
 import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.ui.activity.ActivityScreen
 import com.example.myapplication.ui.activity.ActivityViewModel
 import com.example.myapplication.ui.auth.LoginScreen
-import com.example.myapplication.ui.common.BottomNavBar
+import com.example.myapplication.ui.auth.LoginViewModel
+import com.example.myapplication.ui.auth.message
 import com.example.myapplication.ui.common.LocalGoHome
+import com.example.myapplication.ui.common.BottomNavBar
 import com.example.myapplication.ui.explore.ExploreScreen
 import com.example.myapplication.ui.explore.filter.FilterScreen
 import com.example.myapplication.ui.explore.filter.FilterViewModel
@@ -82,13 +84,23 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    // TODO(임시): 서버 연결 전까지 가짜 저장소를 앱 전체에서 하나씩 같이 쓴다.
-    // (화면마다 새로 만들면 수락·공지 작성 결과가 다른 화면에 안 보인다)
+    // 저장소는 Repositories에서 하나씩 같이 쓴다. (화면마다 새로 만들면 수락·공지 작성 결과가 다른 화면에 안 보인다)
     val meetingRepository = Repositories.meetings
     val userRepository = Repositories.users
     val noticeRepository = Repositories.notices
-    val mateRepository = remember { FakeMateRepository() }
-    val reviewRepository = remember { FakeReviewRepository() }
+    val mateRepository = Repositories.mates
+    val reviewRepository = Repositories.reviews
+
+    // 앱을 켠 순간의 로그인 여부로 첫 화면을 정한다. (이후 로그인·로그아웃은 화면 이동으로 처리)
+    val startRoute = remember { if (Api.tokens.hasSession) Routes.EXPLORE else Routes.LOGIN }
+
+    // 로그인이 풀렸을 때(리프레시 토큰 만료·재사용) 이전 사용자의 흔적을 지우고 로그인 화면으로 돌려보낸다.
+    LaunchedEffect(Unit) {
+        SessionEvents.expired.collect {
+            SessionReset.onLogout()
+            navController.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+        }
+    }
 
     // 탭으로 옮기는 방법은 하나로 맞춘다. 같은 탭 화면이 겹겹이 쌓이지 않고, 탭의 상태가 남는다.
     val goTab: (String) -> Unit = { route ->
@@ -120,18 +132,25 @@ fun AppNavHost(modifier: Modifier = Modifier) {
         CompositionLocalProvider(LocalGoHome provides { goTab(Routes.EXPLORE) }) {
             NavHost(
                 navController = navController,
-                startDestination = Routes.LOGIN,
+                // 로그인 상태 유지로 저장된 로그인이 있으면 로그인 화면을 건너뛴다.
+                startDestination = startRoute,
                 modifier = Modifier.padding(innerPadding),
             ) {
                 // 1~2 로그인 · 회원가입 · 종목 기록
                 composable(Routes.LOGIN) {
+                    val loginViewModel: LoginViewModel = viewModel()
+                    val loginState by loginViewModel.state.collectAsState()
                     LoginScreen(
-                        // TODO(임시) 인증은 아직 연결하지 않아 누르면 바로 탐색으로 이동한다.
-                        onLoginClick = { _, _, _ ->
-                            navController.navigate(Routes.EXPLORE) {
-                                popUpTo(Routes.LOGIN) { inclusive = true }
+                        onLoginClick = { email, password, keepLogin ->
+                            loginViewModel.onLogin(email, password, keepLogin) {
+                                navController.navigate(Routes.EXPLORE) {
+                                    popUpTo(Routes.LOGIN) { inclusive = true }
+                                }
                             }
                         },
+                        submitting = loginState.submitting,
+                        errorMessage = loginState.error?.message(),
+                        onInputChange = loginViewModel::onInputChanged,
                         onSignUpClick = { navController.navigate(Routes.SIGN_UP_INFO) },
                         onFindPasswordClick = { navController.navigate(Routes.FIND_PASSWORD) },
                         // TODO(임시) 카카오 인증은 서버·SDK 연동 전이라 로그인처럼 바로 탐색으로 이동한다.
@@ -428,7 +447,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 // 13~14 활동 내역 · 마이페이지
                 composable(Routes.ACTIVITY) {
                     ActivityScreen(
-                        viewModel = viewModel { ActivityViewModel(meetingRepository, userRepository) },
+                        viewModel = viewModel { ActivityViewModel(meetingRepository, userRepository, reviewRepository) },
                         onReviewClick = { meetingId -> navController.navigate(Routes.reviewList(meetingId)) },
                         onMeetingClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
                         onCreateClick = { goTab(Routes.MEETING_CREATE) },
