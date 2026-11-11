@@ -48,6 +48,7 @@ import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.record.SportIcon
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 10g-4 집결지 지정 · 러닝/등산. 공원·산처럼 넓은 장소는 지도를 움직여 만날 곳에 핀을 맞추고, 만나는 지점을 상세주소로 적는다.
 // 핀은 지도 가운데에 고정돼 있고, 지도를 멈추면 그 자리의 좌표가 집결지가 된다. (service-rules 4장)
@@ -122,7 +123,7 @@ fun MeetingPointScreen(
             }
             BasicTextField(
                 value = detail, onValueChange = { detail = it.take(DETAIL_ADDRESS_MAX_LENGTH) }, singleLine = true,
-                textStyle = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
+                textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 17.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
                 cursorBrush = SolidColor(AppColor.TextPrimary),
                 modifier = Modifier.fillMaxWidth().padding(top = AppSpace.xl, bottom = AppSpace.md),
                 decorationBox = { inner ->

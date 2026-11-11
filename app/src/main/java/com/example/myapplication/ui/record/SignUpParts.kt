@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 회원가입 3단계(2a, 2b, 2c~)가 같이 쓰는 위쪽 줄: 뒤로 가기 + 제목 + '단계 / 전체' + 진행 막대
 @Composable
@@ -134,7 +135,7 @@ fun FormTextField(
             interactionSource = interaction,
             visualTransformation = visualTransformation,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = TextStyle(color = AppColor.TextPrimary, fontSize = 17.sp),
+            textStyle = TextStyle(fontFamily = SuitFontFamily, color = AppColor.TextPrimary, fontSize = 17.sp),
             cursorBrush = SolidColor(AppColor.AccentStrong),
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { inner ->

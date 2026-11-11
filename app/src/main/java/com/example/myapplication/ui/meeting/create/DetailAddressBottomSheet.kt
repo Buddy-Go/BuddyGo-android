@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 상세주소 시트 (모임 수정). 선택 입력이고 비워도 적용할 수 있다. (service-rules 4장)
 @Composable
@@ -38,7 +39,7 @@ fun DetailAddressBottomSheet(
                 BasicTextField(
                     value = text,
                     onValueChange = { text = it.take(DETAIL_ADDRESS_MAX_LENGTH) },
-                    textStyle = TextStyle(fontSize = 15.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
+                    textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 15.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
                     cursorBrush = SolidColor(AppColor.TextPrimary),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),

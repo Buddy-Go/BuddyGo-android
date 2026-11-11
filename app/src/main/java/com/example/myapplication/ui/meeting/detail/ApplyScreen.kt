@@ -56,6 +56,7 @@ import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 6a 신청 작성(기준 일치), 6b 신청 작성(기준 미설정). 호스트에게 가는 정보를 보여 주고 한마디를 받아 신청한다.
 // 기준이 맞지 않아도 신청은 막지 않는다. (service-rules 5장)
@@ -216,7 +217,7 @@ private fun MessageField(message: String, counter: String, onChange: (String) ->
             }
             BasicTextField(
                 value = message, onValueChange = onChange,
-                textStyle = TextStyle(fontSize = 16.sp, color = AppColor.TextPrimary, lineHeight = 24.sp),
+                textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 16.sp, color = AppColor.TextPrimary, lineHeight = 24.sp),
                 cursorBrush = SolidColor(AppColor.AccentStrong),
                 modifier = Modifier.fillMaxSize(),
             )

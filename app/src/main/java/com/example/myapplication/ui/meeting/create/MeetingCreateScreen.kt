@@ -49,6 +49,7 @@ import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 모임 개설 화면 ← 10a 헬스, 10a-2 헬스 기록 숨김
 // 2026-10-30 범위 변경으로 헬스만 개설한다. 디자인의 종목 선택 영역과 10b·10c는 만들지 않는다.
@@ -244,6 +245,7 @@ private fun SectionLabel(text: String) {
 @Composable
 private fun TitleSection(title: String, onTitleChange: (String) -> Unit) {
     val textStyle = TextStyle(
+        fontFamily = SuitFontFamily,
         fontSize = 19.sp,
         lineHeight = 26.sp,
         fontWeight = FontWeight.Bold,

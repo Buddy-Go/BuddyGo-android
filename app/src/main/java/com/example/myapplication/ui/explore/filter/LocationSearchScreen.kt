@@ -45,6 +45,7 @@ import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 4g 위치 검색, 4g-2 검색 결과. 구·동을 하나 골라 '적용'하면 조건 설정의 위치가 된다.
 // 고른 곳이 없는 채로 적용하면 위치 조건이 풀린다.
@@ -131,7 +132,7 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onClear: () -
             if (query.isEmpty()) Text("구 · 동 이름으로 검색", fontSize = 16.sp, color = AppColor.TextDisabled)
             BasicTextField(
                 value = query, onValueChange = onChange, singleLine = true,
-                textStyle = TextStyle(fontSize = 16.sp, color = AppColor.TextPrimary),
+                textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 16.sp, color = AppColor.TextPrimary),
                 cursorBrush = SolidColor(AppColor.AccentStrong),
                 modifier = Modifier.fillMaxWidth(),
             )

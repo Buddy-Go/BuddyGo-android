@@ -36,6 +36,7 @@ import com.example.myapplication.R
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.common.InlineErrorBanner
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 공지 작성·수정 화면 ← 8a 빈 상태, 8b 입력 중, 8c 수정. 호스트 전용.
 // ViewModel은 화면을 띄우는 쪽(AppNavHost)에서 meetingId(·noticeId)로 만들어 넘겨준다.
@@ -97,7 +98,7 @@ private fun NoticeEditContent(
             verticalArrangement = Arrangement.spacedBy(AppSpace.lg),
         ) {
             if (state.submitFailed) InlineErrorBanner("저장하지 못했어요. 다시 시도해주세요.")
-            val titleStyle = TextStyle(fontSize = 19.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+            val titleStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 19.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
             PlaceholderField(
                 value = state.title,
                 onValueChange = onTitleChange,
@@ -108,6 +109,7 @@ private fun NoticeEditContent(
             Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Border))
 
             val bodyStyle = TextStyle(
+                fontFamily = SuitFontFamily,
                 fontSize = 15.sp,
                 lineHeight = 24.sp,
                 fontWeight = FontWeight.Medium,

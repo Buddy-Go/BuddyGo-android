@@ -40,6 +40,7 @@ import com.example.myapplication.data.model.ReviewVerdict
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 한 명씩 평가 ← 12b-1 판정 미선택, 12b-2 좋음, 12b-3 보통, 12b-4 아쉬움(마지막)
 @Composable
@@ -128,7 +129,7 @@ private fun MemberReviewContent(
                 }
                 Line()
                 SectionHeader("한마디 남기기")
-                val style = TextStyle(fontSize = 14.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
+                val style = TextStyle(fontFamily = SuitFontFamily, fontSize = 14.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
                 BasicTextField(
                     value = state.draft.comment,
                     onValueChange = onCommentChange,

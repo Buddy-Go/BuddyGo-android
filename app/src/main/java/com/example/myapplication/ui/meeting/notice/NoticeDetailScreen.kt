@@ -46,6 +46,7 @@ import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
 import java.util.TimeZone
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 공지 상세 화면 ← 8f 호스트, 8g 참가자, 8h 댓글 입력 중, 8i 댓글 없음
 // ViewModel은 화면을 띄우는 쪽(AppNavHost)에서 noticeId로 만들어 넘겨준다.
@@ -277,7 +278,7 @@ private fun CommentInputBar(
     onValueChange: (String) -> Unit,
     onSend: () -> Unit,
 ) {
-    val textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
+    val textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
     Column(modifier = Modifier.background(AppColor.Surface)) {
         NoticeDivider()
         Row(

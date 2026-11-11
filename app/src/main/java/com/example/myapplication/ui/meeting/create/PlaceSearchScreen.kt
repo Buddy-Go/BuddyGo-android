@@ -56,6 +56,7 @@ import com.example.myapplication.ui.explore.isLocationPermanentlyDenied
 import com.example.myapplication.ui.explore.openAppSettings
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 10g 장소 검색, 10g-2 검색 결과. 장소를 고르면 장소 확인(10g-3)으로 간다.
 @Composable
@@ -119,7 +120,7 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onClear: () -
         Spacer(Modifier.width(AppSpace.xl))
         BasicTextField(
             value = query, onValueChange = onChange, singleLine = true,
-            textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
+            textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
             cursorBrush = SolidColor(AppColor.TextPrimary),
             modifier = Modifier.weight(1f),
             decorationBox = { inner ->

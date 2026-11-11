@@ -35,6 +35,7 @@ import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
 import java.util.TimeZone
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 함께 운동한 사람 탭 ← 11b
 // 이름 찾기 아래 종목 칩(전체·헬스·러닝·등산, 숫자는 그 종목을 함께한 사람 수) ← 11b-2.
@@ -144,7 +145,7 @@ private fun SportChips(selected: Sport?, count: (Sport?) -> Int, onSelect: (Spor
 
 @Composable
 private fun SearchField(value: String, onValueChange: (String) -> Unit) {
-    val style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
+    val style = TextStyle(fontFamily = SuitFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
     Row(
         modifier = Modifier
             .padding(start = AppSpace.x4, end = AppSpace.x4, bottom = AppSpace.md)
