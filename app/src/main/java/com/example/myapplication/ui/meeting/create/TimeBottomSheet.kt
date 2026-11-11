@@ -45,11 +45,21 @@ import com.example.myapplication.ui.theme.AppSpace
 // 시간 설정 시트 ← 10f. 시작 시각(시·분 휠) + 진행 시간(−/+). 종료 = 시작 + 진행 시간.
 
 private const val MINUTE_STEP = 10 // 10f 휠이 50, 00, 10 단위
-private const val DURATION_STEP = 30 // (추정) 디자인에 간격이 없어 30분으로 둠
-private const val DURATION_MIN = 30 // (추정)
-private const val DURATION_MAX = 12 * 60 // (추정)
 private const val DEFAULT_START = 19 * 60 // (추정) 아직 시간을 안 골랐을 때 처음 보일 값
 private const val DEFAULT_DURATION = 60 // (추정)
+
+// 진행 시간 규칙: 최소 30분에서 시작해 10분 단위로 늘리고 줄인다. 최대 4시간.
+// 서버(gathering.min-duration 30m, duration-step 10m, max-duration 4h)와 같은 값이라 서버가 거절하는 시간은 고를 수 없다.
+internal object DurationRules {
+    const val MIN = 30
+    const val STEP = 10
+    const val MAX = 4 * 60
+
+    fun minus(minutes: Int): Int = (minutes - STEP).coerceAtLeast(MIN)
+    fun plus(minutes: Int): Int = (minutes + STEP).coerceAtMost(MAX)
+    fun canMinus(minutes: Int): Boolean = minutes > MIN
+    fun canPlus(minutes: Int): Boolean = minutes < MAX
+}
 
 @Composable
 fun TimeBottomSheet(
@@ -70,8 +80,8 @@ fun TimeBottomSheet(
             durationMinutes = duration,
             onHourSelect = { hour = it },
             onMinuteSelect = { minuteIndex = it },
-            onDurationMinus = { duration = (duration - DURATION_STEP).coerceAtLeast(DURATION_MIN) },
-            onDurationPlus = { duration = (duration + DURATION_STEP).coerceAtMost(DURATION_MAX) },
+            onDurationMinus = { duration = DurationRules.minus(duration) },
+            onDurationPlus = { duration = DurationRules.plus(duration) },
             onConfirm = { onApply(hour * 60 + minuteIndex * MINUTE_STEP, duration) },
         )
     }
@@ -161,7 +171,7 @@ internal fun TimeSheetBody(
                     StepButton(
                         iconRes = R.drawable.ic_minus,
                         description = "진행 시간 줄이기",
-                        enabled = durationMinutes > DURATION_MIN,
+                        enabled = DurationRules.canMinus(durationMinutes),
                         onClick = onDurationMinus,
                     )
                     Text(
@@ -175,7 +185,7 @@ internal fun TimeSheetBody(
                     StepButton(
                         iconRes = R.drawable.ic_plus,
                         description = "진행 시간 늘리기",
-                        enabled = durationMinutes < DURATION_MAX,
+                        enabled = DurationRules.canPlus(durationMinutes),
                         onClick = onDurationPlus,
                     )
                 }
