@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.SportSupport
 import com.example.myapplication.data.model.WorkedOutPerson
 import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.theme.AppColor
@@ -104,10 +105,11 @@ fun WorkedOutTab(
     }
 }
 
-// 11b-2 종목 칩. 고른 칩은 라임 알약, 나머지는 글자만.
+// 11b-2 종목 칩. 고른 칩은 라임 알약, 나머지는 글자만. 서버가 받는 종목이 하나뿐이면 거를 게 없어 그리지 않는다.
 @Composable
 private fun SportChips(selected: Sport?, count: (Sport?) -> Int, onSelect: (Sport?) -> Unit) {
-    val options = listOf<Sport?>(null) + Sport.values().toList()
+    if (!SportSupport.hasChoice) return
+    val options = listOf<Sport?>(null) + SportSupport.supported
     Row(
         modifier = Modifier
             .padding(start = AppSpace.x4 - AppSpace.xl, end = AppSpace.x4, top = AppSpace.xs, bottom = AppSpace.xs)

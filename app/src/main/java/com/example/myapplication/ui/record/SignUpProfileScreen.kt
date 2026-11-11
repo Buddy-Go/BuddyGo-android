@@ -26,7 +26,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -101,14 +100,14 @@ private fun SignUpProfileContent(
             Text("나중에 언제든 수정할 수 있어요", color = AppColor.TextSecondary, fontSize = 15.sp)
 
             Spacer(Modifier.height(AppSpace.x5))
-            Text("선호 종목 · 복수 선택", color = AppColor.TextSecondary, fontSize = 14.sp)
+            Text(if (SportSupport.hasChoice) "선호 종목 · 복수 선택" else "선호 종목", color = AppColor.TextSecondary, fontSize = 14.sp)
             Spacer(Modifier.height(AppSpace.xl))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
-                Sport.entries.forEach { sport ->
+                // 서버가 받는 종목만 보여 준다. 러닝·등산은 선호 종목·기록이 저장되지 않아 화면에서 아예 뺐다.
+                SportSupport.supported.forEach { sport ->
                     SportCard(
                         sport = sport,
                         selected = sport in state.sports,
-                        enabled = SportSupport.isSupported(sport), // 서버가 받지 않는 종목은 선호 종목·기록이 저장되지 않아 막는다
                         onClick = { onToggleSport(sport) },
                         modifier = Modifier.weight(1f),
                     )
@@ -156,29 +155,27 @@ private fun SignUpProfileContent(
 }
 
 @Composable
-private fun SportCard(sport: Sport, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+private fun SportCard(sport: Sport, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(AppRadius.lg)
     val tint = if (selected) AppColor.AccentStrong else AppColor.IconMuted
     Column(
         modifier = modifier
             .height(94.dp)
             .clip(shape)
-            .alpha(if (enabled) 1f else 0.45f)
             .background(if (selected) AppColor.AccentSoft else AppColor.Surface)
             .border(if (selected) 2.dp else 1.dp, if (selected) AppColor.Accent else AppColor.Border, shape)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         SportIcon(sport, tint)
-        Spacer(Modifier.height(if (enabled) AppSpace.xl else AppSpace.md))
+        Spacer(Modifier.height(AppSpace.xl))
         Text(
             text = sportLabel(sport),
             color = if (selected) AppColor.AccentStrong else AppColor.TextPrimary,
             fontSize = 16.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
         )
-        if (!enabled) Text("준비 중", color = AppColor.TextSecondary, fontSize = 11.sp)
     }
 }
 

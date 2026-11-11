@@ -8,6 +8,9 @@ object SportSupport {
 
     fun isSupported(sport: Sport): Boolean = sport in serverSports
 
-    // 선택지로 보여 줄 수 있는 종목 (정의된 순서)
+    // 선택지로 보여 줄 수 있는 종목 (정의된 순서). 화면은 러닝·등산을 아예 보여 주지 않는다.
     val supported: List<Sport> get() = Sport.entries.filter(::isSupported)
+
+    // 종목이 둘 이상이어야 고를 거리가 있다. 하나뿐이면 종목 선택·필터 칩은 숨긴다.
+    val hasChoice: Boolean get() = supported.size > 1
 }

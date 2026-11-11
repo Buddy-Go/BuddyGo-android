@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.SportSupport
 import com.example.myapplication.ui.common.ActionButton
 import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.explore.iconButton
@@ -161,10 +162,13 @@ private fun FilterContent(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
-            SectionTitle("종목")
-            Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
-                Sport.entries.forEach { sport ->
-                    SportCard(sport, selected = draft.sport == sport, onClick = { onSelectSport(sport) }, modifier = Modifier.weight(1f))
+            // 서버가 받는 종목이 하나뿐이면 고를 게 없어 종목 섹션을 숨긴다. 러닝·등산은 화면에서 아예 뺐다.
+            if (SportSupport.hasChoice) {
+                SectionTitle("종목")
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
+                    SportSupport.supported.forEach { sport ->
+                        SportCard(sport, selected = draft.sport == sport, onClick = { onSelectSport(sport) }, modifier = Modifier.weight(1f))
+                    }
                 }
             }
 

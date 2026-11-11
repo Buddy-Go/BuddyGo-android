@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -122,17 +121,15 @@ fun SportPicker(selected: com.example.myapplication.data.model.Sport, onSelect: 
     Column(verticalArrangement = Arrangement.spacedBy(AppSpace.lg)) {
         Text("종목", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.md)) {
-            com.example.myapplication.data.model.Sport.entries.forEach { sport ->
+            // 서버가 받는 종목만 보여 준다 (SportSupport). 러닝·등산은 화면에서 아예 뺐다.
+            com.example.myapplication.data.model.SportSupport.supported.forEach { sport ->
                 val on = sport == selected
-                // 서버가 받지 않는 종목은 고를 수 없다 (SportSupport). 눌러도 개설이 실패하기 때문이다.
-                val enabled = com.example.myapplication.data.model.SportSupport.isSupported(sport)
                 val shape = RoundedCornerShape(AppRadius.lg)
                 Column(
                     Modifier.weight(1f).height(84.dp).clip(shape)
-                        .alpha(if (enabled) 1f else 0.45f)
                         .background(if (on) AppColor.AccentSoft else AppColor.Surface)
                         .border(1.dp, if (on) AppColor.Accent else AppColor.Border, shape)
-                        .clickable(enabled = enabled, onClickLabel = "${com.example.myapplication.ui.common.sportLabel(sport)} 모임으로 개설") { onSelect(sport) },
+                        .clickable(onClickLabel = "${com.example.myapplication.ui.common.sportLabel(sport)} 모임으로 개설") { onSelect(sport) },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
@@ -141,7 +138,6 @@ fun SportPicker(selected: com.example.myapplication.data.model.Sport, onSelect: 
                         com.example.myapplication.ui.common.sportLabel(sport), Modifier.padding(top = AppSpace.md),
                         fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = if (on) AppColor.AccentStrong else AppColor.TextPrimary,
                     )
-                    if (!enabled) Text("준비 중", fontSize = 11.sp, color = AppColor.TextSecondary)
                 }
             }
         }
