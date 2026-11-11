@@ -40,6 +40,7 @@ import com.example.myapplication.ui.meeting.detail.PlaceMiniMap
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 10g-3 장소 확인 · 헬스. 지도에서 위치를 보고 상세주소(선택)를 적은 뒤 '이 장소로 설정'한다.
 // (러닝·등산의 집결지 지정 10g-4는 헬스만 개설하는 범위 변경으로 만들지 않았다.)
@@ -86,7 +87,7 @@ fun PlaceConfirmScreen(
             }
             BasicTextField(
                 value = detail, onValueChange = { detail = it.take(DETAIL_ADDRESS_MAX_LENGTH) }, singleLine = true,
-                textStyle = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
+                textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 17.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary),
                 cursorBrush = SolidColor(AppColor.TextPrimary),
                 modifier = Modifier.fillMaxWidth().padding(top = AppSpace.xl, bottom = AppSpace.md),
                 decorationBox = { inner ->

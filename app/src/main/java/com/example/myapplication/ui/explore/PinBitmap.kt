@@ -7,6 +7,8 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.core.content.res.ResourcesCompat
+import com.example.myapplication.R
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
 import com.example.myapplication.data.model.Sport
@@ -26,7 +28,8 @@ internal object PinBitmap {
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = pinContentColor(style).toArgb()
             textSize = 14f * d
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            // 핀 안의 숫자도 앱 글꼴(SUIT Bold)로 그린다. 못 불러오면 기본 굵은 글씨로 그린다.
+            typeface = ResourcesCompat.getFont(context, R.font.suit_bold) ?: Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
         val iconSize = (if (multiple) 16f else 20f) * d
         val bodyH = (if (multiple) 32f else 44f) * d

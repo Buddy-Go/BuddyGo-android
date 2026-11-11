@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 모임 취소 시트 ← 5a-X2 경고(사유 비어 있음), 5a-X2-2 사유 입력됨. 호스트 전용.
 // 확정 참가자(호스트 제외)가 1명 이상일 때만 띄운다. 0명이면 MeetingDeleteDialog(5a-X3).
@@ -131,6 +132,7 @@ internal fun MeetingCancelSheetBody(
                 )
             }
             val textStyle = TextStyle(
+                fontFamily = SuitFontFamily,
                 fontSize = 14.sp,
                 lineHeight = 21.sp,
                 fontWeight = FontWeight.Medium,

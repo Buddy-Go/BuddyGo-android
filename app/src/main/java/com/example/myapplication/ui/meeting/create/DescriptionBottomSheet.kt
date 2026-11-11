@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 설명 시트 ← 10e. 선택 입력, 최대 DESCRIPTION_MAX_LENGTH자.
 @Composable
@@ -52,6 +53,7 @@ internal fun DescriptionSheetBody(
                 value = text,
                 onValueChange = onTextChange,
                 textStyle = TextStyle(
+                    fontFamily = SuitFontFamily,
                     fontSize = 14.sp,
                     lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium,

@@ -55,6 +55,7 @@ import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 1 로그인 기본
 // 입력란 라벨은 디자인의 '아이디' 대신 서비스 규칙에 따라 '이메일'로 쓴다.
@@ -235,7 +236,7 @@ internal fun LoginField(
             interactionSource = interaction,
             visualTransformation = visualTransformation,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = TextStyle(color = AppColor.TextPrimary, fontSize = 17.sp),
+            textStyle = TextStyle(fontFamily = SuitFontFamily, color = AppColor.TextPrimary, fontSize = 17.sp),
             cursorBrush = SolidColor(AppColor.AccentStrong),
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { inner ->
