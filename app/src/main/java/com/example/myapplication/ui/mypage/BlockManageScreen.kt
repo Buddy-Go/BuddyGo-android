@@ -64,7 +64,7 @@ internal fun BlockManageContent(
                 tint = AppColor.TextPrimary,
                 modifier = Modifier.size(24.dp).clickable(onClick = onBack),
             )
-            Text("신고 · 차단 관리", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+            Text("차단 관리", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         }
         if (blocked.isEmpty()) {
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {

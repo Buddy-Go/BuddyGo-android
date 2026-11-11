@@ -101,7 +101,7 @@ private fun MateProfileContent(
     if (confirmBlock) {
         ConfirmDialog(
             title = "${profile?.nickname ?: "이 사람"}님을 차단할까요?",
-            message = "차단하면 메이트와 함께 운동한 사람 목록에서 보이지 않아요. 마이페이지의 신고 · 차단 관리에서 풀 수 있어요.",
+            message = "차단하면 메이트와 함께 운동한 사람 목록에서 보이지 않아요. 마이페이지의 차단 관리에서 풀 수 있어요.",
             confirmText = "차단",
             dismissText = "취소",
             destructive = true,
