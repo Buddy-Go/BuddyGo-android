@@ -182,8 +182,8 @@ private fun MeetingCreateContent(
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
             if (state.lockedCore) LockedNotice()
-            // 종목 선택은 새로 만들 때만. 수정에서는 종목을 바꿀 수 없다.
-            if (!state.isEditMode) SportPicker(selected = state.sport, onSelect = onSportSelect)
+            // 종목 선택은 새로 만들 때만. 수정에서는 종목을 바꿀 수 없다. 서버가 받는 종목이 하나뿐이면 고를 게 없어 숨긴다.
+            if (!state.isEditMode && com.example.myapplication.data.model.SportSupport.hasChoice) SportPicker(selected = state.sport, onSelect = onSportSelect)
             TitleSection(title = state.title, onTitleChange = onTitleChange)
             DateTimeSection(
                 state = state,

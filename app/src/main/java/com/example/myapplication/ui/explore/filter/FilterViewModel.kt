@@ -7,6 +7,7 @@ import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.SportSupport
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.UserRepository
@@ -20,9 +21,11 @@ class FilterViewModel(
     private val repository: MeetingRepository = Repositories.meetings,
     private val userRepository: UserRepository = Repositories.users,
     nowMillis: Long = System.currentTimeMillis(),
+    // 서버가 받는 종목이 하나뿐이면 그 종목. 종목 카드를 숨기므로 이 종목이 늘 골라진 채로 둔다. 여럿이면 null.
+    private val onlySport: Sport? = SportSupport.supported.singleOrNull(),
 ) : ViewModel() {
     // 지금 적용된 조건에서 시작한다.
-    private val _state = MutableStateFlow(FilterState(draft = FilterStore.applied.value, nowMillis = nowMillis))
+    private val _state = MutableStateFlow(FilterState(draft = withOnlySport(FilterStore.applied.value, onlySport), nowMillis = nowMillis))
     val state: StateFlow<FilterState> = _state.asStateFlow()
 
     init {
@@ -54,7 +57,7 @@ class FilterViewModel(
 
     fun onClearTimeRange() = change { it.withCustomRange(null) }
 
-    fun onReset() = change { MeetingFilter() }
+    fun onReset() = change { withOnlySport(MeetingFilter(), onlySport) }
 
     fun onOpenSheet(sheet: FilterSheet) = _state.update { it.withSheetOpened(sheet) }
     fun onApplySheet() = _state.update { it.withSheetApplied() }
@@ -108,3 +111,8 @@ class FilterViewModel(
     private fun change(transform: (MeetingFilter) -> MeetingFilter) =
         _state.update { it.copy(draft = transform(it.draft)) }
 }
+
+// 서버가 받는 종목이 하나뿐이면 종목 카드를 숨기므로(SportSupport.hasChoice), 그 종목이 항상 골라진 것으로 둔다.
+// 그래야 '기준'처럼 종목을 먼저 골라야 열리는 조건을 쓸 수 있다. 종목이 여럿이면 그대로 둔다.
+internal fun withOnlySport(filter: MeetingFilter, only: Sport? = SportSupport.supported.singleOrNull()): MeetingFilter =
+    if (only != null && filter.sport == null) filter.withSport(only) else filter

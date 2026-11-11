@@ -20,6 +20,14 @@ class SportSupportTest {
     }
 
     @Test
+    fun 종목이_하나뿐이면_고를_거리가_없다() {
+        // 화면은 종목 카드·필터 칩을 숨기고 러닝·등산은 어디에도 나오지 않는다
+        assertFalse(SportSupport.hasChoice)
+        assertFalse(Sport.RUNNING in SportSupport.supported)
+        assertFalse(Sport.HIKING in SportSupport.supported)
+    }
+
+    @Test
     fun 모델은_모든_종목을_그대로_다룬다() {
         // 화면만 막고 모델·ViewModel은 그대로여서, 서버가 지원하면 SportSupport만 바꾸면 된다
         assertEquals(3, Sport.entries.size)

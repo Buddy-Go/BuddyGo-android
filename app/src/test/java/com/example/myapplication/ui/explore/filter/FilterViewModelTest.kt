@@ -38,7 +38,8 @@ class FilterViewModelTest {
     }
 
     private val now = 1_798_761_600_000L
-    private fun viewModel() = FilterViewModel(nowMillis = now).also { created += it }
+    // 종목이 여럿인 상황(onlySport = null)으로 돌려 종목 고르기·해제 동작을 그대로 확인한다. 하나뿐일 때는 OnlySportFilterTest
+    private fun viewModel() = FilterViewModel(nowMillis = now, onlySport = null).also { created += it }
     private val FilterViewModel.draft get() = state.value.draft
 
     @Test

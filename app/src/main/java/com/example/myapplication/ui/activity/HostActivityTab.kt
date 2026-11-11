@@ -2,6 +2,7 @@ package com.example.myapplication.ui.activity
 
 import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.SportSupport
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -119,11 +120,13 @@ internal fun FilteredEmpty() {
     }
 }
 
-// 13-H 종목 필터: 전체·헬스·러닝·등산. 고른 칸은 라임 알약, 나머지는 테두리 알약.
+// 13-H 종목 필터: 전체 + 서버가 받는 종목. 고른 칸은 라임 알약, 나머지는 테두리 알약.
+// 서버가 받는 종목이 하나뿐이면 거를 게 없어 아무것도 그리지 않는다.
 @Composable
 internal fun ActivitySportFilter(selected: Sport?, onSelect: (Sport?) -> Unit) {
+    if (!SportSupport.hasChoice) return
     Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.md)) {
-        (listOf<Sport?>(null) + Sport.values().toList()).forEach { sport ->
+        (listOf<Sport?>(null) + SportSupport.supported).forEach { sport ->
             val isSelected = sport == selected
             Box(
                 modifier = Modifier
