@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Path
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.SportSupport
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -93,7 +94,11 @@ fun MyPageScreen(
                 Spacer(Modifier.height(AppSpace.xxl))
                 MenuRow("알림 설정", trailing = notificationStatusText(d.notificationEnabled), onClick = viewModel::onToggleNotification, leading = { BellIcon(AppColor.TextPrimary) })
                 MenuRow("위치 설정", trailing = d.activityArea ?: "미설정", onClick = onLocationClick, leading = { PinIcon() })
-                MenuRow("내 운동 기록", trailing = "수정", onClick = { pickRecordSport = true }, leading = { RecordIcon() })
+                MenuRow(
+                    "내 운동 기록", trailing = "수정", leading = { RecordIcon() },
+                    // 서버가 받는 종목이 하나뿐이면 고르는 단계 없이 바로 그 종목 기록을 연다.
+                    onClick = { SportSupport.supported.singleOrNull()?.let(onEditRecord) ?: run { pickRecordSport = true } },
+                )
                 MenuRow("신고 · 차단 관리", onClick = onBlockManageClick, leading = { ShieldIcon() })
                 MenuRow("로그아웃", muted = true, onClick = { confirmLogout = true }, leading = { LogoutIcon() })
                 Spacer(Modifier.height(AppSpace.x5))
@@ -110,7 +115,7 @@ fun MyPageScreen(
             onConfirm = {},
             onDismiss = { pickRecordSport = false },
         ) {
-            Sport.entries.forEach { sport ->
+            SportSupport.supported.forEach { sport ->
                 Text(
                     sportLabel(sport),
                     Modifier.fillMaxWidth().clickable { pickRecordSport = false; onEditRecord(sport) }.padding(vertical = AppSpace.xl),
