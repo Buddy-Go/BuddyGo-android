@@ -26,7 +26,7 @@ enum class ReviewTag(val label: String, val isPositive: Boolean) {
     SAFE("안전하게 운동해요", true),
     LATE("늦게 왔어요", false),
     HARD_TO_REACH("연락이 잘 안 됐어요", false),
-    LEVEL_MISMATCH("페이스가 안 맞았어요", false),
+    LEVEL_MISMATCH("운동 수준이 안 맞았어요", false),
     BAD_MANNER("매너가 아쉬웠어요", false),
 }
 

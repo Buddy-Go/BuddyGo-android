@@ -141,7 +141,7 @@ private fun MemberReviewContent(
                     decorationBox = { inner ->
                         Box {
                             if (state.draft.comment.isEmpty()) {
-                                Text(text = "같이 뛰기 좋았어요. 페이스가 잘 맞았습니다.", style = style.copy(color = AppColor.TextDisabled))
+                                Text(text = "같이 운동하기 좋았어요. 호흡이 잘 맞았습니다.", style = style.copy(color = AppColor.TextDisabled))
                             }
                             inner()
                         }

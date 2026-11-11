@@ -27,10 +27,10 @@ data class LocationSearchState(
 }
 
 // 최근 검색 구·동. 화면이 닫혀도 남도록 앱 안에 하나만 둔다.
-// attach로 저장소를 붙이면 앱을 다시 켜도 남는다. 저장된 값이 없는 첫 실행에만 예시 값으로 시작한다.
+// attach로 저장소를 붙이면 앱을 다시 켜도 남는다. 처음에는 비어 있다.
 object RecentDistrictStore {
     private const val KEY = "recent_districts"
-    private val SEED = listOf("마포구", "강북구", "종로구", "영등포구")
+    private val SEED = emptyList<String>()
 
     private var store: KeyValueStore? = null
     private val _recent = MutableStateFlow(SEED)
