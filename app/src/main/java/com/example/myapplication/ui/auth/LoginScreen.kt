@@ -104,8 +104,8 @@ fun LoginScreen(
             value = email,
             onValueChange = { email = it; onInputChange() },
             keyboardType = KeyboardType.Email,
-            leading = {
-                PersonIcon()
+            leading = { focused ->
+                PersonIcon(if (focused) AppColor.AccentStrong else AppColor.IconMuted)
             },
         )
         Spacer(Modifier.height(AppSpace.xl))
@@ -115,8 +115,8 @@ fun LoginScreen(
             onValueChange = { password = it; onInputChange() },
             keyboardType = KeyboardType.Password,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            leading = {
-                LockIcon()
+            leading = { focused ->
+                LockIcon(if (focused) AppColor.AccentStrong else AppColor.IconMuted)
             },
             trailing = {
                 EyeIcon(
@@ -215,7 +215,7 @@ internal fun LoginField(
     value: String,
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType,
-    leading: @Composable () -> Unit,
+    leading: @Composable (focused: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailing: (@Composable () -> Unit)? = null,
@@ -255,7 +255,7 @@ internal fun LoginField(
                         .padding(horizontal = AppSpace.x4),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    leading()
+                    leading(focused)
                     Spacer(Modifier.width(AppSpace.xxl))
                     Box(Modifier.weight(1f)) { inner() }
                     if (trailing != null) trailing()
@@ -276,12 +276,12 @@ private fun LogoMark() {
 }
 
 @Composable
-private fun PersonIcon() {
+private fun PersonIcon(c: Color) {
     Canvas(Modifier.size(22.dp)) {
         val sw = 1.8.dp.toPx()
-        drawCircle(AppColor.IconMuted, radius = size.width * 0.2f, center = Offset(size.width / 2, size.height * 0.32f), style = Stroke(sw))
+        drawCircle(c, radius = size.width * 0.2f, center = Offset(size.width / 2, size.height * 0.32f), style = Stroke(sw))
         drawArc(
-            AppColor.IconMuted, 180f, 180f, false,
+            c, 180f, 180f, false,
             Offset(size.width * 0.15f, size.height * 0.6f), Size(size.width * 0.7f, size.height * 0.7f),
             style = Stroke(sw),
         )
@@ -289,9 +289,8 @@ private fun PersonIcon() {
 }
 
 @Composable
-private fun LockIcon() {
+private fun LockIcon(c: Color) {
     Canvas(Modifier.size(22.dp)) {
-        val c = AppColor.AccentStrong
         val sw = 1.8.dp.toPx()
         drawArc(c, 180f, 180f, false, Offset(size.width * 0.28f, size.height * 0.1f), Size(size.width * 0.44f, size.height * 0.5f), style = Stroke(sw))
         drawRoundRect(c, Offset(size.width * 0.15f, size.height * 0.42f), Size(size.width * 0.7f, size.height * 0.48f), CornerRadius(size.width * 0.1f), style = Stroke(sw))
