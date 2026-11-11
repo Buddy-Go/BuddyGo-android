@@ -201,7 +201,7 @@ private fun SearchBar(state: ExploreState, onClick: () -> Unit, modifier: Modifi
             Spacer(Modifier.width(AppSpace.xl))
             Column(Modifier.weight(1f)) {
                 Text(
-                    searchTitle(state.filter, System.currentTimeMillis()),
+                    searchTitle(state.filter, System.currentTimeMillis(), onlySport = com.example.myapplication.data.model.SportSupport.supported.singleOrNull()),
                     fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary,
                 )
                 Text(

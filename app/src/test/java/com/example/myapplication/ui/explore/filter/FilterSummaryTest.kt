@@ -161,4 +161,13 @@ class FilterSummaryTest {
         assertEquals("9/8", dateOptions(now, seoul, pickedStartOfDay = millis(9, 12, 0)).first().dateLabel)
         assertEquals("9/13", dateOptions(now, seoul, pickedStartOfDay = millis(9, 13, 0)).first().dateLabel)
     }
+
+    @Test
+    fun 종목이_하나뿐이면_고르기_전후에_제목이_같다() {
+        // 서버가 받는 종목이 헬스뿐이라 종목 카드를 숨기므로, 조건 설정을 거쳐도 제목이 바뀌지 않는다
+        val now = millis(9, 8, 15)
+        assertEquals("헬스", searchTitle(MeetingFilter(), now, seoul, onlySport = Sport.HEALTH))
+        assertEquals("헬스", searchTitle(MeetingFilter(sport = Sport.HEALTH), now, seoul, onlySport = Sport.HEALTH))
+        assertEquals("모든 운동", searchTitle(MeetingFilter(), now, seoul, onlySport = null))
+    }
 }

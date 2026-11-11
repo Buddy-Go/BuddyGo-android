@@ -113,7 +113,8 @@ fun detailSummary(filter: MeetingFilter): String {
 }
 
 // 탐색 검색창 첫 줄: "오늘 · 헬스". 날짜를 고르지 않았으면 날짜는 빼고, 종목을 고르지 않았으면 "모든 운동"이다.
-fun searchTitle(filter: MeetingFilter, nowMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): String {
+// 서버가 받는 종목이 하나뿐이면(onlySport) 고르기 전후에 제목이 달라지지 않도록 늘 그 종목 이름을 쓴다.
+fun searchTitle(filter: MeetingFilter, nowMillis: Long, timeZone: TimeZone = TimeZone.getDefault(), onlySport: Sport? = null): String {
     val date = filter.dateMillis?.let { picked ->
         val day = Calendar.getInstance(timeZone).apply { timeInMillis = picked }
         val today = Calendar.getInstance(timeZone).apply { timeInMillis = nowMillis }
@@ -121,5 +122,5 @@ fun searchTitle(filter: MeetingFilter, nowMillis: Long, timeZone: TimeZone = Tim
             day.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
         ) "오늘" else "${day.get(Calendar.MONTH) + 1}/${day.get(Calendar.DAY_OF_MONTH)}"
     }
-    return listOfNotNull(date, filter.sport?.let(::sportLabel) ?: "모든 운동").joinToString(" · ")
+    return listOfNotNull(date, (filter.sport ?: onlySport)?.let(::sportLabel) ?: "모든 운동").joinToString(" · ")
 }

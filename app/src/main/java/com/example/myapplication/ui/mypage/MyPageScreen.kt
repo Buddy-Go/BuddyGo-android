@@ -99,7 +99,7 @@ fun MyPageScreen(
                     // 서버가 받는 종목이 하나뿐이면 고르는 단계 없이 바로 그 종목 기록을 연다.
                     onClick = { SportSupport.supported.singleOrNull()?.let(onEditRecord) ?: run { pickRecordSport = true } },
                 )
-                MenuRow("신고 · 차단 관리", onClick = onBlockManageClick, leading = { ShieldIcon() })
+                MenuRow("차단 관리", onClick = onBlockManageClick, leading = { ShieldIcon() })
                 MenuRow("로그아웃", muted = true, onClick = { confirmLogout = true }, leading = { LogoutIcon() })
                 Spacer(Modifier.height(AppSpace.x5))
             }
