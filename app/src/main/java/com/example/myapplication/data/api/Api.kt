@@ -2,6 +2,7 @@ package com.example.myapplication.data.api
 
 import android.content.Context
 import com.example.myapplication.BuildConfig
+import com.example.myapplication.data.local.SESSION_PREFS_NAME
 import com.example.myapplication.data.local.SessionEvents
 import com.example.myapplication.data.local.SharedPrefsKeyValueStore
 import com.example.myapplication.data.local.TokenStore
@@ -18,7 +19,7 @@ object Api {
     val client: ApiClient get() = checkNotNull(_client) { "Api.init(context)를 먼저 불러야 해요" }
 
     fun init(context: Context) {
-        val store = TokenStore(SharedPrefsKeyValueStore(context, name = "buddygo_session"))
+        val store = TokenStore(SharedPrefsKeyValueStore(context, name = SESSION_PREFS_NAME))
         _tokens = store
         _client = ApiClient(
             baseUrl = BuildConfig.API_BASE_URL,
