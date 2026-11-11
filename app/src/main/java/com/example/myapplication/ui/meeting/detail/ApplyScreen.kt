@@ -211,7 +211,7 @@ private fun MessageField(message: String, counter: String, onChange: (String) ->
         Box(Modifier.fillMaxWidth().height(108.dp)) {
             if (message.isEmpty()) {
                 Text(
-                    "왜 참여하고 싶은지, 어떤 페이스로 하고 싶은지 적으면 수락받을 확률이 높아요",
+                    "왜 참여하고 싶은지, 어떤 운동을 하고 싶은지 적으면 수락받을 확률이 높아요",
                     fontSize = 16.sp, color = AppColor.TextDisabled, lineHeight = 24.sp,
                 )
             }

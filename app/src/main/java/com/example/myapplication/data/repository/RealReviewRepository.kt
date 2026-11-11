@@ -98,7 +98,7 @@ class RealReviewRepository(
             "안전하게 운동해요" to "GOOD_SPOTTER",
             "늦게 왔어요" to "NOT_PUNCTUAL",
             "연락이 잘 안 됐어요" to "POOR_COMMUNICATION",
-            "페이스가 안 맞았어요" to "LEVEL_MISMATCH",
+            "운동 수준이 안 맞았어요" to "LEVEL_MISMATCH",
             "매너가 아쉬웠어요" to "UNCOMFORTABLE_TONE",
         )
     }

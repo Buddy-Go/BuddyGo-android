@@ -23,9 +23,7 @@ object PlaceSelectionStore {
     private val _confirmed = MutableStateFlow<PlaceSelection?>(null)
     val confirmed: StateFlow<PlaceSelection?> = _confirmed.asStateFlow()
 
-    private val _recent = MutableStateFlow(
-        listOf(SamplePlaces.all[0], SamplePlaces.all[4]),
-    )
+    private val _recent = MutableStateFlow<List<PlaceResult>>(emptyList())
     val recent: StateFlow<List<PlaceResult>> = _recent.asStateFlow()
 
     // 앱 시작 때 한 번 부른다. 저장된 값이 있으면(비어 있는 목록도 저장된 값이다) 그것으로 바꾼다.

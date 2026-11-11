@@ -94,9 +94,9 @@ class PersistRecentsTest {
     }
 
     @Test
-    fun 저장된_값이_없는_첫_실행은_예시로_시작한다() {
+    fun 저장된_값이_없는_첫_실행은_비어_있다() {
         RecentDistrictStore.attach(InMemoryKeyValueStore())
-        assertEquals(listOf("마포구", "강북구", "종로구", "영등포구"), RecentDistrictStore.recent.value)
+        assertEquals(emptyList<String>(), RecentDistrictStore.recent.value)
     }
 
     // ---- 최근 장소 ----
@@ -119,6 +119,9 @@ class PersistRecentsTest {
     fun 지운_최근_장소는_다시_켜도_지워져_있다() {
         val disk = InMemoryKeyValueStore()
         PlaceSelectionStore.attach(disk)
+        val p = SamplePlaces.all[0]
+        PlaceSelectionStore.confirm(PlaceSelection(p.name, "3층", p.address, p.lotAddress, p.latitude, p.longitude))
+        PlaceSelectionStore.consumeConfirmed()
         val target = PlaceSelectionStore.recent.value.first()
         PlaceSelectionStore.removeRecent(target)
         PlaceSelectionStore.attach(disk)

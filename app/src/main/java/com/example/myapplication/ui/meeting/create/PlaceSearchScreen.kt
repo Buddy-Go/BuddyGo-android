@@ -125,7 +125,7 @@ private fun SearchField(query: String, onChange: (String) -> Unit, onClear: () -
             modifier = Modifier.weight(1f),
             decorationBox = { inner ->
                 Box {
-                    if (query.isEmpty()) Text("헬스장, 공원, 산 이름으로 검색", fontSize = 16.sp, color = AppColor.TextDisabled)
+                    if (query.isEmpty()) Text("헬스장 이름으로 검색", fontSize = 16.sp, color = AppColor.TextDisabled)
                     inner()
                 }
             },
