@@ -15,6 +15,9 @@ interface MateRepository {
     suspend fun rejectRequest(requestId: String): Result<Unit>
     suspend fun sendRequest(userId: String): Result<Unit>
 
+    // 서버가 사용자 신고를 받는지. false면 신고하기 메뉴를 보이지 않는다. (받지도 않는데 '접수됐어요'라고 하지 않기 위해)
+    val supportsReport: Boolean get() = true
+
     // 내가 보낸 대기 중인 신청을 취소한다. 취소한 신청은 남지 않는다.
     suspend fun cancelRequest(requestId: String): Result<Unit> = Result.failure(UnsupportedOperationException())
     suspend fun getProfile(userId: String): Result<MateProfile> // 15

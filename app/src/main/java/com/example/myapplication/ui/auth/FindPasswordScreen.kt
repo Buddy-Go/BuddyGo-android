@@ -50,12 +50,13 @@ data class FindPasswordState(
     val isSending: Boolean = false,
     val sent: Boolean = false,
     val failed: Boolean = false,
+    val available: Boolean = true, // false면 서버가 아직 지원하지 않아 '준비 중' 안내만 보여 준다
 ) {
     val canSend: Boolean get() = SignUpInfoState.isValidEmail(email) && !isSending
 }
 
 class FindPasswordViewModel(private val repository: UserRepository = Repositories.users) : ViewModel() {
-    var state by mutableStateOf(FindPasswordState())
+    var state by mutableStateOf(FindPasswordState(available = repository.supportsPasswordReset))
         private set
 
     fun onEmailChange(email: String) {
@@ -99,7 +100,13 @@ fun FindPasswordScreen(
         }
         Column(Modifier.weight(1f).padding(horizontal = AppSpace.x4), verticalArrangement = Arrangement.spacedBy(AppSpace.xxl)) {
             Spacer(Modifier.height(AppSpace.xl))
-            if (state.sent) {
+            if (!state.available) {
+                Text("비밀번호 찾기는 준비 중이에요", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+                Text(
+                    "재설정 메일을 보내는 기능을 아직 서버에서 지원하지 않아요.\n지원되면 이 화면에서 바로 쓸 수 있어요.",
+                    fontSize = 15.sp, lineHeight = 22.sp, color = AppColor.TextSecondary,
+                )
+            } else if (state.sent) {
                 Text("메일을 보냈어요", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
                 Text(
                     "가입된 이메일이라면 비밀번호를 다시 정하는 메일이 도착해요.\n메일이 안 보이면 스팸함도 확인해 주세요.",
@@ -119,7 +126,7 @@ fun FindPasswordScreen(
             }
         }
         Box(Modifier.padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl)) {
-            if (state.sent) {
+            if (state.sent || !state.available) {
                 ActionButton(text = "로그인으로 돌아가기", onClick = onBack)
             } else {
                 ActionButton(

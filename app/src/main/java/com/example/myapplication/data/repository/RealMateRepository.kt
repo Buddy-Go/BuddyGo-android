@@ -87,6 +87,9 @@ class RealMateRepository(
         apiCall { buddyApi.send(BuddyRequestCreateDto(id)) }.map { }
     }
 
+    // 서버에 신고 API가 없다.
+    override val supportsReport: Boolean get() = false
+
     override suspend fun cancelRequest(requestId: String): Result<Unit> = withLong(requestId) { id -> apiCall { buddyApi.cancel(id) }.map { } }
 
     override suspend fun getProfile(userId: String): Result<MateProfile> = withLong(userId) { id ->

@@ -98,7 +98,7 @@ class MateProfileViewModel(
     private val repository: MateRepository,
 ) : ViewModel() {
 
-    var state by mutableStateOf(MateProfileState())
+    var state by mutableStateOf(MateProfileState(canReport = repository.supportsReport))
         private set
 
     init {
@@ -132,6 +132,7 @@ class MateProfileViewModel(
 
     // 신고하기: 사유를 골라 보낸다. 서버 신고 API가 없어 지금은 접수 안내만 보여 준다. (정의서: 초기 범위 밖이라 임시)
     fun onReport(reason: String) {
+        if (!state.canReport) return // 서버가 받지 않는 신고를 '접수됐다'고 하지 않는다
         state = state.copy(reportedMessage = "신고가 접수됐어요")
     }
 

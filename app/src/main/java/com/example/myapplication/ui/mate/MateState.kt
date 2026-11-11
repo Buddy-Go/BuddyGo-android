@@ -71,6 +71,7 @@ data class MateProfileState(
     val isRemoved: Boolean = false,
     val isBlocked: Boolean = false, // 차단하면 화면을 닫는다
     val reportedMessage: String? = null, // 신고를 보내면 잠깐 알린다
+    val canReport: Boolean = true, // 서버가 신고를 받지 않으면 신고하기 메뉴를 숨긴다
     val now: Long = 0L,
 ) {
     val isMate: Boolean get() = profile?.relation == MateRelation.MATE
