@@ -2,6 +2,9 @@ package com.example.myapplication.data.local
 
 import com.example.myapplication.data.api.TokenDto
 
+// 토큰을 담는 설정 파일 이름. res/xml 의 백업 규칙(backup_rules, data_extraction_rules)이 이 파일을 백업에서 뺀다.
+const val SESSION_PREFS_NAME = "buddygo_session"
+
 // 액세스·리프레시 토큰을 들고 있는 곳. 메모리에 두고, '로그인 상태 유지'일 때만 기기에도 저장한다.
 // 유지하지 않으면 앱을 완전히 끌 때 로그인이 풀린다.
 class TokenStore(private val persist: KeyValueStore) {

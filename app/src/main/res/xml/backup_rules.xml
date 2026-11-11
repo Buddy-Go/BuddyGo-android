@@ -1,13 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   자동 백업 규칙 (Android 11 이하). 로그인 토큰이 든 설정 파일(buddygo_session.xml)은 백업하지 않는다.
+   백업되면 구글 백업·기기 이전 때 로그인 세션(리프레시 토큰)이 다른 기기에 복원될 수 있다.
+   파일 이름을 바꾸면 SessionBackupRulesTest가 깨지니 이 파일도 같이 고친다.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <exclude domain="sharedpref" path="buddygo_session.xml" />
 </full-backup-content>
