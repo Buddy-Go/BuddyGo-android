@@ -130,6 +130,12 @@ class RealUserRepository(
         apiCall { authApi.checkNickname(nickname.trim()).requireData().available }
 
     // 서버에 세션 폐기를 알리되, 실패해도 이 기기의 로그인은 반드시 푼다. (네트워크가 없어도 로그아웃은 된다)
+    // 서버에 비밀번호 재설정 API가 없다. 보낸 척하지 않고 지원하지 않는다고 알린다.
+    override val supportsPasswordReset: Boolean get() = false
+
+    override suspend fun requestPasswordReset(email: String): Result<Unit> =
+        Result.failure(UnsupportedOperationException("비밀번호 찾기는 아직 준비 중이에요"))
+
     override suspend fun registerPushToken(token: String): Result<Unit> =
         apiCall { userApi.registerFcmToken(FcmTokenDto(token)) }.onSuccess { tokens.setPushToken(token) }.map { }
 

@@ -181,6 +181,7 @@ private fun MateProfileContent(
                 ProfileMenu(
                     isMate = state.isMate,
                     notificationLabel = state.notificationMenuLabel,
+                    canReport = state.canReport,
                     onToggleNotification = onToggleNotification,
                     onRemoveMate = { confirmRemove = true },
                     onReport = { showReport = true },
@@ -286,6 +287,7 @@ private fun MateProfileContent(
 private fun ProfileMenu(
     isMate: Boolean,
     notificationLabel: String,
+    canReport: Boolean,
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
     onReport: () -> Unit,
@@ -314,10 +316,12 @@ private fun ProfileMenu(
                     onClick = { expanded = false; onRemoveMate() },
                 )
             }
-            DropdownMenuItem(
-                text = { Text("신고하기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextPrimary) },
-                onClick = { expanded = false; onReport() },
-            )
+            if (canReport) {
+                DropdownMenuItem(
+                    text = { Text("신고하기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextPrimary) },
+                    onClick = { expanded = false; onReport() },
+                )
+            }
             DropdownMenuItem(
                 text = { Text("차단하기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
                 onClick = { expanded = false; onBlock() },

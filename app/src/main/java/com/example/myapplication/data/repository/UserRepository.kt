@@ -35,6 +35,9 @@ interface UserRepository {
     // 비밀번호 찾기: 이 이메일로 재설정 메일을 보낸다. 가입된 이메일인지는 알려 주지 않는다. (보안상 항상 같은 안내)
     suspend fun requestPasswordReset(email: String): Result<Unit>
 
+    // 서버가 비밀번호 재설정 메일을 지원하는지. false면 화면은 메일을 보냈다고 하지 않고 '준비 중'이라고 알린다.
+    val supportsPasswordReset: Boolean get() = true
+
     // 내 운동 기록을 저장한다 (service-rules 1장). 모임 신청·기준 비교에 쓰이는 프로필 기록이다. 종목별로 일부만 바꿔도 전체를 보낸다.
     // 이미 개설한 모임의 기록 복사본에는 영향이 없다. (개설 시점 값이 그대로 남는다)
     suspend fun updateRecord(record: ExerciseRecord): Result<Unit>
