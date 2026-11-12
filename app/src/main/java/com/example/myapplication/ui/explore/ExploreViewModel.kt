@@ -87,9 +87,16 @@ class ExploreViewModel(
                 if (attempt > 0) delay(REFRESH_RETRY_DELAY_MS * attempt)
                 val list = repository.getMeetings(_state.value.searchBounds).getOrNull() ?: continue
                 _state.update { it.copy(meetings = UiState.Success(list)) }
+                applyCreatedFocus()
                 return@launch
             }
         }
+    }
+
+    // 방금 개설한 모임이 있으면 목록에 들어온 뒤 지도를 그 장소로 옮긴다. 가장 가까운 핀으로만 따라가는 카메라가 새 핀을 놓치지 않게 한다.
+    private fun applyCreatedFocus() {
+        val point = CreatedMeetingFocus.take() ?: return
+        _state.update { it.copy(mapFocus = MapFocus(point, (it.mapFocus?.id ?: 0) + 1)) }
     }
 
     fun load() {
@@ -107,6 +114,7 @@ class ExploreViewModel(
                     ),
                 )
             }
+            if (result.isSuccess) applyCreatedFocus()
         }
     }
 

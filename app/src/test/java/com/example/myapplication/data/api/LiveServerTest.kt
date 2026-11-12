@@ -20,6 +20,15 @@ import com.example.myapplication.data.repository.RealNoticeRepository
 import com.example.myapplication.data.repository.RealNotificationRepository
 import com.example.myapplication.data.repository.RealReviewRepository
 import com.example.myapplication.data.repository.RealUserRepository
+import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.ExploreViewModel
+import com.example.myapplication.data.repository.FakeNotificationRepository
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -170,4 +179,68 @@ class LiveServerTest {
         assertTrue(host.users.logout().isSuccess)
         assertTrue(host.users.getCurrentUser().exceptionOrNull() is ApiException)
     }
+
+    // 같은 카카오 장소 id로 두 번 개설하면 서버가 장소 행을 하나로 합치는지(id가 null이면 합치지 못한다는 것까지) 확인한다.
+    @Test
+    fun 같은_카카오_장소_id로_개설하면_장소_행이_하나로_합쳐진다() = runBlocking {
+        assumeTrue("LIVE_SERVER_URL이 없어 건너뜀", url != null)
+        val tag = (System.currentTimeMillis() % 100000).toString()
+        val host = signUp(url!!, tag, "dedu")
+        val start = (System.currentTimeMillis() / 600_000) * 600_000 + 3 * 3_600_000L
+        fun draft(title: String, kakaoId: String?) = Meeting(
+            title = title, description = "", criteria = MeetingCriteria.Health(setOf(BodyPart.CHEST), null),
+            startAtMillis = start, durationMinutes = 60, capacity = 3, genderLimit = GenderLimit.ANYONE,
+            place = MeetingPlace("중복 점검 헬스장 $tag", "서울 마포구 양화로 45", "서울 마포구 서교동 464-1", "3층", 37.5496, 126.9139, kakaoId),
+        )
+        suspend fun placeIdOf(id: String) = host.client.meetingApi.detail(id.toLong()).requireData().place
+
+        val kakaoId = "live$tag"
+        val a = placeIdOf(host.meetings.createMeeting(draft("중복 점검 A $tag", kakaoId)).ok("개설 A"))
+        val b = placeIdOf(host.meetings.createMeeting(draft("중복 점검 B $tag", kakaoId)).ok("개설 B"))
+        println("LIVE kakaoPlaceId 보냄: placeId A=${a.placeId} B=${b.placeId} kakao=${a.kakaoPlaceId}")
+        assertEquals(kakaoId, a.kakaoPlaceId)
+        assertEquals("같은 kakaoPlaceId면 장소 행이 하나여야 한다", a.placeId, b.placeId)
+
+        val c = placeIdOf(host.meetings.createMeeting(draft("중복 점검 C $tag", null)).ok("개설 C"))
+        val d = placeIdOf(host.meetings.createMeeting(draft("중복 점검 D $tag", null)).ok("개설 D"))
+        println("LIVE kakaoPlaceId 안 보냄: placeId C=${c.placeId} D=${d.placeId}")
+    }
+
+    // 지도 화면 ViewModel을 실제 저장소·서버에 붙여, 지도를 보던 중 모임이 개설된 뒤 새로고침하면 목록에 들어오는지 본다.
+    @Test
+    fun 지도를_보던_중_개설된_모임이_새로고침하면_목록에_들어온다() {
+        assumeTrue("LIVE_SERVER_URL이 없어 건너뜀", url != null)
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        val tag = (System.currentTimeMillis() % 100000).toString()
+        val host = signUp(url!!, tag, "pins")
+        val vm = ExploreViewModel(host.meetings, FakeNotificationRepository(), FakeUserRepository(), { emptyList() })
+        try {
+            fun ExploreViewModel.titles() = ((state.value.meetings as? UiState.Success)?.data ?: emptyList()).map { it.title }
+            fun waitUntil(what: String, cond: () -> Boolean) {
+                val end = System.currentTimeMillis() + 15_000
+                while (!cond()) { check(System.currentTimeMillis() < end) { "$what (15초 안에 안 됨)" }; Thread.sleep(50) }
+            }
+            waitUntil("첫 목록") { state(vm) is UiState.Success }
+            val title = "핀 점검 $tag"
+            val start = (System.currentTimeMillis() / 600_000) * 600_000 + 3 * 3_600_000L
+            runBlocking {
+                host.meetings.createMeeting(
+                    Meeting(
+                        title = title, description = "", criteria = MeetingCriteria.Health(setOf(BodyPart.CHEST), null),
+                        startAtMillis = start, durationMinutes = 60, capacity = 3, genderLimit = GenderLimit.ANYONE,
+                        place = MeetingPlace("핀 점검 헬스장 $tag", "서울 마포구 양화로 45", "서울 마포구 서교동 464-1", "3층", 37.5496, 126.9139, "pin$tag"),
+                    ),
+                ).ok("개설")
+            }
+            println("LIVE 개설 직후, 새로고침 전 목록에 있음=${title in vm.titles()}")
+            vm.refreshMeetings()
+            waitUntil("새로고침 후 새 모임") { title in vm.titles() }
+            println("LIVE 새로고침 후 목록에 있음=${title in vm.titles()} / 전체 ${vm.titles().size}건, 핀 ${vm.state.value.pins.size}개")
+        } finally {
+            vm.viewModelScope.cancel()
+            Dispatchers.resetMain()
+        }
+    }
+
+    private fun state(vm: ExploreViewModel) = vm.state.value.meetings
 }

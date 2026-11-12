@@ -263,6 +263,32 @@ class MeetingIntegrationTest {
     }
 
     @Test
+    fun 카카오_장소_id가_있으면_개설_요청에_실어_보내고_없으면_보내지_않는다() = runTest {
+        routes["POST /api/gatherings"] = { json("""{"code":201,"message":"ok","data":${detail()}}""", 201) }
+        fun meeting(kakaoId: String?) = Meeting(
+            title = "합정 가슴 운동", description = "", criteria = MeetingCriteria.Health(setOf(BodyPart.CHEST), ExerciseRecord(benchPressKg = 80)),
+            startAtMillis = 1_794_313_800_000L, durationMinutes = 60, capacity = 3, genderLimit = GenderLimit.ANYONE,
+            place = MeetingPlace("스포애니 합정점", "서울 마포구 양화로 45", "서울 마포구 서교동 464-1", "3층", 37.5496, 126.9139, kakaoId),
+        )
+
+        repo.createMeeting(meeting("26338954")).getOrThrow()
+        repo.createMeeting(meeting(null)).getOrThrow()
+        repo.createMeeting(meeting("  ")).getOrThrow()
+
+        val bodies = seen.map { it.body.readUtf8() }
+        assertTrue(bodies[0].contains(""""kakaoPlaceId":"26338954""""))
+        assertFalse(bodies[1].contains("kakaoPlaceId"))
+        assertFalse("빈 id는 보내지 않는다", bodies[2].contains("kakaoPlaceId"))
+    }
+
+    @Test
+    fun 서버가_준_카카오_장소_id를_모임_장소에_담는다() = runTest {
+        routes["GET /api/gatherings/1"] = { ok(detail().replace(""""kakaoPlaceId":null""", """"kakaoPlaceId":"26338954"""")) }
+
+        assertEquals("26338954", repo.getMeeting("1").getOrThrow().place.kakaoPlaceId)
+    }
+
+    @Test
     fun 러닝과_등산_모임은_서버가_지원하지_않아_실패한다() = runTest {
         val result = repo.createMeeting(Meeting(criteria = MeetingCriteria.Running(5f, 360)))
 

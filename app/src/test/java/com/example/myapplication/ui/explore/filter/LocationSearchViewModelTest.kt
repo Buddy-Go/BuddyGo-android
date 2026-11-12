@@ -124,4 +124,16 @@ class LocationSearchViewModelTest {
         assertEquals(1, vm.state.value.results.count { it.fullName == vm.state.value.selected })
         assertEquals("대구 달서구 도원동", vm.onApply())
     }
+
+    @Test
+    fun 검색어만_쓰고_적용해도_결과가_하나뿐이면_그_지역이_적용된다() {
+        val only = District("중구", "서울 중구", null)
+        val one = LocationSearchViewModel(null, DistrictSearcher { listOf(only) }, debounceMs = 0).also { created += it }
+        one.onQueryChange("서울 중구")
+        assertEquals("서울 중구", one.onApply())
+
+        val many = LocationSearchViewModel(null, DistrictSearcher { listOf(only, District("중구", "대구 중구", null)) }, debounceMs = 0).also { created += it }
+        many.onQueryChange("중구")
+        assertNull("결과가 여럿이면 고르지 않은 채로는 적용하지 않는다", many.onApply())
+    }
 }
