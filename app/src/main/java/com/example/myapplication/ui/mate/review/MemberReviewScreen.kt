@@ -240,7 +240,7 @@ private fun Preview12b1() = PreviewContent(previewReviewing)
 @Preview(name = "12b-2 좋음 선택 (2/3)", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview12b2() = PreviewContent(
-    previewReviewing.copy(draft = ReviewDraft(ReviewVerdict.GOOD, setOf(ReviewTag.ON_TIME, ReviewTag.CONSIDERATE))),
+    previewReviewing.copy(draft = ReviewDraft(ReviewVerdict.GOOD, setOf(ReviewTag.PUNCTUAL, ReviewTag.GOOD_MANNERS))),
 )
 
 @Preview(name = "12b-3 보통 선택 (2/3)", widthDp = 360, heightDp = 800)
@@ -255,7 +255,7 @@ private fun Preview12b4() = PreviewContent(
             s.copy(targets = s.targets.map { if (it.userId == "u6") it else it.copy(isReviewed = true) })
         },
         currentTargetId = "u6",
-        draft = ReviewDraft(ReviewVerdict.BAD, setOf(ReviewTag.HARD_TO_REACH)),
+        draft = ReviewDraft(ReviewVerdict.BAD, setOf(ReviewTag.POOR_COMMUNICATION)),
     ),
 )
 
