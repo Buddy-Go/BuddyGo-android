@@ -50,8 +50,9 @@ class LocationSearchViewModel(
         }
     }
     // 고르면 그 지역의 중심 좌표를 기억해 둔다. 적용하면 탐색 화면의 지도가 그곳으로 옮겨 간다.
+    // 같은 이름의 동이 여러 시·구에 있을 수 있어(예: 도원동) 결과에서 고를 때는 전체 이름(fullName)으로 구분한다.
     fun onSelect(name: String) {
-        _state.value.results.firstOrNull { it.name == name }?.let { DistrictCenters.put(it.name, it.center) }
+        _state.value.results.firstOrNull { it.fullName == name }?.let { DistrictCenters.put(it.fullName, it.center) }
         _state.update { it.withToggled(name) }
     }
     fun onRemoveRecent(name: String) = RecentDistrictStore.remove(name)

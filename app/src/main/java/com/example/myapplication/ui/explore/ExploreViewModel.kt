@@ -54,7 +54,7 @@ class ExploreViewModel(
     private fun focusMapOn(name: String) {
         viewModelScope.launch {
             val center = DistrictCenters.get(name)
-                ?: runCatching { districtSearcher.search(name).firstOrNull { it.name == name && it.center != null }?.center }.getOrNull()
+                ?: runCatching { districtSearcher.search(name).firstOrNull { (it.fullName == name || it.name == name) && it.center != null }?.center }.getOrNull()
                 ?: return@launch
             if (FilterStore.applied.value.district != name) return@launch
             DistrictCenters.put(name, center)

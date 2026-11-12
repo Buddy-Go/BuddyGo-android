@@ -95,19 +95,33 @@ class LocationSearchViewModelTest {
         val center = GeoPoint(35.8581745, 128.6306354)
         val vm = LocationSearchViewModel(null, DistrictSearcher { listOf(District("수성구", "대구 수성구", center)) }, debounceMs = 0).also { created += it }
         vm.onQueryChange("수성구")
-        vm.onSelect("수성구")
-        assertEquals(center, DistrictCenters.get("수성구"))
+        vm.onSelect("대구 수성구")
+        assertEquals(center, DistrictCenters.get("대구 수성구"))
         DistrictCenters.clear()
     }
 
     @Test
     fun 좌표가_없는_지역을_골라도_이전에_기억한_좌표를_지우지_않는다() {
         DistrictCenters.clear()
-        DistrictCenters.put("마포구", GeoPoint(37.5663, 126.9019))
+        DistrictCenters.put("서울 마포구", GeoPoint(37.5663, 126.9019))
         val vm = vm(null)
         vm.onQueryChange("마포구")
-        vm.onSelect("마포구")
-        assertEquals(GeoPoint(37.5663, 126.9019), DistrictCenters.get("마포구"))
+        vm.onSelect("서울 마포구")
+        assertEquals(GeoPoint(37.5663, 126.9019), DistrictCenters.get("서울 마포구"))
         DistrictCenters.clear()
+    }
+
+    @Test
+    fun 이름이_같은_동이_여러_곳에_있어도_고른_하나만_선택되고_전체_이름으로_적용된다() {
+        val 도원동 = listOf(
+            District("도원동", "서울 용산구 도원동"), District("도원동", "인천 제물포구 도원동"),
+            District("도원동", "대구 달서구 도원동"), District("도원동", "대구 중구 도원동"),
+        )
+        val vm = LocationSearchViewModel(null, DistrictSearcher { 도원동 }, debounceMs = 0).also { created += it }
+        vm.onQueryChange("도원동")
+        vm.onSelect("대구 달서구 도원동")
+        assertEquals("대구 달서구 도원동", vm.state.value.selected)
+        assertEquals(1, vm.state.value.results.count { it.fullName == vm.state.value.selected })
+        assertEquals("대구 달서구 도원동", vm.onApply())
     }
 }
