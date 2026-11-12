@@ -133,11 +133,12 @@ data class PlaceSelection(
     val lotAddress: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
+    val kakaoPlaceId: String? = null,
 ) {
     val summary: String get() = if (detail.isNullOrBlank()) name else "$name · $detail"
 
-    fun toResult() = PlaceResult(name, address, lotAddress, latitude, longitude)
-    fun toMeetingPlace() = MeetingPlace(name, address, lotAddress, detail?.takeIf { it.isNotBlank() }, latitude, longitude)
+    fun toResult() = PlaceResult(name, address, lotAddress, latitude, longitude, kakaoPlaceId = kakaoPlaceId)
+    fun toMeetingPlace() = MeetingPlace(name, address, lotAddress, detail?.takeIf { it.isNotBlank() }, latitude, longitude, kakaoPlaceId)
 }
 
 // 날짜 칩 하나. 10a "오늘 9/8", "화 9/9"
@@ -356,7 +357,7 @@ fun editStateOf(
         hikingStyle = hiking?.style,
         place = PlaceSelection(
             meeting.place.name, meeting.place.detailAddress, meeting.place.address,
-            meeting.place.lotAddress, meeting.place.latitude, meeting.place.longitude,
+            meeting.place.lotAddress, meeting.place.latitude, meeting.place.longitude, meeting.place.kakaoPlaceId,
         ),
         capacity = meeting.capacity,
         gender = meeting.genderLimit,

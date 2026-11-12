@@ -233,6 +233,7 @@ class RealMeetingRepository(
         val region = regions.regionCode(place.latitude, place.longitude)
             ?: throw IllegalStateException("장소의 지역 코드를 찾지 못했어요")
         return PlaceRequestDto(
+            kakaoPlaceId = place.kakaoPlaceId?.takeIf { it.isNotBlank() },
             name = place.name,
             roadAddress = place.address.takeIf { it.isNotBlank() && it != jibun },
             jibunAddress = jibun,

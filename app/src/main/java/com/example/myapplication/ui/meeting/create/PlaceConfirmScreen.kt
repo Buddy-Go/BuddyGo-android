@@ -106,6 +106,7 @@ fun PlaceConfirmScreen(
                     PlaceSelection(
                         name = picked.name, detail = detail.trim().ifEmpty { null }, address = picked.address,
                         lotAddress = picked.lotAddress, latitude = picked.latitude, longitude = picked.longitude,
+                        kakaoPlaceId = picked.kakaoPlaceId,
                     ),
                 )
                 onConfirmed()

@@ -37,6 +37,7 @@ data class MeetingPlace(
     val detailAddress: String? = null, // 호스트가 적는 상세주소 (선택)
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
+    val kakaoPlaceId: String? = null, // 카카오 장소 id. 있으면 개설·수정 요청에 실어 서버가 같은 장소를 합치게 한다
 )
 
 // 종목별 모임 기준. 종목은 기준의 종류로 정해진다.
