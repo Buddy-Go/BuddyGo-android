@@ -292,6 +292,18 @@ class MeetingFilterTest {
     }
 
     @Test
+    fun 시도가_붙은_지역은_이름만_같은_다른_시도의_구를_걸러낸다() {
+        val seoul = Meeting(place = MeetingPlace(address = "서울 중구 세종대로 110"))
+        val seoulFull = Meeting(place = MeetingPlace(address = "서울특별시 중구 세종대로 110"))
+        val daegu = Meeting(place = MeetingPlace(address = "대구 중구 동성로 1"))
+        val filter = MeetingFilter(district = "서울 중구")
+        assertTrue(filter.ok(seoul))
+        assertTrue("서울특별시로 와도 맞는다", filter.ok(seoulFull))
+        assertFalse("대구 중구는 아니다", filter.ok(daegu))
+        assertTrue("시도 없이 중구만 고르면 모두", MeetingFilter(district = "중구").ok(daegu))
+    }
+
+    @Test
     fun 지역_이름은_시도를_뺀_조각으로_나눈다() {
         assertEquals(listOf("달서구", "도원동"), districtParts("대구 달서구 도원동"))
         assertEquals(listOf("수원시", "영통구", "영통동"), districtParts("경기 수원시 영통구 영통동"))

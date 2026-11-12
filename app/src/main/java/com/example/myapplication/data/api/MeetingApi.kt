@@ -117,6 +117,7 @@ data class CardDto(
 
 @Serializable
 data class PlaceDto(
+    val placeId: Long? = null, // 서버의 장소 행 id. 같은 장소가 합쳐졌는지 볼 때 쓴다
     val kakaoPlaceId: String? = null,
     val name: String = "",
     val roadAddress: String? = null,

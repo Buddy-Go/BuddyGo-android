@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.BodyPart
+import com.example.myapplication.data.model.GeoPoint
+import com.example.myapplication.ui.explore.CreatedMeetingFocus
 import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.Sport
@@ -182,7 +184,11 @@ class MeetingCreateViewModel(
         state = state.copy(isSubmitting = true, errorMessage = null)
         viewModelScope.launch {
             meetingRepository.createMeeting(meeting)
-                .onSuccess { id -> state = state.copy(isSubmitting = false, createdMeetingId = id) }
+                .onSuccess { id ->
+                    // 좌표가 있으면 탐색 지도를 새 모임 위치로 옮기도록 맡겨 둔다. (좌표가 없는 예시 장소는 옮기지 않는다)
+                    with(meeting.place) { if (latitude != 0.0 || longitude != 0.0) CreatedMeetingFocus.set(GeoPoint(latitude, longitude)) }
+                    state = state.copy(isSubmitting = false, createdMeetingId = id)
+                }
                 // 실패 안내는 화면이 errorMessage를 공용 토스트(16j)로 보여 준다
                 .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = e.message ?: "모임을 만들지 못했어요") }
         }

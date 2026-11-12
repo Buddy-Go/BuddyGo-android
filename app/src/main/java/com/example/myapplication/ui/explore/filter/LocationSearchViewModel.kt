@@ -62,8 +62,12 @@ class LocationSearchViewModel(
     }
 
     // 적용: 고른 곳을 최근 검색에 넣고 돌려준다. 고른 곳이 없으면 위치 조건을 푼다(null).
+    // 검색어를 쓰고 결과 행을 누르지 않은 채 적용해도, 결과가 하나뿐이면 그것을 고른 것으로 본다. (조건이 조용히 풀리지 않게)
     fun onApply(): String? {
-        val selected = _state.value.selected
+        val current = _state.value
+        val only = current.results.singleOrNull()?.takeIf { current.selected == null && current.isSearching && !current.loading }
+        if (only != null) DistrictCenters.put(only.fullName, only.center)
+        val selected = current.selected ?: only?.fullName
         if (selected != null) RecentDistrictStore.add(selected)
         return selected
     }

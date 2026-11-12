@@ -115,6 +115,18 @@ class ExploreViewModelTest {
     }
 
     @Test
+    fun 모임을_개설하고_돌아오면_지도가_새_모임_위치로_옮겨진다() {
+        val vm = viewModel()
+        assertNull(vm.state.value.mapFocus)
+        CreatedMeetingFocus.set(GeoPoint(37.5496, 126.9139))
+        vm.refreshMeetings()
+        assertEquals(GeoPoint(37.5496, 126.9139), vm.state.value.mapFocus?.point)
+        val id = vm.state.value.mapFocus!!.id
+        vm.refreshMeetings()
+        assertEquals("한 번 옮기고 나면 다시 옮기지 않는다", id, vm.state.value.mapFocus!!.id)
+    }
+
+    @Test
     fun 만들면_모임을_불러와서_성공_상태가_된다() {
         val vm = viewModel()
         assertEquals(MockMeetings.all.size, vm.loaded().size)
