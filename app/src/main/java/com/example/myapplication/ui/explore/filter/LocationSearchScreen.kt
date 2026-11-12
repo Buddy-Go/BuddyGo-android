@@ -81,8 +81,8 @@ fun LocationSearchScreen(
                 items(state.results, key = { it.fullName }) { district ->
                     DistrictRow(
                         text = highlighted(district.fullName, state.query),
-                        trailing = { if (state.selected == district.name) CheckMarkIcon(AppColor.AccentStrong) },
-                        onClick = { viewModel.onSelect(district.name) },
+                        trailing = { if (state.selected == district.fullName) CheckMarkIcon(AppColor.AccentStrong) },
+                        onClick = { viewModel.onSelect(district.fullName) },
                     )
                 }
                 if (state.results.isEmpty() && !state.loading) item { EmptyText(if (state.failed) "검색하지 못했어요. 잠시 후 다시 시도해 주세요" else "검색 결과가 없어요") }
