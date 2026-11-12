@@ -1,0 +1,6 @@
+# 이 파일을 복사해서 local.properties로 이름을 바꾸고 값을 채운다. (local.properties는 git에 올라가지 않는다)
+# 카카오 키는 팀에서 받은 값을 넣는다. 따옴표/공백 없이 입력.
+KAKAO_NATIVE_APP_KEY=
+KAKAO_REST_API_KEY=
+# 선택: 내 PC에서 돌리는 서버를 쓸 때만 (에뮬레이터)
+# API_BASE_URL=http://10.0.2.2:8080/

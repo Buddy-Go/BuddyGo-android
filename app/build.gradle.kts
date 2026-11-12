@@ -34,6 +34,17 @@ android {
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
+    // 팀원 모두 같은 디버그 서명을 쓰도록 레포에 올린 debug.keystore를 쓴다.
+    // (카카오 개발자 콘솔에 키 해시를 한 번만 등록하면 모든 팀원 PC에서 지도가 뜬다.)
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             optimization {
