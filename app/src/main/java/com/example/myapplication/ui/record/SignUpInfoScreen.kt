@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -76,7 +77,7 @@ private fun SignUpInfoContent(
     onGenderSelect: (Gender) -> Unit,
     onNext: () -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().background(AppColor.Surface).imePadding()) {
+    Column(Modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
         SignUpHeader(step = 1, total = 3, onBack = onBack)
         Column(
             modifier = Modifier
