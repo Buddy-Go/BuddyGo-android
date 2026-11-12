@@ -90,16 +90,26 @@ class RealReviewRepository(
     }
 
     companion object {
-        // 평가 화면의 태그 문구(ReviewTag.label) → 서버 태그 코드
+        // 평가 화면의 태그 문구(ReviewTag.label) → 서버 태그 코드 (서버 ReviewTagType 18개)
         val REVIEW_TAG_CODES = mapOf(
-            "시간 약속을 지켜요" to "PUNCTUAL",
-            "서로 배려해요" to "GOOD_MANNERS",
-            "소통이 원활해요" to "GOOD_COMMUNICATION",
-            "안전하게 운동해요" to "GOOD_SPOTTER",
-            "늦게 왔어요" to "NOT_PUNCTUAL",
-            "연락이 잘 안 됐어요" to "POOR_COMMUNICATION",
-            "운동 수준이 안 맞았어요" to "LEVEL_MISMATCH",
-            "매너가 아쉬웠어요" to "UNCOMFORTABLE_TONE",
+            "시간 약속을 잘 지켜요" to "PUNCTUAL",
+            "매너가 좋아요" to "GOOD_MANNERS",
+            "친절하고 말투가 편안해요" to "KIND",
+            "운동 분위기를 즐겁게 만들어줘요" to "FUN_ATMOSPHERE",
+            "자세·운동법을 잘 알려줘요" to "GOOD_COACHING",
+            "운동 수준이 비슷해서 잘 맞았어요" to "SIMILAR_LEVEL",
+            "기구를 배려하며 같이 써요" to "SHARES_EQUIPMENT",
+            "보조를 잘 해줘요" to "GOOD_SPOTTER",
+            "소통이 잘 돼요" to "GOOD_COMMUNICATION",
+            "또 같이 운동하고 싶어요" to "WANT_AGAIN",
+            "시간 약속을 안 지켜요 (지각 포함)" to "NOT_PUNCTUAL",
+            "운동 중 휴대폰만 봐요" to "ON_PHONE",
+            "말투가 불편했어요" to "UNCOMFORTABLE_TONE",
+            "운동 수준이 기준과 많이 달랐어요" to "LEVEL_MISMATCH",
+            "기구를 독점하거나 정리를 안 해요" to "HOGS_EQUIPMENT",
+            "운동 방식을 강요하거나 훈수를 둬요" to "UNWANTED_ADVICE",
+            "소통이 잘 안 돼요" to "POOR_COMMUNICATION",
+            "모임 설명과 달랐어요" to "NOT_AS_DESCRIBED",
         )
     }
 }

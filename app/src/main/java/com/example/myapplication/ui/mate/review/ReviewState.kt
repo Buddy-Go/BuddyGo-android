@@ -17,17 +17,29 @@ val ReviewVerdict.label: String
         ReviewVerdict.BAD -> "아쉬움"
     }
 
-// 태그 목록. 좋음·보통은 긍정 태그, 아쉬움은 아쉬움 태그를 쓴다 (service-rules 11장).
-// 계약(docs/data-model.md)상 태그 목록은 개발하며 정한다 → 서버에는 label 문자열로 보낸다(Review.tags).
+// 태그 목록. 서버 ReviewTagType과 같은 18개(긍정 10 · 부정 8)이고, 이름이 서버 태그 코드다.
+// 서버는 좋음·보통·아쉬움 판정과 상관없이 어느 태그든 고를 수 있게 했다. (점수는 태그 성격대로 서버가 매긴다)
+// 서버에는 label 문자열로 넘기고(Review.tags), RealReviewRepository가 코드로 바꿔 보낸다.
 enum class ReviewTag(val label: String, val isPositive: Boolean) {
-    ON_TIME("시간 약속을 지켜요", true),
-    CONSIDERATE("서로 배려해요", true),
-    GOOD_COMMUNICATION("소통이 원활해요", true),
-    SAFE("안전하게 운동해요", true),
-    LATE("늦게 왔어요", false),
-    HARD_TO_REACH("연락이 잘 안 됐어요", false),
-    LEVEL_MISMATCH("운동 수준이 안 맞았어요", false),
-    BAD_MANNER("매너가 아쉬웠어요", false),
+    PUNCTUAL("시간 약속을 잘 지켜요", true),
+    GOOD_MANNERS("매너가 좋아요", true),
+    KIND("친절하고 말투가 편안해요", true),
+    FUN_ATMOSPHERE("운동 분위기를 즐겁게 만들어줘요", true),
+    GOOD_COACHING("자세·운동법을 잘 알려줘요", true),
+    SIMILAR_LEVEL("운동 수준이 비슷해서 잘 맞았어요", true),
+    SHARES_EQUIPMENT("기구를 배려하며 같이 써요", true),
+    GOOD_SPOTTER("보조를 잘 해줘요", true),
+    GOOD_COMMUNICATION("소통이 잘 돼요", true),
+    WANT_AGAIN("또 같이 운동하고 싶어요", true),
+
+    NOT_PUNCTUAL("시간 약속을 안 지켜요 (지각 포함)", false),
+    ON_PHONE("운동 중 휴대폰만 봐요", false),
+    UNCOMFORTABLE_TONE("말투가 불편했어요", false),
+    LEVEL_MISMATCH("운동 수준이 기준과 많이 달랐어요", false),
+    HOGS_EQUIPMENT("기구를 독점하거나 정리를 안 해요", false),
+    UNWANTED_ADVICE("운동 방식을 강요하거나 훈수를 둬요", false),
+    POOR_COMMUNICATION("소통이 잘 안 돼요", false),
+    NOT_AS_DESCRIBED("모임 설명과 달랐어요", false),
 }
 
 // 한마디 최대 글자 수 (service-rules 11장)
@@ -88,12 +100,9 @@ data class ReviewState(
             else -> "어떤 점이 좋았나요?"
         }
 
+    // 판정과 상관없이 18개 모두 고를 수 있다. (긍정 태그가 먼저, 부정 태그가 뒤에 온다)
     val availableTags: List<ReviewTag>
-        get() = when (draft.verdict) {
-            null -> emptyList()
-            ReviewVerdict.BAD -> ReviewTag.entries.filter { !it.isPositive }
-            else -> ReviewTag.entries.filter { it.isPositive }
-        }
+        get() = if (draft.verdict == null) emptyList() else ReviewTag.entries.toList()
 
     val commentCounter: String get() = "${draft.comment.length} / $REVIEW_COMMENT_MAX_LENGTH"
 
@@ -121,11 +130,8 @@ data class ReviewState(
     val mateSuggestions: List<ReviewTargetInfo> get() = targets.filter { !it.isMate }
 }
 
-// 판정을 바꿀 때 다른 묶음의 태그는 지운다 (좋음·보통 ↔ 아쉬움)
-fun ReviewDraft.withVerdict(verdict: ReviewVerdict): ReviewDraft {
-    val positive = verdict != ReviewVerdict.BAD
-    return copy(verdict = verdict, tags = tags.filter { it.isPositive == positive }.toSet())
-}
+// 판정을 바꿔도 고른 태그는 그대로 둔다. (서버가 판정과 태그를 따로 받는다)
+fun ReviewDraft.withVerdict(verdict: ReviewVerdict): ReviewDraft = copy(verdict = verdict)
 
 fun ReviewDraft.toggled(tag: ReviewTag): ReviewDraft = copy(tags = if (tag in tags) tags - tag else tags + tag)
 

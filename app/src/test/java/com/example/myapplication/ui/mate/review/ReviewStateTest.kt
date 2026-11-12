@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.mate.review
 
 import com.example.myapplication.data.model.Review
+import com.example.myapplication.data.repository.RealReviewRepository
 import com.example.myapplication.data.model.ReviewVerdict
 import com.example.myapplication.data.repository.FakeReviewRepository
 import com.example.myapplication.data.repository.ReviewSession
@@ -64,23 +65,33 @@ class ReviewStateTest {
     }
 
     @Test
-    fun 태그_묶음과_질문_12b2_12b4() {
+    fun 태그는_판정과_상관없이_18개_모두_고를_수_있다_12b2_12b4() {
         val good = state.copy(draft = ReviewDraft().withVerdict(ReviewVerdict.GOOD))
         assertEquals("어떤 점이 좋았나요?", good.tagQuestion)
-        assertTrue(good.availableTags.all { it.isPositive })
+        assertEquals(ReviewTag.entries.toList(), good.availableTags)
         val normal = state.copy(draft = ReviewDraft().withVerdict(ReviewVerdict.NORMAL))
-        assertTrue(normal.availableTags.all { it.isPositive })
+        assertEquals(18, normal.availableTags.size)
         val bad = state.copy(draft = ReviewDraft().withVerdict(ReviewVerdict.BAD))
         assertEquals("어떤 점이 아쉬웠나요?", bad.tagQuestion)
-        assertTrue(bad.availableTags.none { it.isPositive })
+        assertEquals(10, bad.availableTags.count { it.isPositive })
+        assertEquals(8, bad.availableTags.count { !it.isPositive })
+        assertTrue("판정을 고르기 전에는 태그가 없다", state.availableTags.isEmpty())
     }
 
     @Test
-    fun 판정을_바꾸면_다른_묶음_태그는_지움() {
-        val draft = ReviewDraft().withVerdict(ReviewVerdict.GOOD).toggled(ReviewTag.ON_TIME)
-        assertEquals(setOf(ReviewTag.ON_TIME), draft.withVerdict(ReviewVerdict.NORMAL).tags)
-        assertTrue(draft.withVerdict(ReviewVerdict.BAD).tags.isEmpty())
-        assertTrue(draft.toggled(ReviewTag.ON_TIME).tags.isEmpty())
+    fun 판정을_바꿔도_고른_태그는_그대로() {
+        val draft = ReviewDraft().withVerdict(ReviewVerdict.GOOD).toggled(ReviewTag.PUNCTUAL).toggled(ReviewTag.ON_PHONE)
+        assertEquals(setOf(ReviewTag.PUNCTUAL, ReviewTag.ON_PHONE), draft.withVerdict(ReviewVerdict.BAD).tags)
+        assertEquals(setOf(ReviewTag.PUNCTUAL, ReviewTag.ON_PHONE), draft.withVerdict(ReviewVerdict.NORMAL).tags)
+        assertEquals(setOf(ReviewTag.ON_PHONE), draft.toggled(ReviewTag.PUNCTUAL).tags)
+    }
+
+    @Test
+    fun 태그_문구와_코드는_서버_목록과_같다() {
+        assertEquals(18, ReviewTag.entries.size)
+        // 문구마다 코드(= enum 이름)가 하나씩 있어야 제출 때 빠지지 않는다.
+        assertEquals(ReviewTag.entries.associate { it.label to it.name }, RealReviewRepository.REVIEW_TAG_CODES)
+        assertEquals("시간 약속을 안 지켜요 (지각 포함)", ReviewTag.NOT_PUNCTUAL.label)
     }
 
     @Test
@@ -94,7 +105,7 @@ class ReviewStateTest {
         val repo = FakeReviewRepository()
         val meetingId = "test-${System.nanoTime()}"
         val target = repo.getReviewSession(meetingId).getOrThrow().targets.first { !it.isReviewed }.userId
-        val review = Review(meetingId = meetingId, targetUserId = target, verdict = ReviewVerdict.GOOD, tags = listOf(ReviewTag.ON_TIME.label))
+        val review = Review(meetingId = meetingId, targetUserId = target, verdict = ReviewVerdict.GOOD, tags = listOf(ReviewTag.PUNCTUAL.label))
         assertTrue(repo.submitReview(review).isSuccess)
         assertTrue(repo.getReviewSession(meetingId).getOrThrow().targets.first { it.userId == target }.isReviewed)
         assertTrue(repo.submitReview(review.copy(verdict = ReviewVerdict.BAD)).isFailure)

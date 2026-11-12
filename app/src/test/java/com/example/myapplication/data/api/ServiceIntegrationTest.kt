@@ -256,7 +256,7 @@ class ServiceIntegrationTest {
         routes["GET /api/review-tags"] = { ok("""{"positive":[],"negative":[]}""") } // 모르는 문구는 서버 태그 목록에서 찾아보고 없으면 뺀다
 
         val r = RealReviewRepository(client.reviewApi, client.meetingApi, client.buddyApi).submitReview(
-            Review(meetingId = "2", targetUserId = "3", verdict = ReviewVerdict.NORMAL, tags = listOf("시간 약속을 지켜요", "없는 태그"), comment = " 좋았어요 "),
+            Review(meetingId = "2", targetUserId = "3", verdict = ReviewVerdict.NORMAL, tags = listOf("시간 약속을 잘 지켜요", "없는 태그"), comment = " 좋았어요 "),
         )
 
         assertTrue(r.isSuccess)
@@ -348,7 +348,7 @@ class ServiceIntegrationTest {
         val tags = repo.getReviewTags().getOrThrow()
         assertEquals(listOf(true, false), tags.map { it.isPositive })
 
-        repo.submitReview(Review(meetingId = "2", targetUserId = "3", tags = listOf("또 같이 운동하고 싶어요", "시간 약속을 지켜요")))
+        repo.submitReview(Review(meetingId = "2", targetUserId = "3", tags = listOf("또 같이 운동하고 싶어요", "시간 약속을 잘 지켜요")))
         val body = seen.last { it.method == "POST" }.body.readUtf8()
         assertTrue(body.contains("WANT_AGAIN") && body.contains("PUNCTUAL"))
     }
