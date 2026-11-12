@@ -22,6 +22,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -35,9 +36,11 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExploreViewModelTest {
+    private val dispatcher = UnconfinedTestDispatcher()
+
     @Before
     fun 준비() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(dispatcher)
         FilterStore.clear()
         DistrictCenters.clear()
     }
@@ -79,6 +82,37 @@ class ExploreViewModelTest {
     ) = ExploreViewModel(meetings, notifications, users, districts).also { created += it }
 
     private fun ExploreViewModel.loaded() = (state.value.meetings as UiState.Success).data
+
+    // getMeetings 호출 순서대로 미리 정한 응답을 준다. 응답이 Deferred면 완료될 때까지 기다린다.
+    private class ScriptedMeetings(private val replies: List<suspend () -> Result<List<Meeting>>>) : MeetingRepository by FakeMeetingRepository() {
+        var calls = 0
+        override suspend fun getMeetings(area: com.example.myapplication.data.model.MapBounds?): Result<List<Meeting>> = replies[calls++]()
+    }
+
+    @Test
+    fun 새로고침이_잠깐_실패해도_다시_시도해_새_목록을_반영한다() {
+        val old = MockMeetings.all.take(1)
+        val fresh = MockMeetings.all.take(2)
+        val repo = ScriptedMeetings(listOf({ Result.success(old) }, { Result.failure(IOException("x")) }, { Result.success(fresh) }))
+        val vm = viewModel(repo)
+        vm.refreshMeetings()
+        assertEquals("실패하면 보던 목록을 그대로 둔다", old, vm.loaded())
+        dispatcher.scheduler.advanceTimeBy(1_500)
+        assertEquals(fresh, vm.loaded())
+    }
+
+    @Test
+    fun 늦게_도착한_이전_응답이_새_목록을_덮어쓰지_않는다() {
+        val old = MockMeetings.all.take(1)
+        val fresh = MockMeetings.all.take(2)
+        val slow = CompletableDeferred<Result<List<Meeting>>>()
+        val repo = ScriptedMeetings(listOf({ Result.success(old) }, { slow.await() }, { Result.success(fresh) }))
+        val vm = viewModel(repo)
+        vm.refreshMeetings() // 느린 요청
+        vm.refreshMeetings() // 새 요청이 이전 요청을 취소한다
+        slow.complete(Result.success(old))
+        assertEquals(fresh, vm.loaded())
+    }
 
     @Test
     fun 만들면_모임을_불러와서_성공_상태가_된다() {
@@ -437,5 +471,34 @@ class ExploreViewModelTest {
         val second = vm.state.value.mapFocus!!
         assertEquals(마포구, second.point)
         assertTrue(second.id > first.id)
+    }
+
+    @Test
+    fun 전체_이름으로_저장된_조건도_이름으로_찾아_지도를_옮긴다() {
+        val vm = viewModel(districts = DistrictSearcher { listOf(District("수성구", "대구 수성구", 수성구)) })
+        FilterStore.apply(MeetingFilter(district = "대구 수성구"))
+        assertEquals(수성구, vm.state.value.mapFocus?.point)
+    }
+
+    @Test
+    fun 시트를_직접_올리거나_내리면_핀_때문에_올렸다는_표시가_지워진다() {
+        val vm = viewModel()
+        vm.onSetSheetExpanded(false)
+        val key = vm.state.value.pins.first { it.isMultiple }.key
+        vm.onSelectPin(key)
+        assertTrue(vm.state.value.sheetRaisedByPin)
+        vm.onSetSheetExpanded(true)
+        assertFalse(vm.state.value.sheetRaisedByPin)
+    }
+
+    @Test
+    fun 여러_모임이_있는_핀을_누르면_시트가_올라오고_다시_누르면_내려간다() {
+        val vm = viewModel()
+        vm.onSetSheetExpanded(false)
+        val key = vm.state.value.pins.first { it.isMultiple }.key
+        vm.onSelectPin(key)
+        assertTrue(vm.state.value.sheetExpanded)
+        vm.onClearPin()
+        assertFalse(vm.state.value.sheetExpanded)
     }
 }

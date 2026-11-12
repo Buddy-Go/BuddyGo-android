@@ -15,6 +15,8 @@ import com.example.myapplication.ui.explore.filter.DistrictSearcher
 import com.example.myapplication.ui.explore.filter.FilterStore
 import com.example.myapplication.ui.explore.filter.KakaoDistrictSearcher
 import java.io.IOException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +32,8 @@ class ExploreViewModel(
     private val _state = MutableStateFlow(ExploreState())
     val state: StateFlow<ExploreState> = _state.asStateFlow()
     private var lastDistrict: String? = null
+    // 목록을 받는 요청은 한 번에 하나만 둔다. 새 요청이 시작되면 이전 요청은 취소해, 늦게 온 옛 응답이 새 목록을 덮어쓰지 않게 한다.
+    private var listJob: Job? = null
 
     init {
         load()
@@ -38,7 +42,7 @@ class ExploreViewModel(
             FilterStore.applied.collect { filter ->
                 // 위치(구·동)를 고르면 지도 영역 기준은 풀리고 전체에서 그 지역을 찾는다.
                 val clearBounds = filter.district != null && _state.value.searchBounds != null
-                _state.update { it.copy(filter = filter, selectedPinKey = null, searchBounds = if (clearBounds) null else it.searchBounds) }
+                _state.update { it.copy(filter = filter, selectedPinKey = null, sheetRaisedByPin = false, searchBounds = if (clearBounds) null else it.searchBounds) }
                 if (clearBounds) load()
                 // 위치 조건을 새로 고르면 지도를 그 지역으로 옮긴다. (조건을 풀거나 그대로면 옮기지 않는다)
                 if (filter.district != lastDistrict) {
@@ -76,16 +80,22 @@ class ExploreViewModel(
     // 개설·신청 같은 일을 하고 돌아왔을 때: 목록을 비우지 않고 새로 받는다. 실패하면 보던 목록을 그대로 둔다.
     fun refreshMeetings() {
         if (_state.value.meetings !is UiState.Success) return
-        viewModelScope.launch {
-            repository.getMeetings(_state.value.searchBounds).onSuccess { list ->
+        listJob?.cancel()
+        listJob = viewModelScope.launch {
+            // 잠깐의 네트워크 실패로 새 모임이 빠진 채 남지 않게 몇 번 더 시도한다. 끝내 실패하면 보던 목록을 그대로 둔다.
+            for (attempt in 0..REFRESH_RETRIES) {
+                if (attempt > 0) delay(REFRESH_RETRY_DELAY_MS * attempt)
+                val list = repository.getMeetings(_state.value.searchBounds).getOrNull() ?: continue
                 _state.update { it.copy(meetings = UiState.Success(list)) }
+                return@launch
             }
         }
     }
 
     fun load() {
         _state.update { it.copy(meetings = UiState.Loading) }
-        viewModelScope.launch {
+        listJob?.cancel()
+        listJob = viewModelScope.launch {
             // 재검색한 영역이 있으면 그 안의 모임만 받는다.
             val result = repository.getMeetings(_state.value.searchBounds)
             _state.update {
@@ -101,13 +111,11 @@ class ExploreViewModel(
     }
 
     // 같은 핀을 다시 누르면 선택이 풀린다.
-    fun onSelectPin(key: String) = _state.update {
-        it.copy(selectedPinKey = if (it.selectedPinKey == key) null else key)
-    }
+    fun onSelectPin(key: String) = _state.update { it.withPinSelected(key) }
 
-    fun onClearPin() = _state.update { it.copy(selectedPinKey = null) }
+    fun onClearPin() = _state.update { it.withPinCleared() }
 
-    fun onSetSheetExpanded(expanded: Boolean) = _state.update { it.copy(sheetExpanded = expanded) }
+    fun onSetSheetExpanded(expanded: Boolean) = _state.update { it.copy(sheetExpanded = expanded, sheetRaisedByPin = false) }
 
     // 종목 칩: 하나만 고르고 다시 누르면 해제. 종목이 바뀌면 이전 종목의 기준은 지워진다.
     fun onToggleSportChip(sport: Sport) = FilterStore.update { it.withSport(if (it.sport == sport) null else sport) }
@@ -142,5 +150,10 @@ class ExploreViewModel(
         }
     }
 
-    fun onToggleFavoriteOnly() = _state.update { it.copy(favoriteOnly = !it.favoriteOnly, selectedPinKey = null) }
+    fun onToggleFavoriteOnly() = _state.update { it.copy(favoriteOnly = !it.favoriteOnly, selectedPinKey = null, sheetRaisedByPin = false) }
+
+    private companion object {
+        const val REFRESH_RETRIES = 2
+        const val REFRESH_RETRY_DELAY_MS = 1_000L
+    }
 }

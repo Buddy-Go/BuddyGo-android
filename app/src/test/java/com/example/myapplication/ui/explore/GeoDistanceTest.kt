@@ -85,4 +85,16 @@ class GeoDistanceTest {
         val state = stateOf(hongdae, meeting("1", 0.0, 0.0, 500))
         assertEquals(500, state.visibleMeetings.single().distanceMeters)
     }
+
+    @Test
+    fun 거리는_서버_값이_아니라_내_위치에서_모임_장소까지_잰_값이다() {
+        // 에뮬레이터 기본 위치(미국 마운틴뷰)에서 경북 경산의 모임까지 약 9,000km: 스크린샷의 "9084km"와 같은 크기다.
+        val mountainView = GeoPoint(37.4220, -122.0841)
+        val place = MeetingPlace(latitude = 35.8266, longitude = 128.7585)
+        val meeting = Meeting(place = place, distanceMeters = 1_234)
+        val meters = meetingDistanceMeters(meeting, mountainView)!!
+        assertTrue("$meters", meters in 9_000_000..9_200_000)
+        assertEquals("내 위치를 모르면 서버가 준 값을 쓴다", 1_234, meetingDistanceMeters(meeting, null))
+        assertEquals("9084km", formatDistance(9_084_000))
+    }
 }

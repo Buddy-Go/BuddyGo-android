@@ -152,9 +152,18 @@ data class MeetingFilter(
         }
     }
 
-    // 구·동은 도로명 주소나 지번에 그 이름이 들어 있으면 맞다. (임시: 서버가 행정구역 코드를 주면 코드로 비교한다)
+    // 구·동은 도로명 주소나 지번에 그 지역의 이름이 모두 들어 있으면 맞다. (임시: 서버가 행정구역 코드를 주면 코드로 비교한다)
+    // 조건은 "대구 달서구 도원동"처럼 전체 이름이라서 "달서구"와 "도원동"이 둘 다 있어야 한다. 이름만 같은 다른 도시의 동은 걸러진다.
+    // 시도는 서버 주소와 쓰는 말이 다를 수 있어("대구" / "대구광역시") 비교하지 않는다. "마포구"처럼 이름 하나만 저장된 조건도 그대로 쓴다.
     private fun matchesDistrict(meeting: Meeting): Boolean {
-        val name = district?.takeIf { it.isNotBlank() } ?: return true
-        return name in meeting.place.address || name in meeting.place.lotAddress
+        val parts = districtParts(district ?: return true)
+        if (parts.isEmpty()) return true
+        return parts.all { it in meeting.place.address } || parts.all { it in meeting.place.lotAddress }
     }
+}
+
+// 지역 이름을 시도를 뺀 조각으로 나눈다. "대구 달서구 도원동" → [달서구, 도원동], "서울 마포구" → [마포구], "마포구" → [마포구], "서울" → [서울].
+internal fun districtParts(district: String): List<String> {
+    val parts = district.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    return if (parts.size >= 2) parts.drop(1) else parts
 }

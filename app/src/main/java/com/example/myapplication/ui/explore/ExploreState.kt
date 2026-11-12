@@ -15,6 +15,7 @@ data class ExploreState(
     val meetings: UiState<List<Meeting>> = UiState.Loading,
     val firstLoad: Boolean = true,       // 아직 한 번도 목록을 못 받았다: 16a 스켈레톤. 받은 뒤 다시 불러오면 16e 스피너
     val sheetExpanded: Boolean = true,   // 3-After(올림) / 3-2-After(내림)
+    val sheetRaisedByPin: Boolean = false, // 내려 둔 시트를 모임이 여러 개인 핀을 골라서 올렸다. 핀을 풀면 다시 내린다.
     val selectedPinKey: String? = null,
     val favoriteOnly: Boolean = false,   // 상단 '찜' 칩
     // 적용된 검색 조건. 상단 종목 칩과 조건 설정 화면이 같은 값을 쓴다. (FilterStore)
@@ -79,7 +80,23 @@ data class ExploreState(
         searchBounds = cameraBounds,
         filter = filter.copy(district = null),
         selectedPinKey = null,
+        sheetRaisedByPin = false,
     )
+
+    // 핀을 누른다. 같은 핀을 다시 누르면 선택이 풀린다.
+    // 모임이 여러 개인 핀을 고르면 목록 시트를 올려서 그 지번의 모임이 바로 보이게 한다. (내려 둔 시트도 올린다)
+    fun withPinSelected(key: String): ExploreState {
+        if (selectedPinKey == key) return withPinCleared()
+        val multiple = pins.firstOrNull { it.key == key }?.isMultiple == true
+        return if (multiple && !sheetExpanded) copy(selectedPinKey = key, sheetExpanded = true, sheetRaisedByPin = true)
+        else copy(selectedPinKey = key)
+    }
+
+    // 핀 선택을 푼다. 핀 때문에 올렸던 시트는 원래대로 내린다. 고른 핀이 없으면 아무것도 바꾸지 않는다.
+    fun withPinCleared(): ExploreState {
+        if (selectedPinKey == null) return this
+        return copy(selectedPinKey = null, sheetExpanded = if (sheetRaisedByPin) false else sheetExpanded, sheetRaisedByPin = false)
+    }
 
     // 찜을 켜거나 끈다. 서버 응답을 기다리지 않고 먼저 화면에 보여 준다.
     fun withFavoriteToggled(meetingId: String): ExploreState {
