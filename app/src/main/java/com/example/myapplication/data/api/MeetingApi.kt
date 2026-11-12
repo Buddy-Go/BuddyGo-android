@@ -117,6 +117,7 @@ data class CardDto(
 
 @Serializable
 data class PlaceDto(
+    val kakaoPlaceId: String? = null,
     val name: String = "",
     val roadAddress: String? = null,
     val jibunAddress: String? = null,

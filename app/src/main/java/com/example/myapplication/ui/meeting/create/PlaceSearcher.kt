@@ -18,6 +18,7 @@ data class PlaceResult(
     val latitude: Double,
     val longitude: Double,
     val distanceMeters: Int? = null,
+    val kakaoPlaceId: String? = null, // 카카오 장소 id. 서버가 같은 장소를 하나로 합치는 키라 개설 요청에 실어 보낸다
 )
 
 // 검색어로 장소를 찾는다. near가 있으면 가까운 순으로 찾고 거리를 채운다. 실패하면 예외를 던진다.
@@ -60,7 +61,7 @@ object KakaoPlaceParser {
             val address = d.optString("road_address_name").ifBlank { lot }
             // 카카오가 거리를 주면 그 값을, 아니면 내 위치에서 직접 잰다.
             val meters = d.optString("distance").toIntOrNull() ?: near?.let { distanceMeters(it, lat, lng) }
-            PlaceResult(name, address, lot, lat, lng, meters)
+            PlaceResult(name, address, lot, lat, lng, meters, d.optString("id").ifBlank { null })
         }
     }
 }

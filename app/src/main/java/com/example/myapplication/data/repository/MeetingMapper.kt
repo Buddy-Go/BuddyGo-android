@@ -53,6 +53,7 @@ internal fun PlaceDto.toMeetingPlace(): MeetingPlace {
         detailAddress = detailAddress?.takeIf { it.isNotBlank() },
         latitude = latitude,
         longitude = longitude,
+        kakaoPlaceId = kakaoPlaceId?.takeIf { it.isNotBlank() },
     )
 }
 

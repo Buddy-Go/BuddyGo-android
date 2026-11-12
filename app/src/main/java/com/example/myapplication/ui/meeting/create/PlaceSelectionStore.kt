@@ -62,10 +62,10 @@ object PlaceSelectionStore {
 fun List<PlaceResult>.withRecent(place: PlaceResult, max: Int = 5): List<PlaceResult> =
     (listOf(place) + filterNot { it.name == place.name && it.address == place.address }).take(max)
 
-// 최근 장소를 글자로 바꾼다. 한 줄에 한 곳: 이름, 도로명 주소, 지번, 위도, 경도를 탭으로 나눈다. (거리는 매번 달라져 저장하지 않는다)
+// 최근 장소를 글자로 바꾼다. 한 줄에 한 곳: 이름, 도로명 주소, 지번, 위도, 경도, 카카오 장소 id(없으면 빈칸)를 탭으로 나눈다. (거리는 매번 달라져 저장하지 않는다)
 fun encodePlaces(list: List<PlaceResult>): String = list.joinToString("\n") { p ->
     listOf(p.name, p.address, p.lotAddress).joinToString("\t") { it.replace('\n', ' ').replace('\t', ' ') } +
-        "\t${p.latitude}\t${p.longitude}"
+        "\t${p.latitude}\t${p.longitude}\t${p.kakaoPlaceId.orEmpty()}"
 }
 
 // 깨진 줄(칸 수가 모자라거나 좌표가 숫자가 아님)은 건너뛴다. 저장된 값이 망가져도 앱이 죽지 않게 한다.
@@ -74,5 +74,5 @@ fun decodePlaces(text: String?): List<PlaceResult> = text.orEmpty().lines().mapN
     if (c.size < 5) return@mapNotNull null
     val lat = c[3].toDoubleOrNull() ?: return@mapNotNull null
     val lng = c[4].toDoubleOrNull() ?: return@mapNotNull null
-    if (c[0].isBlank()) null else PlaceResult(c[0], c[1], c[2], lat, lng)
+    if (c[0].isBlank()) null else PlaceResult(c[0], c[1], c[2], lat, lng, kakaoPlaceId = c.getOrNull(5)?.ifBlank { null })
 }
