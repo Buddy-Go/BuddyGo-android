@@ -204,4 +204,63 @@ class ExploreStateTest {
         assertFalse(MockNotifications.empty.hasUnread())
         assertFalse(ExploreState().hasUnreadNotifications)
     }
+
+    // ---- 모임이 여러 개인 핀을 고르면 그 모임들이 바로 보인다 ----
+
+    private val keyA = "서교동 1-1"
+
+    @Test
+    fun 모임이_여러_개인_핀을_고르면_내려_둔_시트가_올라가서_모임이_보인다() {
+        val state = stateOf(meeting("1"), meeting("2")).copy(sheetExpanded = false)
+        val selected = state.withPinSelected(keyA)
+        assertTrue(selected.sheetExpanded)
+        assertEquals(listOf("1", "2"), selected.sheetMeetings.map { it.id }.sorted())
+    }
+
+    @Test
+    fun 핀을_풀면_핀_때문에_올렸던_시트는_다시_내려간다() {
+        val state = stateOf(meeting("1"), meeting("2")).copy(sheetExpanded = false)
+        val cleared = state.withPinSelected(keyA).withPinCleared()
+        assertFalse(cleared.sheetExpanded)
+        assertNull(cleared.selectedPinKey)
+        assertFalse(cleared.sheetRaisedByPin)
+    }
+
+    @Test
+    fun 같은_핀을_다시_누르면_풀리고_시트도_원래대로_내려간다() {
+        val state = stateOf(meeting("1"), meeting("2")).copy(sheetExpanded = false)
+        val toggled = state.withPinSelected(keyA).withPinSelected(keyA)
+        assertNull(toggled.selectedPinKey)
+        assertFalse(toggled.sheetExpanded)
+    }
+
+    @Test
+    fun 시트가_이미_올라와_있으면_핀을_풀어도_그대로_올라와_있다() {
+        val state = stateOf(meeting("1"), meeting("2")) // 기본값: 올라와 있다
+        val selected = state.withPinSelected(keyA)
+        assertTrue(selected.sheetExpanded)
+        assertFalse(selected.sheetRaisedByPin)
+        assertTrue(selected.withPinCleared().sheetExpanded)
+    }
+
+    @Test
+    fun 모임이_하나뿐인_핀은_시트를_올리지_않는다() {
+        val state = stateOf(meeting("1"), meeting("3", place = lotB)).copy(sheetExpanded = false)
+        val selected = state.withPinSelected("망원동 2-2")
+        assertFalse(selected.sheetExpanded)
+        assertFalse(selected.sheetRaisedByPin)
+        assertEquals("3", selected.floatingCard?.id) // 하나뿐인 핀은 떠 있는 카드로 보인다
+    }
+
+    @Test
+    fun 고른_핀이_없을_때_지우기는_시트를_바꾸지_않는다() {
+        val state = stateOf(meeting("1"), meeting("2")).copy(sheetExpanded = false, sheetRaisedByPin = true)
+        assertEquals(state, state.withPinCleared())
+    }
+
+    @Test
+    fun 재검색하면_핀_때문에_올린_표시도_지운다() {
+        val state = stateOf(meeting("1"), meeting("2")).copy(sheetExpanded = false).withPinSelected(keyA)
+        assertFalse(state.afterResearch().sheetRaisedByPin)
+    }
 }

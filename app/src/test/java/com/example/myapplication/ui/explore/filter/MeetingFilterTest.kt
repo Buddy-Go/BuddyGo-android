@@ -265,4 +265,39 @@ class MeetingFilterTest {
         assertEquals(TimeOfDayRange.MAX_MINUTE, range.withEnd(5000).endMinute)
         assertEquals(0, range.withStart(-30).startMinute)
     }
+
+    @Test
+    fun 전체_이름으로_저장된_조건은_구와_동이_모두_맞아야_한다() {
+        val 달서구 = MeetingPlace(address = "대구 달서구 도원로 1", lotAddress = "대구 달서구 도원동 12-3")
+        val 용산구 = MeetingPlace(address = "서울 용산구 한강로 1", lotAddress = "서울 용산구 도원동 5")
+        val 제물포구 = MeetingPlace(address = "인천 제물포구 도원로 2", lotAddress = "인천 제물포구 도원동 9")
+        val filter = MeetingFilter(district = "대구 달서구 도원동")
+        assertTrue(filter.ok(Meeting(place = 달서구)))
+        assertFalse("이름만 같은 서울 용산구의 도원동은 아니다", filter.ok(Meeting(place = 용산구)))
+        assertFalse("이름만 같은 인천 제물포구의 도원동은 아니다", filter.ok(Meeting(place = 제물포구)))
+    }
+
+    @Test
+    fun 시도_표기가_서버_주소와_달라도_구와_동이_맞으면_통과한다() {
+        val place = MeetingPlace(address = "대구광역시 달서구 도원로 1", lotAddress = "대구광역시 달서구 도원동 12-3")
+        assertTrue(MeetingFilter(district = "대구 달서구 도원동").ok(Meeting(place = place)))
+        assertTrue(MeetingFilter(district = "대구 달서구").ok(Meeting(place = place)))
+        assertFalse(MeetingFilter(district = "대구 중구 도원동").ok(Meeting(place = place)))
+    }
+
+    @Test
+    fun 시도만_저장된_조건은_시도_이름으로_거른다() {
+        assertTrue(MeetingFilter(district = "서울").ok(Meeting(place = MeetingPlace(address = "서울특별시 마포구 양화로 1"))))
+        assertFalse(MeetingFilter(district = "서울").ok(Meeting(place = MeetingPlace(address = "대구 달서구 도원로 1"))))
+    }
+
+    @Test
+    fun 지역_이름은_시도를_뺀_조각으로_나눈다() {
+        assertEquals(listOf("달서구", "도원동"), districtParts("대구 달서구 도원동"))
+        assertEquals(listOf("수원시", "영통구", "영통동"), districtParts("경기 수원시 영통구 영통동"))
+        assertEquals(listOf("마포구"), districtParts("서울 마포구"))
+        assertEquals(listOf("마포구"), districtParts("마포구"))
+        assertEquals(listOf("서울"), districtParts("서울"))
+        assertEquals(emptyList<String>(), districtParts("  "))
+    }
 }
