@@ -136,4 +136,32 @@ class LocationSearchViewModelTest {
         many.onQueryChange("중구")
         assertNull("결과가 여럿이면 고르지 않은 채로는 적용하지 않는다", many.onApply())
     }
+
+    @Test
+    fun 이름이_똑같은_결과는_고르지_않아도_적용되고_애매하면_고르라고_막는다() {
+        val results = listOf(District("중구", "서울 중구", null), District("중구", "대구 중구", null))
+        val vm = LocationSearchViewModel(null, DistrictSearcher { results }, debounceMs = 0).also { created += it }
+
+        vm.onQueryChange("서울  중구") // 띄어쓰기가 달라도 같은 이름으로 본다
+        assertEquals(false, vm.needsChoice)
+        assertEquals("서울 중구", vm.onApply())
+
+        vm.onQueryChange("중구") // 결과가 둘이고 이름이 똑같은 것도 없다
+        assertEquals(true, vm.needsChoice)
+        vm.onSelect("대구 중구")
+        assertEquals("고르면 막지 않는다", false, vm.needsChoice)
+        assertEquals("대구 중구", vm.onApply())
+    }
+
+    @Test
+    fun 결과가_없거나_검색어가_없을_때의_적용() {
+        val none = LocationSearchViewModel(null, DistrictSearcher { emptyList() }, debounceMs = 0).also { created += it }
+        none.onQueryChange("없는곳")
+        assertEquals("결과가 없어도 말없이 풀지 않고 막는다", true, none.needsChoice)
+
+        val blank = LocationSearchViewModel("마포구", DistrictSearcher { emptyList() }, debounceMs = 0).also { created += it }
+        blank.onReset()
+        assertEquals("검색어도 없으면 조건을 풀겠다는 뜻이라 막지 않는다", false, blank.needsChoice)
+        assertNull(blank.onApply())
+    }
 }

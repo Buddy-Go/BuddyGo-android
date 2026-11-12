@@ -61,14 +61,29 @@ class LocationSearchViewModel(
         _state.update { it.cleared().copy(results = emptyList(), loading = false, failed = false) }
     }
 
-    // 적용: 고른 곳을 최근 검색에 넣고 돌려준다. 고른 곳이 없으면 위치 조건을 푼다(null).
-    // 검색어를 쓰고 결과 행을 누르지 않은 채 적용해도, 결과가 하나뿐이면 그것을 고른 것으로 본다. (조건이 조용히 풀리지 않게)
-    fun onApply(): String? {
+    // 지금 적용하면 어느 지역이 되는지. 고른 곳이 있으면 그곳, 없으면 검색어와 전체 이름이 똑같은 결과나 하나뿐인 결과를 고른 것으로 본다.
+    // 검색 중인데 이것도 정할 수 없으면 null이다. (검색어가 없으면 고른 곳도 없는 것이 맞다)
+    private fun resolveSelection(): String? {
         val current = _state.value
-        val only = current.results.singleOrNull()?.takeIf { current.selected == null && current.isSearching && !current.loading }
-        if (only != null) DistrictCenters.put(only.fullName, only.center)
-        val selected = current.selected ?: only?.fullName
-        if (selected != null) RecentDistrictStore.add(selected)
+        current.selected?.let { return it }
+        if (!current.isSearching || current.loading) return null
+        val typed = current.query.normalizedName()
+        return current.results.firstOrNull { it.fullName.normalizedName() == typed }?.fullName
+            ?: current.results.singleOrNull()?.fullName
+    }
+
+    // 검색어를 쓰고 아무것도 고르지 않았는데 어느 지역인지도 정할 수 없다. 이때 적용하면 위치 조건이 말없이 풀리므로 막고 안내한다.
+    val needsChoice: Boolean get() = _state.value.isSearching && resolveSelection() == null
+
+    // 적용: 고른 곳을 최근 검색에 넣고 돌려준다. 검색어도 고른 곳도 없으면 위치 조건을 푼다(null).
+    fun onApply(): String? {
+        val selected = resolveSelection()
+        if (selected != null) {
+            _state.value.results.firstOrNull { it.fullName == selected }?.let { DistrictCenters.put(it.fullName, it.center) }
+            RecentDistrictStore.add(selected)
+        }
         return selected
     }
 }
+
+private fun String.normalizedName() = trim().split(Regex("\\s+")).joinToString(" ")

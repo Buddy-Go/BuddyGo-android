@@ -24,6 +24,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +42,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.myapplication.ui.common.ActionButton
+import com.example.myapplication.ui.common.ToastHost
+import com.example.myapplication.ui.common.ToastState
+import com.example.myapplication.ui.common.ToastType
+import kotlinx.coroutines.launch
 import com.example.myapplication.ui.explore.SearchIcon
 import com.example.myapplication.ui.explore.iconButton
 import com.example.myapplication.ui.theme.AppColor
@@ -48,7 +54,7 @@ import com.example.myapplication.ui.theme.AppSpace
 import com.example.myapplication.ui.theme.SuitFontFamily
 
 // 4g 위치 검색, 4g-2 검색 결과. 구·동을 하나 골라 '적용'하면 조건 설정의 위치가 된다.
-// 고른 곳이 없는 채로 적용하면 위치 조건이 풀린다.
+// 검색어를 쓰고 고르지 않았으면 결과가 하나이거나 이름이 똑같을 때만 그 지역이 되고, 아니면 안내한다. 검색어도 없이 적용하면 위치 조건이 풀린다.
 // (디자인의 "현재 위치에서 1·3·5km"는 정의서가 구·동 하나만 쓰기로 해서 만들지 않았다.)
 @Composable
 fun LocationSearchScreen(
@@ -59,7 +65,10 @@ fun LocationSearchScreen(
     viewModel: LocationSearchViewModel = viewModel(factory = viewModelFactory { initializer { LocationSearchViewModel(initialDistrict) } }),
 ) {
     val state by viewModel.state.collectAsState()
-    Column(modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
+    val toast = remember { ToastState() }
+    val scope = rememberCoroutineScope()
+    Box(modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(32.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.Center) {
                 ChevronLeftIcon(AppColor.TextPrimary)
@@ -113,10 +122,16 @@ fun LocationSearchScreen(
             Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Border))
             ActionButton(
                 text = "적용",
-                onClick = { onApplied(viewModel.onApply()) },
+                onClick = {
+                    // 검색어만 쓰고 아무것도 안 골랐으면 조건을 풀지 말고 고르라고 알려 준다.
+                    if (viewModel.needsChoice) scope.launch { toast.show("검색 결과에서 지역을 선택해 주세요", ToastType.Warning) }
+                    else onApplied(viewModel.onApply())
+                },
                 modifier = Modifier.padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl),
             )
         }
+    }
+    ToastHost(toast, Modifier.align(Alignment.BottomCenter).padding(bottom = 88.dp))
     }
 }
 
