@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +48,7 @@ import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.filter.searchTitle
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppSpace
+import com.example.myapplication.ui.theme.MyApplicationTheme
 
 // 3-After 탐색. 지도 + 검색창·칩 + 하단 시트. (3-2-After 시트 내림, 3-3-After 핀 선택, 3-5 +n 핀 선택, 16e 부분 로딩)
 @Composable
@@ -265,3 +267,16 @@ private val TopOverlayHeight = 168.dp
 
 // 검색창과 칩 줄 바로 아래 가운데에 '현 지도에서 검색'을 놓는 위치(상태바 아래 기준)
 private val ResearchButtonTop = 134.dp
+
+// 안드로이드 스튜디오 미리보기. 펀치홀 있는 기기(Pixel 8)에 상태바까지 그려서 상단 여백을 바로 본다.
+// 실제 앱의 Scaffold는 상단 인셋을 주지 않으므로(AppNavHost), 여기서도 화면이 직접 statusBarsPadding()을 적용한 모습 그대로다.
+@Preview(name = "탐색 · 상단 여백 (Pixel 8)", device = "id:pixel_8", showSystemUi = true)
+@Composable
+private fun ExploreTopPreview() {
+    MyApplicationTheme(dynamicColor = false) {
+        Box(Modifier.fillMaxSize()) {
+            MapUnavailable()
+            TopOverlay(state = ExploreState(), onSearchClick = {}, onNotificationClick = {}, onToggleFavoriteOnly = {})
+        }
+    }
+}

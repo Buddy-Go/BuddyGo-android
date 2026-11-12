@@ -4,7 +4,11 @@ import androidx.compose.runtime.produceState
 import com.example.myapplication.ui.mypage.BlockManageScreen
 import com.example.myapplication.ui.auth.FindPasswordScreen
 import com.example.myapplication.data.local.ActivityAreaStore
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -114,6 +118,8 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     // 탭 5개 화면에서만 하단 탭 바를 보여 준다.
     Scaffold(
         modifier = modifier,
+        // 상단(상태바) 인셋은 각 화면이 statusBarsPadding()으로 직접 처리한다. 여기서 또 주면 상단 여백이 두 번 생긴다.
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
         bottomBar = {
             // 개설(10a)은 디자인이 탭 바 없는 전체 화면이라 개설 화면에서는 탭 바를 숨긴다. X로 닫으면 이전 화면으로 돌아간다.
             if (currentRoute in Routes.bottomTabs && currentRoute != Routes.MEETING_CREATE) {
