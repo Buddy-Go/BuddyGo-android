@@ -1,11 +1,15 @@
 package com.example.myapplication.ui.explore
 
+import com.example.myapplication.data.model.GeoPoint
 import com.example.myapplication.data.model.MapBounds
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.Notification
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.filter.MeetingFilter
+
+// 지도를 옮길 곳. 같은 곳을 다시 골라도 옮기도록 id를 함께 둔다.
+data class MapFocus(val point: GeoPoint, val id: Int)
 
 data class ExploreState(
     val meetings: UiState<List<Meeting>> = UiState.Loading,
@@ -23,6 +27,8 @@ data class ExploreState(
     val hasUnreadNotifications: Boolean = false, // 알림 벨의 빨간 점
     val myLocation: GeoPoint? = null,            // 허용했을 때만 있다. 카드의 거리와 거리순 기준
     val locationAsked: Boolean = false,          // 이번 실행에서 위치 권한을 이미 물어봤는지
+    // 위치 조건(구·동)을 새로 고르면 지도가 그 지역 중심으로 옮겨 간다. 지도는 id가 바뀔 때마다 한 번 옮긴다.
+    val mapFocus: MapFocus? = null,
 ) {
     // 지도와 리스트에 보이는 모임: 모집중만, 찜 칩이 켜져 있으면 찜한 모임만, 거리순
     val visibleMeetings: List<Meeting>

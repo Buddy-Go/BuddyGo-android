@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.explore.filter
 
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.model.GeoPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -86,5 +87,27 @@ class LocationSearchViewModelTest {
         vm.onReset()
         assertNull(vm.state.value.selected)
         assertEquals("", vm.state.value.query)
+    }
+
+    @Test
+    fun 중심_좌표가_있는_지역을_고르면_좌표를_기억해_둔다() {
+        DistrictCenters.clear()
+        val center = GeoPoint(35.8581745, 128.6306354)
+        val vm = LocationSearchViewModel(null, DistrictSearcher { listOf(District("수성구", "대구 수성구", center)) }, debounceMs = 0).also { created += it }
+        vm.onQueryChange("수성구")
+        vm.onSelect("수성구")
+        assertEquals(center, DistrictCenters.get("수성구"))
+        DistrictCenters.clear()
+    }
+
+    @Test
+    fun 좌표가_없는_지역을_골라도_이전에_기억한_좌표를_지우지_않는다() {
+        DistrictCenters.clear()
+        DistrictCenters.put("마포구", GeoPoint(37.5663, 126.9019))
+        val vm = vm(null)
+        vm.onQueryChange("마포구")
+        vm.onSelect("마포구")
+        assertEquals(GeoPoint(37.5663, 126.9019), DistrictCenters.get("마포구"))
+        DistrictCenters.clear()
     }
 }

@@ -109,6 +109,7 @@ fun ExploreScreen(
                 onMovedByUser = { bounds -> viewModel.onCameraMoved(bounds) },
                 onError = { mapFailed = true },
                 modifier = Modifier.fillMaxSize(),
+                focus = state.mapFocus,
                 topPadding = TopOverlayHeight,
                 bottomPadding = sheetBottomSpace,
             )

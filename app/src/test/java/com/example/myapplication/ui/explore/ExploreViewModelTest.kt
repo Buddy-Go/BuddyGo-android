@@ -2,6 +2,7 @@ package com.example.myapplication.ui.explore
 
 import com.example.myapplication.data.mock.MockMeetings
 import com.example.myapplication.data.mock.MockNotifications
+import com.example.myapplication.data.model.GeoPoint
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.Notification
 import com.example.myapplication.data.model.Sport
@@ -11,6 +12,9 @@ import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.NotificationRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.filter.District
+import com.example.myapplication.ui.explore.filter.DistrictCenters
+import com.example.myapplication.ui.explore.filter.DistrictSearcher
 import com.example.myapplication.ui.explore.filter.FilterStore
 import com.example.myapplication.ui.explore.filter.MeetingFilter
 import java.io.IOException
@@ -35,6 +39,7 @@ class ExploreViewModelTest {
     fun 준비() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         FilterStore.clear()
+        DistrictCenters.clear()
     }
 
     // 테스트가 만든 ViewModel은 끝날 때 정리한다. (앱에서는 화면이 사라질 때 정리된다)
@@ -46,6 +51,7 @@ class ExploreViewModelTest {
         created.forEach { it.viewModelScope.cancel() }
         Dispatchers.resetMain()
         FilterStore.clear()
+        DistrictCenters.clear()
         LastKnownLocation.clear()
     }
 
@@ -68,7 +74,9 @@ class ExploreViewModelTest {
         meetings: MeetingRepository = FakeMeetingRepository(),
         notifications: NotificationRepository = FakeNotificationRepository(),
         users: com.example.myapplication.data.repository.UserRepository = com.example.myapplication.data.repository.FakeUserRepository(),
-    ) = ExploreViewModel(meetings, notifications, users).also { created += it }
+        // 테스트에서 실제 카카오 서버를 부르지 않도록 기본은 아무것도 못 찾는 검색기다.
+        districts: DistrictSearcher = DistrictSearcher { emptyList() },
+    ) = ExploreViewModel(meetings, notifications, users, districts).also { created += it }
 
     private fun ExploreViewModel.loaded() = (state.value.meetings as UiState.Success).data
 
@@ -354,5 +362,80 @@ class ExploreViewModelTest {
         assertFalse(vm.state.value.showResearchButton)
         vm.onCameraMoved(mapo)
         assertTrue(vm.state.value.showResearchButton)
+    }
+
+    // ---- 위치 조건을 고르면 지도가 그 지역으로 옮겨 간다 ----
+
+    private val 수성구 = GeoPoint(latitude = 35.8581745, longitude = 128.6306354)
+
+    @Test
+    fun 처음에는_지도를_옮기라는_요청이_없다() {
+        assertNull(viewModel().state.value.mapFocus)
+    }
+
+    @Test
+    fun 중심을_아는_지역을_고르면_지도를_그곳으로_옮긴다() {
+        val vm = viewModel()
+        DistrictCenters.put("수성구", 수성구)
+        FilterStore.apply(MeetingFilter(district = "수성구"))
+        assertEquals(수성구, vm.state.value.mapFocus?.point)
+    }
+
+    @Test
+    fun 중심을_모르면_이름으로_찾아서_옮긴다() {
+        val vm = viewModel(districts = DistrictSearcher { listOf(District("수성구", "대구 수성구", 수성구)) })
+        FilterStore.apply(MeetingFilter(district = "수성구"))
+        assertEquals(수성구, vm.state.value.mapFocus?.point)
+        assertEquals(수성구, DistrictCenters.get("수성구")) // 다음에는 찾지 않아도 된다
+    }
+
+    @Test
+    fun 이름으로_찾을_때는_이름이_같고_좌표가_있는_결과만_쓴다() {
+        val vm = viewModel(districts = DistrictSearcher {
+            listOf(District("수성동", "대구 수성동", GeoPoint(1.0, 1.0)), District("수성구", "대구 수성구", null))
+        })
+        FilterStore.apply(MeetingFilter(district = "수성구"))
+        assertNull(vm.state.value.mapFocus)
+    }
+
+    @Test
+    fun 찾지_못하거나_검색이_실패하면_지도는_그대로다() {
+        val vm = viewModel(districts = DistrictSearcher { throw IOException("끊김") })
+        FilterStore.apply(MeetingFilter(district = "수성구"))
+        assertNull(vm.state.value.mapFocus)
+    }
+
+    @Test
+    fun 위치_조건을_풀면_지도를_옮기지_않는다() {
+        val vm = viewModel()
+        DistrictCenters.put("수성구", 수성구)
+        FilterStore.apply(MeetingFilter(district = "수성구"))
+        val first = vm.state.value.mapFocus
+        FilterStore.apply(MeetingFilter())
+        assertEquals(first, vm.state.value.mapFocus)
+    }
+
+    @Test
+    fun 다른_조건만_바꾸면_지도를_다시_옮기지_않는다() {
+        val vm = viewModel()
+        DistrictCenters.put("수성구", 수성구)
+        FilterStore.apply(MeetingFilter(district = "수성구"))
+        val first = vm.state.value.mapFocus
+        FilterStore.apply(MeetingFilter(district = "수성구", sport = Sport.HEALTH))
+        assertEquals(first, vm.state.value.mapFocus)
+    }
+
+    @Test
+    fun 다른_지역으로_바꾸면_요청_번호가_바뀌며_새_지역으로_옮긴다() {
+        val vm = viewModel()
+        val 마포구 = GeoPoint(37.5663, 126.9019)
+        DistrictCenters.put("수성구", 수성구)
+        DistrictCenters.put("마포구", 마포구)
+        FilterStore.apply(MeetingFilter(district = "수성구"))
+        val first = vm.state.value.mapFocus!!
+        FilterStore.apply(MeetingFilter(district = "마포구"))
+        val second = vm.state.value.mapFocus!!
+        assertEquals(마포구, second.point)
+        assertTrue(second.id > first.id)
     }
 }
