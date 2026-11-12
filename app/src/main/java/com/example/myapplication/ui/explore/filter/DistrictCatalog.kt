@@ -1,7 +1,28 @@
 package com.example.myapplication.ui.explore.filter
 
+import com.example.myapplication.data.model.GeoPoint
+
 // 위치 검색(4g)에서 고를 수 있는 구·동. 이름(name)이 조건에 저장되고, 전체 이름(fullName)이 목록에 보인다.
-data class District(val name: String, val fullName: String)
+// center는 그 지역의 중심 좌표다. 고르면 지도가 그곳으로 옮겨 간다. 좌표를 모르면(서울 예시 목록 등) null이다.
+data class District(val name: String, val fullName: String, val center: GeoPoint? = null)
+
+// 방금 고른 지역의 중심 좌표를 이름으로 기억한다. 조건에는 이름만 저장되므로 탐색 화면이 지도를 옮길 때 여기서 찾는다.
+// 같은 이름이 여러 곳에 있으면(예: 중구) 마지막으로 고른 곳이 남는다.
+object DistrictCenters {
+    private val centers = mutableMapOf<String, GeoPoint>()
+
+    @Synchronized
+    fun put(name: String, center: GeoPoint?) {
+        if (center != null) centers[name] = center
+    }
+
+    @Synchronized
+    fun get(name: String): GeoPoint? = centers[name]
+
+    // 테스트 용도
+    @Synchronized
+    fun clear() = centers.clear()
+}
 
 // TODO(임시) 서버가 행정구역 목록을 주기 전까지 서울 25개 구와 일부 동만 둔다.
 object DistrictCatalog {

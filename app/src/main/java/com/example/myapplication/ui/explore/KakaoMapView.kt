@@ -34,6 +34,9 @@ import com.kakao.vectormap.label.LabelStyles
 private val DefaultCenter = LatLng.from(37.5563, 126.9236)
 private const val DefaultZoom = 15
 
+// 위치 조건(구·동)을 고르면 지도를 그 지역이 한눈에 들어오는 배율로 옮긴다.
+private const val DistrictZoom = 13
+
 private data class PinImageKey(val style: PinStyle, val count: Int, val favorite: Boolean)
 
 // 카카오맵(View)을 Compose에 올린다. 핀은 pins 목록대로 라벨로 그리고, 선택된 핀은 라임으로 바꾼다.
@@ -47,6 +50,7 @@ fun KakaoMapView(
     onMovedByUser: (MapBounds?) -> Unit, // 옮긴 뒤 지도에 보이는 영역(읽지 못하면 null)
     onError: () -> Unit,
     modifier: Modifier = Modifier,
+    focus: MapFocus? = null, // 바뀌면 지도를 그 지점으로 한 번 옮긴다 (위치 조건으로 고른 지역)
     topPadding: Dp = 0.dp,    // 검색창·칩이 덮는 높이
     bottomPadding: Dp = 0.dp, // 시트가 덮는 높이. 두 값으로 지도 중심이 가려지지 않은 영역의 가운데가 된다.
 ) {
@@ -132,6 +136,12 @@ fun KakaoMapView(
         val map = kakaoMap ?: return@LaunchedEffect
         val first = pins.firstOrNull() ?: return@LaunchedEffect
         map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(first.latitude, first.longitude)))
+    }
+    // 위치 조건으로 지역을 고르면 그 지역 중심으로 옮긴다. 핀이 있으면 아래 핀 이동이 이어서 그 지역의 가장 가까운 핀으로 맞춘다.
+    LaunchedEffect(kakaoMap, focus) {
+        val map = kakaoMap ?: return@LaunchedEffect
+        val target = focus ?: return@LaunchedEffect
+        map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(target.point.latitude, target.point.longitude), DistrictZoom))
     }
     LaunchedEffect(kakaoMap, selectedKey) {
         val map = kakaoMap ?: return@LaunchedEffect

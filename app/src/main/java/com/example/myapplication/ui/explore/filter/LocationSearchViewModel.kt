@@ -49,7 +49,11 @@ class LocationSearchViewModel(
             _state.update { it.copy(results = result.getOrDefault(emptyList()), loading = false, failed = result.isFailure) }
         }
     }
-    fun onSelect(name: String) = _state.update { it.withToggled(name) }
+    // 고르면 그 지역의 중심 좌표를 기억해 둔다. 적용하면 탐색 화면의 지도가 그곳으로 옮겨 간다.
+    fun onSelect(name: String) {
+        _state.value.results.firstOrNull { it.name == name }?.let { DistrictCenters.put(it.name, it.center) }
+        _state.update { it.withToggled(name) }
+    }
     fun onRemoveRecent(name: String) = RecentDistrictStore.remove(name)
     fun onReset() {
         searchJob?.cancel()

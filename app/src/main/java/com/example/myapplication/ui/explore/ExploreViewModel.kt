@@ -10,7 +10,10 @@ import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
+import com.example.myapplication.ui.explore.filter.DistrictCenters
+import com.example.myapplication.ui.explore.filter.DistrictSearcher
 import com.example.myapplication.ui.explore.filter.FilterStore
+import com.example.myapplication.ui.explore.filter.KakaoDistrictSearcher
 import java.io.IOException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,9 +25,11 @@ class ExploreViewModel(
     private val repository: MeetingRepository = Repositories.meetings,
     private val notificationRepository: NotificationRepository = Repositories.notifications,
     private val userRepository: UserRepository = Repositories.users,
+    private val districtSearcher: DistrictSearcher = KakaoDistrictSearcher(),
 ) : ViewModel() {
     private val _state = MutableStateFlow(ExploreState())
     val state: StateFlow<ExploreState> = _state.asStateFlow()
+    private var lastDistrict: String? = null
 
     init {
         load()
@@ -35,7 +40,25 @@ class ExploreViewModel(
                 val clearBounds = filter.district != null && _state.value.searchBounds != null
                 _state.update { it.copy(filter = filter, selectedPinKey = null, searchBounds = if (clearBounds) null else it.searchBounds) }
                 if (clearBounds) load()
+                // 위치 조건을 새로 고르면 지도를 그 지역으로 옮긴다. (조건을 풀거나 그대로면 옮기지 않는다)
+                if (filter.district != lastDistrict) {
+                    lastDistrict = filter.district
+                    filter.district?.let(::focusMapOn)
+                }
             }
+        }
+    }
+
+    // 고른 지역의 중심 좌표를 찾아 지도를 옮기라고 알린다. 좌표를 기억해 두지 않았으면(최근 검색에서 골랐을 때 등) 이름으로 찾아본다.
+    // 못 찾으면 지도는 그대로 둔다. 찾는 사이에 다른 조건으로 바뀌었으면 옛 결과는 버린다.
+    private fun focusMapOn(name: String) {
+        viewModelScope.launch {
+            val center = DistrictCenters.get(name)
+                ?: runCatching { districtSearcher.search(name).firstOrNull { it.name == name && it.center != null }?.center }.getOrNull()
+                ?: return@launch
+            if (FilterStore.applied.value.district != name) return@launch
+            DistrictCenters.put(name, center)
+            _state.update { it.copy(mapFocus = MapFocus(center, (it.mapFocus?.id ?: 0) + 1)) }
         }
     }
 
