@@ -66,6 +66,24 @@ class ReviewStateTest {
     }
 
     @Test
+    fun 태그는_분류별로_묶여_모두_한_번씩_나온다() {
+        val s = state.copy(draft = ReviewDraft().withVerdict(ReviewVerdict.NORMAL))
+        assertEquals(ReviewTagCategory.entries.toList(), s.tagGroups.map { it.first })
+        assertEquals(ReviewTag.entries.toSet(), s.tagGroups.flatMap { it.second }.toSet())
+        assertEquals(18, s.tagGroups.sumOf { it.second.size })
+        assertTrue("분류 안에서는 긍정 태그가 먼저다", s.tagGroups.all { (_, tags) -> tags.map { it.isPositive } == tags.map { it.isPositive }.sortedByDescending { it } })
+        assertTrue("판정 전에는 태그가 없다", state.tagGroups.isEmpty())
+    }
+
+    @Test
+    fun 접힌_분류는_앞의_3개와_고른_태그만_보인다() {
+        val tags = ReviewTagCategory.MANNER.let { c -> ReviewTag.entries.filter { it.category == c } }
+        assertEquals(tags.take(3), tags.collapsed(emptySet()))
+        val last = tags.last()
+        assertEquals(tags.take(3) + last, tags.collapsed(setOf(last)))
+    }
+
+    @Test
     fun 태그는_최대_5개까지만_고른다() {
         val tags = ReviewTag.entries.take(6)
         val full = tags.take(5).fold(ReviewDraft().withVerdict(ReviewVerdict.GOOD)) { d, t -> d.toggled(t) }
@@ -79,24 +97,26 @@ class ReviewStateTest {
     }
 
     @Test
-    fun 태그는_판정과_상관없이_18개_모두_고를_수_있다_12b2_12b4() {
+    fun 태그는_판정에_맞는_것만_보인다_12b2_12b4() {
         val good = state.copy(draft = ReviewDraft().withVerdict(ReviewVerdict.GOOD))
         assertEquals("어떤 점이 좋았나요?", good.tagQuestion)
-        assertEquals(ReviewTag.entries.toList(), good.availableTags)
+        assertEquals(10, good.availableTags.size)
+        assertTrue(good.availableTags.all { it.isPositive })
         val normal = state.copy(draft = ReviewDraft().withVerdict(ReviewVerdict.NORMAL))
-        assertEquals(18, normal.availableTags.size)
+        assertEquals("보통은 서버에 전용 태그가 없어 모두 보인다", ReviewTag.entries.toList(), normal.availableTags)
         val bad = state.copy(draft = ReviewDraft().withVerdict(ReviewVerdict.BAD))
         assertEquals("어떤 점이 아쉬웠나요?", bad.tagQuestion)
-        assertEquals(10, bad.availableTags.count { it.isPositive })
-        assertEquals(8, bad.availableTags.count { !it.isPositive })
+        assertEquals(8, bad.availableTags.size)
+        assertTrue(bad.availableTags.none { it.isPositive })
         assertTrue("판정을 고르기 전에는 태그가 없다", state.availableTags.isEmpty())
     }
 
     @Test
-    fun 판정을_바꿔도_고른_태그는_그대로() {
-        val draft = ReviewDraft().withVerdict(ReviewVerdict.GOOD).toggled(ReviewTag.PUNCTUAL).toggled(ReviewTag.ON_PHONE)
-        assertEquals(setOf(ReviewTag.PUNCTUAL, ReviewTag.ON_PHONE), draft.withVerdict(ReviewVerdict.BAD).tags)
+    fun 판정을_바꾸면_안_보이는_태그는_고른_것에서_빠진다() {
+        val draft = ReviewDraft().withVerdict(ReviewVerdict.NORMAL).toggled(ReviewTag.PUNCTUAL).toggled(ReviewTag.ON_PHONE)
         assertEquals(setOf(ReviewTag.PUNCTUAL, ReviewTag.ON_PHONE), draft.withVerdict(ReviewVerdict.NORMAL).tags)
+        assertEquals(setOf(ReviewTag.PUNCTUAL), draft.withVerdict(ReviewVerdict.GOOD).tags)
+        assertEquals(setOf(ReviewTag.ON_PHONE), draft.withVerdict(ReviewVerdict.BAD).tags)
         assertEquals(setOf(ReviewTag.ON_PHONE), draft.toggled(ReviewTag.PUNCTUAL).tags)
     }
 
