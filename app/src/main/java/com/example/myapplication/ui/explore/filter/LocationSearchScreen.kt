@@ -67,71 +67,71 @@ fun LocationSearchScreen(
     val state by viewModel.state.collectAsState()
     val toast = remember { ToastState() }
     val scope = rememberCoroutineScope()
-    Box(modifier.fillMaxSize()) {
-    Column(Modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(32.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.Center) {
-                ChevronLeftIcon(AppColor.TextPrimary)
-            }
-            Spacer(Modifier.width(AppSpace.xl))
-            Text("위치", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, modifier = Modifier.weight(1f))
-            Text(
-                "초기화", color = AppColor.TextSecondary, fontSize = 15.sp, fontWeight = FontWeight.Medium,
-                modifier = Modifier.clip(RoundedCornerShape(AppRadius.sm)).clickable(onClick = viewModel::onReset).padding(AppSpace.md),
-            )
-        }
-
-        SearchField(state.query, viewModel::onQueryChange, viewModel::onClearQuery, Modifier.padding(horizontal = AppSpace.x4))
-        Spacer(Modifier.height(AppSpace.xxl))
-
-        LazyColumn(Modifier.weight(1f).padding(horizontal = AppSpace.x4)) {
-            if (state.isSearching) {
-                // 4g-2: 검색 결과. 검색어와 겹치는 글자는 굵게 보인다.
-                items(state.results, key = { it.fullName }) { district ->
-                    DistrictRow(
-                        text = highlighted(district.fullName, state.query),
-                        trailing = { if (state.selected == district.fullName) CheckMarkIcon(AppColor.AccentStrong) },
-                        onClick = { viewModel.onSelect(district.fullName) },
-                    )
+    Box(modifier.fillMaxSize().imePadding()) {
+        Column(Modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding()) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(32.dp).clip(CircleShape).iconButton("뒤로", onBack), contentAlignment = Alignment.Center) {
+                    ChevronLeftIcon(AppColor.TextPrimary)
                 }
-                if (state.results.isEmpty() && !state.loading) item { EmptyText(if (state.failed) "검색하지 못했어요. 잠시 후 다시 시도해 주세요" else "검색 결과가 없어요") }
-            } else {
-                // 4g: 최근 검색. 고른 곳은 굵게 + 체크, 나머지는 회색 + 지우기(X)
-                item { Text("최근 검색", fontSize = 14.sp, color = AppColor.TextSecondary, modifier = Modifier.padding(bottom = AppSpace.md)) }
-                items(state.recent, key = { it }) { name ->
-                    val selected = state.selected == name
-                    DistrictRow(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, color = if (selected) AppColor.TextPrimary else AppColor.TextSecondary)) { append(name) }
-                        },
-                        trailing = {
-                            if (selected) CheckMarkIcon(AppColor.AccentStrong)
-                            else Box(Modifier.size(32.dp).clip(CircleShape).iconButton("$name 최근 검색 삭제") { viewModel.onRemoveRecent(name) }, contentAlignment = Alignment.Center) {
-                                CloseIcon(AppColor.TextDisabled, size = 18.dp)
-                            }
-                        },
-                        onClick = { viewModel.onSelect(name) },
-                        bordered = false,
-                    )
+                Spacer(Modifier.width(AppSpace.xl))
+                Text("위치", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, modifier = Modifier.weight(1f))
+                Text(
+                    "초기화", color = AppColor.TextSecondary, fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clip(RoundedCornerShape(AppRadius.sm)).clickable(onClick = viewModel::onReset).padding(AppSpace.md),
+                )
+            }
+
+            SearchField(state.query, viewModel::onQueryChange, viewModel::onClearQuery, Modifier.padding(horizontal = AppSpace.x4))
+            Spacer(Modifier.height(AppSpace.xxl))
+
+            LazyColumn(Modifier.weight(1f).padding(horizontal = AppSpace.x4)) {
+                if (state.isSearching) {
+                    // 4g-2: 검색 결과. 검색어와 겹치는 글자는 굵게 보인다.
+                    items(state.results, key = { it.fullName }) { district ->
+                        DistrictRow(
+                            text = highlighted(district.fullName, state.query),
+                            trailing = { if (state.selected == district.fullName) CheckMarkIcon(AppColor.AccentStrong) },
+                            onClick = { viewModel.onSelect(district.fullName) },
+                        )
+                    }
+                    if (state.results.isEmpty() && !state.loading) item { EmptyText(if (state.failed) "검색하지 못했어요. 잠시 후 다시 시도해 주세요" else "검색 결과가 없어요") }
+                } else {
+                    // 4g: 최근 검색. 고른 곳은 굵게 + 체크, 나머지는 회색 + 지우기(X)
+                    item { Text("최근 검색", fontSize = 14.sp, color = AppColor.TextSecondary, modifier = Modifier.padding(bottom = AppSpace.md)) }
+                    items(state.recent, key = { it }) { name ->
+                        val selected = state.selected == name
+                        DistrictRow(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, color = if (selected) AppColor.TextPrimary else AppColor.TextSecondary)) { append(name) }
+                            },
+                            trailing = {
+                                if (selected) CheckMarkIcon(AppColor.AccentStrong)
+                                else Box(Modifier.size(32.dp).clip(CircleShape).iconButton("$name 최근 검색 삭제") { viewModel.onRemoveRecent(name) }, contentAlignment = Alignment.Center) {
+                                    CloseIcon(AppColor.TextDisabled, size = 18.dp)
+                                }
+                            },
+                            onClick = { viewModel.onSelect(name) },
+                            bordered = false,
+                        )
+                    }
+                    if (state.recent.isEmpty()) item { EmptyText("최근에 검색한 지역이 없어요") }
                 }
-                if (state.recent.isEmpty()) item { EmptyText("최근에 검색한 지역이 없어요") }
+            }
+
+            Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
+                Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Border))
+                ActionButton(
+                    text = "적용",
+                    onClick = {
+                        // 검색어만 쓰고 아무것도 안 골랐으면 조건을 풀지 말고 고르라고 알려 준다.
+                        if (viewModel.needsChoice) scope.launch { toast.show("검색 결과에서 지역을 선택해 주세요", ToastType.Warning) }
+                        else onApplied(viewModel.onApply())
+                    },
+                    modifier = Modifier.padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl),
+                )
             }
         }
-
-        Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
-            Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Border))
-            ActionButton(
-                text = "적용",
-                onClick = {
-                    // 검색어만 쓰고 아무것도 안 골랐으면 조건을 풀지 말고 고르라고 알려 준다.
-                    if (viewModel.needsChoice) scope.launch { toast.show("검색 결과에서 지역을 선택해 주세요", ToastType.Warning) }
-                    else onApplied(viewModel.onApply())
-                },
-                modifier = Modifier.padding(horizontal = AppSpace.x4, vertical = AppSpace.xxl),
-            )
-        }
-    }
-    ToastHost(toast, Modifier.align(Alignment.BottomCenter).padding(bottom = 88.dp))
+        ToastHost(toast, Modifier.align(Alignment.BottomCenter).padding(bottom = 88.dp))
     }
 }
 
