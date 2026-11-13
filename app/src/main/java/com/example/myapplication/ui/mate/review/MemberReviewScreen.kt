@@ -25,6 +25,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -119,14 +123,14 @@ private fun MemberReviewContent(
             if (state.showDetails) {
                 Line()
                 TagHeader(state.tagQuestion, state.tagCounter)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(AppSpace.md),
-                    verticalArrangement = Arrangement.spacedBy(AppSpace.md),
-                ) {
-                    state.availableTags.forEach { tag ->
-                        val selected = tag in state.draft.tags
-                        TagChip(label = tag.label, selected = selected, dimmed = state.tagLimitReached && !selected, onClick = { onTagToggle(tag) })
-                    }
+                state.tagGroups.forEach { (category, tags) ->
+                    TagGroup(
+                        title = category.label,
+                        tags = tags,
+                        selected = state.draft.tags,
+                        limitReached = state.tagLimitReached,
+                        onTagToggle = onTagToggle,
+                    )
                 }
                 Line()
                 SectionHeader("한마디 남기기")
@@ -208,6 +212,40 @@ private fun TagChip(label: String, selected: Boolean, dimmed: Boolean, onClick: 
             fontWeight = FontWeight.Bold,
             color = if (selected) AppColor.AccentStrong else if (dimmed) AppColor.TextDisabled else AppColor.TextBody,
         )
+    }
+}
+
+// 분류 하나: 소제목 + 태그들. 길면 처음 몇 개만 보이고 '더보기'로 펼친다.
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TagGroup(
+    title: String,
+    tags: List<ReviewTag>,
+    selected: Set<ReviewTag>,
+    limitReached: Boolean,
+    onTagToggle: (ReviewTag) -> Unit,
+) {
+    var expanded by rememberSaveable(title) { mutableStateOf(false) }
+    val canExpand = tags.size > REVIEW_TAG_COLLAPSED_COUNT
+    val shown = if (expanded || !canExpand) tags else tags.collapsed(selected)
+    Column(verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
+        Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(AppSpace.md),
+            verticalArrangement = Arrangement.spacedBy(AppSpace.md),
+        ) {
+            shown.forEach { tag ->
+                val isSelected = tag in selected
+                TagChip(label = tag.label, selected = isSelected, dimmed = limitReached && !isSelected, onClick = { onTagToggle(tag) })
+            }
+        }
+        if (canExpand && shown.size < tags.size || expanded) {
+            Text(
+                text = if (expanded) "접기 ︿" else "더보기 ﹀",
+                fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextSecondary,
+                modifier = Modifier.clip(RoundedCornerShape(AppRadius.sm)).clickable { expanded = !expanded }.padding(vertical = AppSpace.xs, horizontal = AppSpace.xs),
+            )
+        }
     }
 }
 

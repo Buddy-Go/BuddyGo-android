@@ -20,26 +20,42 @@ val ReviewVerdict.label: String
 // 태그 목록. 서버 ReviewTagType과 같은 18개(긍정 10 · 부정 8)이고, 이름이 서버 태그 코드다.
 // 서버는 좋음·보통·아쉬움 판정과 상관없이 어느 태그든 고를 수 있게 했다. (점수는 태그 성격대로 서버가 매긴다)
 // 서버에는 label 문자열로 넘기고(Review.tags), RealReviewRepository가 코드로 바꿔 보낸다.
-enum class ReviewTag(val label: String, val isPositive: Boolean) {
-    PUNCTUAL("시간 약속을 잘 지켜요", true),
-    GOOD_MANNERS("매너가 좋아요", true),
-    KIND("친절하고 말투가 편안해요", true),
-    FUN_ATMOSPHERE("운동 분위기를 즐겁게 만들어줘요", true),
-    GOOD_COACHING("자세·운동법을 잘 알려줘요", true),
-    SIMILAR_LEVEL("운동 수준이 비슷해서 잘 맞았어요", true),
-    SHARES_EQUIPMENT("기구를 배려하며 같이 써요", true),
-    GOOD_SPOTTER("보조를 잘 해줘요", true),
-    GOOD_COMMUNICATION("소통이 잘 돼요", true),
-    WANT_AGAIN("또 같이 운동하고 싶어요", true),
+// 태그를 묶어 보여 주는 분류. 순서가 화면 순서다. (네이버 리뷰 키워드처럼 분류별로 모아 보여 준다)
+enum class ReviewTagCategory(val label: String) {
+    PROMISE("약속·모임"),
+    MANNER("매너·소통"),
+    WORKOUT("운동 방식"),
+    LEVEL("수준·기구"),
+}
 
-    NOT_PUNCTUAL("시간 약속을 안 지켜요 (지각 포함)", false),
-    ON_PHONE("운동 중 휴대폰만 봐요", false),
-    UNCOMFORTABLE_TONE("말투가 불편했어요", false),
-    LEVEL_MISMATCH("운동 수준이 기준과 많이 달랐어요", false),
-    HOGS_EQUIPMENT("기구를 독점하거나 정리를 안 해요", false),
-    UNWANTED_ADVICE("운동 방식을 강요하거나 훈수를 둬요", false),
-    POOR_COMMUNICATION("소통이 잘 안 돼요", false),
-    NOT_AS_DESCRIBED("모임 설명과 달랐어요", false),
+enum class ReviewTag(val label: String, val isPositive: Boolean, val category: ReviewTagCategory) {
+    PUNCTUAL("시간 약속을 잘 지켜요", true, ReviewTagCategory.PROMISE),
+    GOOD_MANNERS("매너가 좋아요", true, ReviewTagCategory.MANNER),
+    KIND("친절하고 말투가 편안해요", true, ReviewTagCategory.MANNER),
+    FUN_ATMOSPHERE("운동 분위기를 즐겁게 만들어줘요", true, ReviewTagCategory.WORKOUT),
+    GOOD_COACHING("자세·운동법을 잘 알려줘요", true, ReviewTagCategory.WORKOUT),
+    SIMILAR_LEVEL("운동 수준이 비슷해서 잘 맞았어요", true, ReviewTagCategory.LEVEL),
+    SHARES_EQUIPMENT("기구를 배려하며 같이 써요", true, ReviewTagCategory.LEVEL),
+    GOOD_SPOTTER("보조를 잘 해줘요", true, ReviewTagCategory.WORKOUT),
+    GOOD_COMMUNICATION("소통이 잘 돼요", true, ReviewTagCategory.MANNER),
+    WANT_AGAIN("또 같이 운동하고 싶어요", true, ReviewTagCategory.PROMISE),
+
+    NOT_PUNCTUAL("시간 약속을 안 지켜요 (지각 포함)", false, ReviewTagCategory.PROMISE),
+    ON_PHONE("운동 중 휴대폰만 봐요", false, ReviewTagCategory.WORKOUT),
+    UNCOMFORTABLE_TONE("말투가 불편했어요", false, ReviewTagCategory.MANNER),
+    LEVEL_MISMATCH("운동 수준이 기준과 많이 달랐어요", false, ReviewTagCategory.LEVEL),
+    HOGS_EQUIPMENT("기구를 독점하거나 정리를 안 해요", false, ReviewTagCategory.LEVEL),
+    UNWANTED_ADVICE("운동 방식을 강요하거나 훈수를 둬요", false, ReviewTagCategory.WORKOUT),
+    POOR_COMMUNICATION("소통이 잘 안 돼요", false, ReviewTagCategory.MANNER),
+    NOT_AS_DESCRIBED("모임 설명과 달랐어요", false, ReviewTagCategory.PROMISE);
+
+    companion object {
+        fun availableFor(verdict: ReviewVerdict): List<ReviewTag> = when (verdict) {
+            ReviewVerdict.GOOD -> entries.filter { it.isPositive }
+            ReviewVerdict.BAD -> entries.filter { !it.isPositive }
+            ReviewVerdict.NORMAL -> entries.toList()
+        }
+    }
 }
 
 // 한마디 최대 글자 수 (service-rules 11장)
@@ -48,6 +64,9 @@ const val REVIEW_COMMENT_MAX_LENGTH = 200
 // 태그는 1개 이상 5개까지 고른다. (네이버 리뷰 키워드와 같은 방식)
 const val REVIEW_TAG_MIN = 1
 const val REVIEW_TAG_MAX = 5
+
+// 분류마다 처음에는 이만큼만 보여 주고, 펼치면 전부 보인다. (고른 태그는 접혀 있어도 보인다)
+const val REVIEW_TAG_COLLAPSED_COUNT = 3
 
 // 12b에서 작성 중인 평가 한 건
 data class ReviewDraft(
@@ -104,9 +123,14 @@ data class ReviewState(
             else -> "어떤 점이 좋았나요?"
         }
 
-    // 판정과 상관없이 18개 모두 고를 수 있다. (긍정 태그가 먼저, 부정 태그가 뒤에 온다)
+    // 판정에 맞는 태그만 보여 준다. 좋음은 긍정 10개, 아쉬움은 부정 8개, 보통은 서버에 전용 태그가 없어 18개 모두.
+    // (서버는 판정과 상관없이 어느 태그든 받으므로 화면에서만 걸러 보여 준다. 판정을 고르기 전에는 태그가 없다)
     val availableTags: List<ReviewTag>
-        get() = if (draft.verdict == null) emptyList() else ReviewTag.entries.toList()
+        get() = draft.verdict?.let { ReviewTag.availableFor(it) }.orEmpty()
+
+    // 분류별로 묶은 태그. 분류 순서대로, 분류 안에서는 긍정 태그가 먼저다.
+    val tagGroups: List<Pair<ReviewTagCategory, List<ReviewTag>>>
+        get() = availableTags.groupBy { it.category }.toList().sortedBy { it.first.ordinal }
 
     val commentCounter: String get() = "${draft.comment.length} / $REVIEW_COMMENT_MAX_LENGTH"
 
@@ -138,9 +162,14 @@ data class ReviewState(
     val mateSuggestions: List<ReviewTargetInfo> get() = targets.filter { !it.isMate }
 }
 
-// 판정을 바꿔도 고른 태그는 그대로 둔다. (서버가 판정과 태그를 따로 받는다)
+// 판정을 바꾸면 새 판정에서 볼 수 없는 태그는 고른 것에서 뺀다. (안 보이는 태그가 개수에 잡히거나 제출되지 않게)
 // 이미 5개를 골랐으면 더 고를 수 없고, 고른 것을 다시 누르면 해제된다.
-fun ReviewDraft.withVerdict(verdict: ReviewVerdict): ReviewDraft = copy(verdict = verdict)
+fun ReviewDraft.withVerdict(verdict: ReviewVerdict): ReviewDraft =
+    copy(verdict = verdict, tags = tags.filterTo(mutableSetOf()) { it in ReviewTag.availableFor(verdict) })
+
+// 접힌 분류에서 보일 태그: 앞의 REVIEW_TAG_COLLAPSED_COUNT개와 고른 태그
+fun List<ReviewTag>.collapsed(selected: Set<ReviewTag>): List<ReviewTag> =
+    filterIndexed { index, tag -> index < REVIEW_TAG_COLLAPSED_COUNT || tag in selected }
 
 fun ReviewDraft.toggled(tag: ReviewTag): ReviewDraft = copy(
     tags = when {
