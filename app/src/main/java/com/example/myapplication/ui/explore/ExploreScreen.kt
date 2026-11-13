@@ -110,6 +110,7 @@ fun ExploreScreen(
                 onError = { mapFailed = true },
                 modifier = Modifier.fillMaxSize(),
                 focus = state.mapFocus,
+                followNearestPin = state.followNearestPin,
                 topPadding = TopOverlayHeight,
                 bottomPadding = sheetBottomSpace,
             )

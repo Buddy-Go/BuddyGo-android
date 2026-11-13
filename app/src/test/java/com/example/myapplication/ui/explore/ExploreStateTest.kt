@@ -2,6 +2,7 @@ package com.example.myapplication.ui.explore
 
 import com.example.myapplication.data.mock.MockMeetings
 import com.example.myapplication.data.mock.MockNotifications
+import com.example.myapplication.data.model.MapBounds
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingPlace
 import com.example.myapplication.data.model.MeetingStatus
@@ -262,5 +263,19 @@ class ExploreStateTest {
     fun 재검색하면_핀_때문에_올린_표시도_지운다() {
         val state = stateOf(meeting("1"), meeting("2")).copy(sheetExpanded = false).withPinSelected(keyA)
         assertFalse(state.afterResearch().sheetRaisedByPin)
+    }
+
+    @Test
+    fun 재검색한_뒤에는_카메라가_가장_가까운_핀으로_옮겨가지_않는다() {
+        val state = stateOf(meeting("1"), meeting("2"))
+        assertTrue(state.followNearestPin) // 처음에는 가장 가까운 핀을 따라간다
+        val researched = state.withCameraMoved(MapBounds.of(37.6, 126.8, 37.4, 127.0)).afterResearch()
+        assertFalse(researched.followNearestPin) // 사용자가 옮긴 지도 위치를 그대로 둔다
+    }
+
+    @Test
+    fun 위치_조건으로_영역이_풀리면_다시_가장_가까운_핀을_따라간다() {
+        val researched = stateOf(meeting("1")).withCameraMoved(MapBounds.of(37.6, 126.8, 37.4, 127.0)).afterResearch()
+        assertTrue(researched.copy(searchBounds = null).followNearestPin)
     }
 }
