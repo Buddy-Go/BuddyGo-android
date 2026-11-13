@@ -68,7 +68,7 @@ class MeetingCreateViewModel(
     fun onDateSelect(index: Int) {
         if (state.lockedCore) return // 확정 참가자가 있으면 일시는 잠긴다
         if (index !in state.dateOptions.indices) return
-        state = state.copy(selectedDateIndex = index)
+        state = state.copy(selectedDateIndex = index).dropPastStart()
     }
 
     // 달력: 5일 칩 밖의 날짜를 고른다. 디자인이 없어 Material 기본 달력을 쓴다. 오늘 이전 날짜는 고를 수 없다.
@@ -83,8 +83,18 @@ class MeetingCreateViewModel(
 
     fun onCalendarPick(year: Int, month: Int, day: Int) {
         val (options, index) = withDate(state.dateOptions, dateOptionOf(year, month, day, nowMillis()))
-        state = state.copy(dateOptions = options, selectedDateIndex = index, showCalendar = false)
+        state = state.copy(dateOptions = options, selectedDateIndex = index, showCalendar = false).dropPastStart()
     }
+
+    // 고른 날짜에서 이미 고를 수 없게 된 시작 시각은 비워서 다시 고르게 한다. (예: 내일 08:00 → 오늘로 바꿈)
+    private fun MeetingCreateState.dropPastStart(): MeetingCreateState {
+        val start = startMinutes ?: return this
+        val earliest = selectedDate?.let { earliestStartMinutesOf(it, nowMillis()) } ?: return this
+        return if (start < earliest) copy(startMinutes = null) else this
+    }
+
+    // 시간 시트에서 고를 수 있는 가장 이른 시작 시각 (10f)
+    fun earliestStartMinutes(): Int? = state.selectedDate?.let { earliestStartMinutesOf(it, nowMillis()) }
 
     fun onTimeClick() {
         if (state.lockedCore) return

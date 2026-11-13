@@ -385,3 +385,53 @@ fun withDate(options: List<DateOption>, option: DateOption): Pair<List<DateOptio
     val merged = (options + option).sortedBy(key)
     return merged to merged.indexOfFirst { key(it) == key(option) }
 }
+
+// ---------- 시작 시각 규칙 (10f) ----------
+
+// 시작은 지금부터 1시간 30분 이후만 고를 수 있다. 데드라인(시작 90분 전)이 미래여야 하기 때문이다. (service-rules 4장)
+// 서버 설정값과 같은 값이다. 서버 값이 바뀌면 여기만 고친다.
+const val MIN_START_LEAD_MINUTES = 90
+private const val START_STEP_MINUTES = 10 // 시간 휠 분 단위
+
+// 고른 날짜에서 고를 수 있는 가장 이른 시작 시각(그날 0시부터의 분, 10분 단위 올림).
+// 제한이 없는 날(내일 이후 등)이면 null, 그날 고를 수 있는 시간이 하나도 없으면 24 * 60.
+fun earliestStartMinutesOf(date: DateOption, nowMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): Int? {
+    val earliest = Calendar.getInstance(timeZone).apply {
+        timeInMillis = nowMillis
+        add(Calendar.MINUTE, MIN_START_LEAD_MINUTES)
+    }
+    val earliestKey = earliest.get(Calendar.YEAR) * 10_000 + (earliest.get(Calendar.MONTH) + 1) * 100 + earliest.get(Calendar.DAY_OF_MONTH)
+    val dateKey = date.year * 10_000 + date.month * 100 + date.day
+    return when {
+        dateKey > earliestKey -> null
+        dateKey < earliestKey -> 24 * 60
+        else -> {
+            val minutes = earliest.get(Calendar.HOUR_OF_DAY) * 60 + earliest.get(Calendar.MINUTE) +
+                if (earliest.get(Calendar.SECOND) > 0 || earliest.get(Calendar.MILLISECOND) > 0) 1 else 0
+            ((minutes + START_STEP_MINUTES - 1) / START_STEP_MINUTES * START_STEP_MINUTES).coerceAtMost(24 * 60)
+        }
+    }
+}
+
+private const val DEFAULT_TIME_SHEET_START = 19 * 60 // (추정) 내일 이후 날짜에서 아직 시간을 안 골랐을 때 처음 보일 값
+
+// 시간 시트를 열 때 처음 보일 시작 시각: 이미 고른 값(아직 유효하면) → 오늘이면 고를 수 있는 가장 이른 시각 → 19:00
+fun initialTimeSheetStart(initialStartMinutes: Int?, earliestStartMinutes: Int?): Int {
+    val earliest = earliestStartMinutes?.takeIf { it < 24 * 60 }
+    return when {
+        initialStartMinutes != null && (earliestStartMinutes == null || initialStartMinutes >= earliestStartMinutes) -> initialStartMinutes
+        earliest != null -> earliest
+        else -> DEFAULT_TIME_SHEET_START
+    }
+}
+
+// 휠에서 고른 (시, 분 칸 번호)가 가장 이른 시각보다 앞이면 가장 이른 시각으로 올린다.
+fun clampToEarliest(hour: Int, minuteIndex: Int, earliestStartMinutes: Int?): Pair<Int, Int> {
+    val earliest = earliestStartMinutes?.takeIf { it < 24 * 60 } ?: return hour to minuteIndex
+    val picked = hour * 60 + minuteIndex * START_STEP_MINUTES
+    return if (picked >= earliest) hour to minuteIndex else earliest / 60 to earliest % 60 / START_STEP_MINUTES
+}
+
+// 지금 고른 날짜 (없으면 null)
+val MeetingCreateState.selectedDate: DateOption?
+    get() = dateOptions.getOrNull(selectedDateIndex ?: -1)
