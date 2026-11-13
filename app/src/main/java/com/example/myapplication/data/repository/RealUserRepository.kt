@@ -15,6 +15,7 @@ import com.example.myapplication.data.api.SignupRequest
 import com.example.myapplication.data.api.UserApi
 import com.example.myapplication.data.api.apiCall
 import com.example.myapplication.data.api.requireData
+import com.example.myapplication.data.local.ActivityAreaStore
 import com.example.myapplication.data.local.TokenStore
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.Gender
@@ -153,6 +154,7 @@ class RealUserRepository(
         me.onFailure { tokens.clear() }
         val user = me.getOrThrow().toUser()
         tokens.setUserId(user.id)
+        ActivityAreaStore.switchUser(user.id) // 이 계정이 설정해 둔 활동 지역을 불러온다
         return user
     }
 }

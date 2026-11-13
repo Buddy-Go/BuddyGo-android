@@ -91,7 +91,8 @@ fun MeetingDetailScreen(
     onManageParticipants: () -> Unit,           // 호스트: 참가자 관리(7)
     onWriteNotice: () -> Unit,                  // 호스트: 공지 작성(8a)
     onOpenNotices: () -> Unit,                  // 호스트: 공지 목록(8d)
-    onOpenNotice: (noticeId: String) -> Unit,   // 호스트: 공지 상세(8f)
+    onOpenNotice: (noticeId: String) -> Unit,   // 호스트: 공지 상세(8f) / 확정 참가자: 공지 상세(8g)
+    onHostClick: (hostId: String) -> Unit = {}, // 호스트 카드: 호스트가 받은 후기 목록
     onEditMeeting: () -> Unit,                  // 호스트: 모임 수정
     modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
@@ -169,6 +170,7 @@ fun MeetingDetailScreen(
                 onWriteNotice = onWriteNotice,
                 onOpenNotices = onOpenNotices,
                 onOpenNotice = onOpenNotice,
+                onHostClick = onHostClick,
                 onAction = { action ->
                     when (action) {
                         DetailAction.APPLY -> onApply()
@@ -249,6 +251,7 @@ private fun DetailContent(
     onWriteNotice: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenNotice: (String) -> Unit,
+    onHostClick: (String) -> Unit,
     onShare: () -> Unit,
     onAction: (DetailAction) -> Unit,
 ) {
@@ -279,7 +282,8 @@ private fun DetailContent(
             } else {
                 ParticipantsSection(meeting, state.nowMillis)
                 InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
-                HostCard(meeting)
+                HostCard(meeting, onClick = { onHostClick(meeting.hostId) })
+                state.participantNotices?.let { ParticipantNoticeSection(it, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice) }
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
             }
             Spacer(Modifier.height(AppSpace.md))
@@ -511,9 +515,11 @@ private fun InfoRow(title: String, value: String, onClick: (() -> Unit)? = null,
 }
 
 @Composable
-private fun HostCard(meeting: Meeting) {
+private fun HostCard(meeting: Meeting, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.lg)).background(AppColor.SurfaceMuted).padding(AppSpace.xxl),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.lg)).background(AppColor.SurfaceMuted)
+            .clickable(enabled = meeting.hostId.isNotBlank(), onClickLabel = "호스트 후기 보기", onClick = onClick)
+            .padding(AppSpace.xxl),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Avatar(meeting.hostNickname.take(1), 52.dp)
@@ -533,6 +539,36 @@ private fun HostCard(meeting: Meeting) {
             )
         }
         ChevronRightIcon(AppColor.TextSecondary)
+    }
+}
+
+// 확정 참가자의 공지 영역: 호스트 영역(5a-H4)과 같은 카드. '전체 >'는 공지 목록(8e), 카드는 공지 상세(8g).
+@Composable
+private fun ParticipantNoticeSection(state: ParticipantNotices, onAllClick: () -> Unit, onNoticeClick: (String) -> Unit) {
+    val notice = state.latest
+    Column(verticalArrangement = Arrangement.spacedBy(AppSpace.lg)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("공지", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, modifier = Modifier.weight(1f))
+            if (notice != null) {
+                Text(
+                    "전체 >", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary,
+                    modifier = Modifier.clickable(onClick = onAllClick),
+                )
+            }
+        }
+        if (notice == null) {
+            Text("아직 호스트가 올린 공지가 없어요", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
+        } else {
+            Column(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.md)).background(AppColor.AccentSoft)
+                    .clickable { onNoticeClick(notice.noticeId) }.padding(AppSpace.xxl),
+                verticalArrangement = Arrangement.spacedBy(AppSpace.sm),
+            ) {
+                Text(notice.timeText, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextSecondary)
+                Text(notice.title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+                Text(notice.body, fontSize = 14.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
+            }
+        }
     }
 }
 

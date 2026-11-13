@@ -129,17 +129,22 @@ internal fun SheetOutlineButton(text: String, enabled: Boolean, onClick: () -> U
 
 // 10f '확인' (채운 버튼)
 @Composable
-internal fun SheetFilledButton(text: String, onClick: () -> Unit) {
+internal fun SheetFilledButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(54.dp)
             .clip(RoundedCornerShape(AppRadius.md))
-            .background(AppColor.Accent)
-            .clickable(onClick = onClick),
+            .background(if (enabled) AppColor.Accent else AppColor.DisabledBg)
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppColor.OnAccent)
+        Text(
+            text = text,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (enabled) AppColor.OnAccent else AppColor.TextDisabled,
+        )
     }
 }
 

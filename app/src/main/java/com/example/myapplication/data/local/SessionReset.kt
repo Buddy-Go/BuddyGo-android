@@ -6,7 +6,8 @@ import com.example.myapplication.ui.explore.filter.RecentDistrictStore
 import com.example.myapplication.ui.meeting.create.PlaceSelectionStore
 import com.example.myapplication.data.repository.SignUpDraftStore
 
-// 로그아웃할 때 이전 사용자의 흔적을 지운다: 조건 설정, 마지막 위치, 최근 검색 지역·장소(기기에 저장된 것 포함), 가입 입력값, 활동 지역, 차단 목록.
+// 로그아웃할 때 이전 사용자의 흔적을 지운다: 조건 설정, 마지막 위치, 최근 검색 지역·장소(기기에 저장된 것 포함), 가입 입력값, 차단 목록.
+// 활동 지역은 계정별로 저장돼 있어서 화면에서만 기본값으로 돌리고, 같은 계정으로 다시 로그인하면 되살아난다.
 // 다음에 로그인하는 사람이 앞사람의 검색 기록이나 조건을 보지 않게 한다.
 object SessionReset {
     fun onLogout() {

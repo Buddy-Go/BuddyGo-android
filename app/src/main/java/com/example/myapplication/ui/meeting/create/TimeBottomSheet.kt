@@ -45,7 +45,6 @@ import com.example.myapplication.ui.theme.AppSpace
 // 시간 설정 시트 ← 10f. 시작 시각(시·분 휠) + 진행 시간(−/+). 종료 = 시작 + 진행 시간.
 
 private const val MINUTE_STEP = 10 // 10f 휠이 50, 00, 10 단위
-private const val DEFAULT_START = 19 * 60 // (추정) 아직 시간을 안 골랐을 때 처음 보일 값
 private const val DEFAULT_DURATION = 60 // (추정)
 
 // 진행 시간 규칙: 최소 30분에서 시작해 10분 단위로 늘리고 줄인다. 최대 4시간.
@@ -65,10 +64,11 @@ internal object DurationRules {
 fun TimeBottomSheet(
     initialStartMinutes: Int?,
     initialDurationMinutes: Int?,
+    earliestStartMinutes: Int?, // 오늘이면 지금+90분부터만 고를 수 있다. 제한 없는 날이면 null
     onApply: (startMinutes: Int, durationMinutes: Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val start = initialStartMinutes ?: DEFAULT_START
+    val start = initialTimeSheetStart(initialStartMinutes, earliestStartMinutes)
     var hour by remember { mutableIntStateOf(start / 60) }
     var minuteIndex by remember { mutableIntStateOf(start % 60 / MINUTE_STEP) }
     var duration by remember { mutableIntStateOf(initialDurationMinutes ?: DEFAULT_DURATION) }
@@ -78,8 +78,18 @@ fun TimeBottomSheet(
             hour = hour,
             minuteIndex = minuteIndex,
             durationMinutes = duration,
-            onHourSelect = { hour = it },
-            onMinuteSelect = { minuteIndex = it },
+            earliestStartMinutes = earliestStartMinutes,
+            // 지난 시각을 고르면 고를 수 있는 가장 이른 시각으로 되돌린다
+            onHourSelect = { h ->
+                val (newHour, newMinuteIndex) = clampToEarliest(h, minuteIndex, earliestStartMinutes)
+                hour = newHour
+                minuteIndex = newMinuteIndex
+            },
+            onMinuteSelect = { m ->
+                val (newHour, newMinuteIndex) = clampToEarliest(hour, m, earliestStartMinutes)
+                hour = newHour
+                minuteIndex = newMinuteIndex
+            },
             onDurationMinus = { duration = DurationRules.minus(duration) },
             onDurationPlus = { duration = DurationRules.plus(duration) },
             onConfirm = { onApply(hour * 60 + minuteIndex * MINUTE_STEP, duration) },
@@ -92,6 +102,7 @@ internal fun TimeSheetBody(
     hour: Int,
     minuteIndex: Int,
     durationMinutes: Int,
+    earliestStartMinutes: Int? = null,
     onHourSelect: (Int) -> Unit,
     onMinuteSelect: (Int) -> Unit,
     onDurationMinus: () -> Unit,
@@ -99,6 +110,8 @@ internal fun TimeSheetBody(
     onConfirm: () -> Unit,
 ) {
     val startMinutes = hour * 60 + minuteIndex * MINUTE_STEP
+    val noTimeLeftToday = earliestStartMinutes != null && earliestStartMinutes >= 24 * 60
+    val canConfirm = !noTimeLeftToday && (earliestStartMinutes == null || startMinutes >= earliestStartMinutes)
     val endMinutes = startMinutes + durationMinutes
     val endText = if (endMinutes >= 24 * 60) "다음 날 ${clock24(endMinutes)}" else clock24(endMinutes)
 
@@ -142,6 +155,8 @@ internal fun TimeSheetBody(
                         values = remember { List(24) { it.toString().padStart(2, '0') } },
                         selectedIndex = hour,
                         onSelect = onHourSelect,
+                        // 그 시의 마지막 칸(50분)도 지났으면 흐리게
+                        isEnabled = { h -> earliestStartMinutes == null || h * 60 + (60 - MINUTE_STEP) >= earliestStartMinutes },
                         modifier = Modifier.weight(1f),
                     )
                     Text(text = ":", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
@@ -149,10 +164,18 @@ internal fun TimeSheetBody(
                         values = remember { List(60 / MINUTE_STEP) { (it * MINUTE_STEP).toString().padStart(2, '0') } },
                         selectedIndex = minuteIndex,
                         onSelect = onMinuteSelect,
+                        isEnabled = { m -> earliestStartMinutes == null || hour * 60 + m * MINUTE_STEP >= earliestStartMinutes },
                         modifier = Modifier.weight(1f),
                     )
                 }
             }
+            Text(
+                text = if (noTimeLeftToday) "오늘은 고를 수 있는 시간이 없어요. 다른 날짜를 골라 주세요."
+                else "시작 1시간 30분 전까지 모집이 끝나야 해서, 지금부터 1시간 30분 이후만 고를 수 있어요",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = AppColor.TextSecondary,
+            )
         }
 
         Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Divider))
@@ -200,7 +223,7 @@ internal fun TimeSheetBody(
             )
         }
 
-        SheetFilledButton(text = "확인", onClick = onConfirm)
+        SheetFilledButton(text = "확인", onClick = onConfirm, enabled = canConfirm)
     }
 }
 
@@ -214,6 +237,7 @@ private fun WheelColumn(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    isEnabled: (Int) -> Boolean = { true },
 ) {
     // 맨 위·아래에 빈 줄을 하나씩 둔다. 그래서 '화면 맨 위 줄 번호'가 곧 '가운데 값 번호'다.
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = selectedIndex)
@@ -227,6 +251,10 @@ private fun WheelColumn(
     }
     LaunchedEffect(listState.isScrollInProgress) {
         if (!listState.isScrollInProgress) onSelect(centerIndex)
+    }
+    // 바깥에서 값이 바뀌면(지난 시각을 골라 되돌릴 때) 휠도 그 값으로 옮긴다
+    LaunchedEffect(selectedIndex) {
+        if (!listState.isScrollInProgress && centerIndex != selectedIndex) listState.animateScrollToItem(selectedIndex)
     }
 
     LazyColumn(
@@ -248,7 +276,11 @@ private fun WheelColumn(
                     text = value,
                     fontSize = if (selected) 20.sp else 16.sp,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (selected) AppColor.TextPrimary else AppColor.TextDisabled,
+                    color = when {
+                        !isEnabled(index) -> AppColor.Border // 지난 시각은 더 흐리게
+                        selected -> AppColor.TextPrimary
+                        else -> AppColor.TextDisabled
+                    },
                 )
             }
         }

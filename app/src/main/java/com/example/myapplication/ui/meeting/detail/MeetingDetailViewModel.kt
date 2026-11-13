@@ -176,8 +176,15 @@ class MeetingDetailViewModel(
 
     // 내가 호스트일 때만 확정 명단 이름과 마지막 공지를 받아 호스트 영역 값을 만든다.
     private suspend fun loadHostSection(meeting: Meeting) {
-        if (meeting.roleOf(_state.value.myUserId) != MeetingRole.HOST) {
-            _state.update { it.copy(hostSection = null) }
+        val role = meeting.roleOf(_state.value.myUserId)
+        if (role == MeetingRole.CONFIRMED) {
+            // 확정 참가자: 호스트 영역은 없고 공지만 본다 (8e·8g로 이어진다)
+            val latest = noticeRepository.getNotices(meetingId).getOrDefault(emptyList()).maxByOrNull { it.createdAtMillis }
+            _state.update { it.copy(hostSection = null, participantNotices = ParticipantNotices(noticePreviewOf(latest))) }
+            return
+        }
+        if (role != MeetingRole.HOST) {
+            _state.update { it.copy(hostSection = null, participantNotices = null) }
             return
         }
         val names = meeting.confirmedIds.mapNotNull { id ->

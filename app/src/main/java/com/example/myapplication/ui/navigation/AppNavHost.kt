@@ -266,6 +266,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         onOpenNotice = { noticeId -> navController.navigate(Routes.noticeDetail(meetingId, noticeId)) },
                         onEditMeeting = { navController.navigate(Routes.meetingEdit(meetingId)) },
                         onAddRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
+                        onHostClick = { hostId -> navController.navigate(Routes.mateReviews(hostId)) },
                     )
                 }
                 composable(Routes.APPLY, meetingArgs()) { entry ->

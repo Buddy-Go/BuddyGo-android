@@ -137,6 +137,7 @@ fun MeetingCreateScreen(
         CreateSheet.TIME -> TimeBottomSheet(
             initialStartMinutes = state.startMinutes,
             initialDurationMinutes = state.durationMinutes,
+            earliestStartMinutes = viewModel.earliestStartMinutes(),
             onApply = viewModel::onTimeApply,
             onDismiss = viewModel::onSheetDismiss,
         )
