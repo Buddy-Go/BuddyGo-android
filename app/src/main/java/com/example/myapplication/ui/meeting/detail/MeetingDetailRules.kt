@@ -369,3 +369,7 @@ fun hostChipCaption(meeting: Meeting, nowMillis: Long, timeZone: TimeZone = Time
     MeetingStatus.CLOSED -> formatDetailDateTime(meeting.startAtMillis, meeting.durationMinutes, timeZone).substringBefore(" · ")
     else -> null
 }
+
+// 확정 참가자가 모임 상세에서 보는 마지막 공지 미리보기 (호스트 영역과 같은 카드). 공지가 없으면 null.
+fun noticePreviewOf(latestNotice: Notice?, timeZone: TimeZone = TimeZone.getDefault()): HostNoticePreview? =
+    latestNotice?.let { HostNoticePreview(it.id, noticeTimeText(it.createdAtMillis, timeZone), it.title, it.body) }
