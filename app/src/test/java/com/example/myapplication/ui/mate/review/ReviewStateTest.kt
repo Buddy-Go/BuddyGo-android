@@ -60,8 +60,22 @@ class ReviewStateTest {
         assertFalse(s.canSubmit)
         assertFalse(s.showDetails)
         val picked = s.copy(draft = s.draft.withVerdict(ReviewVerdict.GOOD))
-        assertTrue(picked.canSubmit)
+        assertFalse("태그를 하나도 안 골랐으면 제출할 수 없다", picked.canSubmit)
         assertTrue(picked.showDetails)
+        assertTrue(picked.copy(draft = picked.draft.toggled(ReviewTag.PUNCTUAL)).canSubmit)
+    }
+
+    @Test
+    fun 태그는_최대_5개까지만_고른다() {
+        val tags = ReviewTag.entries.take(6)
+        val full = tags.take(5).fold(ReviewDraft().withVerdict(ReviewVerdict.GOOD)) { d, t -> d.toggled(t) }
+        assertEquals(5, full.tags.size)
+        assertEquals("6번째는 더해지지 않는다", full.tags, full.toggled(tags[5]).tags)
+        assertEquals("고른 것을 누르면 해제되어 다시 고를 수 있다", 4, full.toggled(tags[0]).tags.size)
+        val s = state.copy(draft = full)
+        assertTrue(s.tagLimitReached)
+        assertTrue(s.canSubmit)
+        assertEquals("5 / 5", s.tagCounter)
     }
 
     @Test

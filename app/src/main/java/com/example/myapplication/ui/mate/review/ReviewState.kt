@@ -45,6 +45,10 @@ enum class ReviewTag(val label: String, val isPositive: Boolean) {
 // 한마디 최대 글자 수 (service-rules 11장)
 const val REVIEW_COMMENT_MAX_LENGTH = 200
 
+// 태그는 1개 이상 5개까지 고른다. (네이버 리뷰 키워드와 같은 방식)
+const val REVIEW_TAG_MIN = 1
+const val REVIEW_TAG_MAX = 5
+
 // 12b에서 작성 중인 평가 한 건
 data class ReviewDraft(
     val verdict: ReviewVerdict? = null,
@@ -118,7 +122,11 @@ data class ReviewState(
     // 12b-2 '제출하고 다음 메이트' / 12b-4 마지막 '평가 제출'
     val submitLabel: String get() = if (nextTargetId != null) "제출하고 다음 메이트" else "평가 제출"
 
-    val canSubmit: Boolean get() = draft.verdict != null && !isSubmitting
+    val tagCounter: String get() = "${draft.tags.size} / $REVIEW_TAG_MAX"
+
+    val tagLimitReached: Boolean get() = draft.tags.size >= REVIEW_TAG_MAX
+
+    val canSubmit: Boolean get() = draft.verdict != null && draft.tags.size in REVIEW_TAG_MIN..REVIEW_TAG_MAX && !isSubmitting
 
     // ---------- 12c ----------
 
@@ -131,9 +139,16 @@ data class ReviewState(
 }
 
 // 판정을 바꿔도 고른 태그는 그대로 둔다. (서버가 판정과 태그를 따로 받는다)
+// 이미 5개를 골랐으면 더 고를 수 없고, 고른 것을 다시 누르면 해제된다.
 fun ReviewDraft.withVerdict(verdict: ReviewVerdict): ReviewDraft = copy(verdict = verdict)
 
-fun ReviewDraft.toggled(tag: ReviewTag): ReviewDraft = copy(tags = if (tag in tags) tags - tag else tags + tag)
+fun ReviewDraft.toggled(tag: ReviewTag): ReviewDraft = copy(
+    tags = when {
+        tag in tags -> tags - tag
+        tags.size >= REVIEW_TAG_MAX -> tags
+        else -> tags + tag
+    },
+)
 
 private fun monthDay(epochMillis: Long, timeZone: TimeZone): String {
     val cal = Calendar.getInstance(timeZone).apply { timeInMillis = epochMillis }

@@ -118,13 +118,14 @@ private fun MemberReviewContent(
 
             if (state.showDetails) {
                 Line()
-                SectionHeader(state.tagQuestion)
+                TagHeader(state.tagQuestion, state.tagCounter)
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(AppSpace.md),
                     verticalArrangement = Arrangement.spacedBy(AppSpace.md),
                 ) {
                     state.availableTags.forEach { tag ->
-                        TagChip(label = tag.label, selected = tag in state.draft.tags, onClick = { onTagToggle(tag) })
+                        val selected = tag in state.draft.tags
+                        TagChip(label = tag.label, selected = selected, dimmed = state.tagLimitReached && !selected, onClick = { onTagToggle(tag) })
                     }
                 }
                 Line()
@@ -189,7 +190,7 @@ private fun VerdictButton(label: String, selected: Boolean, onClick: () -> Unit,
 }
 
 @Composable
-private fun TagChip(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun TagChip(label: String, selected: Boolean, dimmed: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(AppRadius.pill)
     Box(
         modifier = Modifier
@@ -205,8 +206,25 @@ private fun TagChip(label: String, selected: Boolean, onClick: () -> Unit) {
             text = label,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = if (selected) AppColor.AccentStrong else AppColor.TextBody,
+            color = if (selected) AppColor.AccentStrong else if (dimmed) AppColor.TextDisabled else AppColor.TextBody,
         )
+    }
+}
+
+// 태그 제목 + '필수' + 고른 개수, 그 아래 안내. (1개~5개)
+@Composable
+private fun TagHeader(title: String, counter: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppSpace.xs)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppSpace.md)) {
+            Text(text = title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+            Text(
+                text = "필수", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppColor.Surface,
+                modifier = Modifier.clip(RoundedCornerShape(AppRadius.pill)).background(AppColor.TextPrimary).padding(horizontal = AppSpace.md, vertical = 2.dp),
+            )
+            Box(Modifier.weight(1f))
+            Text(text = counter, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextSecondary)
+        }
+        Text(text = "어울리는 키워드를 골라주세요. (${REVIEW_TAG_MIN}개~${REVIEW_TAG_MAX}개)", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
     }
 }
 
