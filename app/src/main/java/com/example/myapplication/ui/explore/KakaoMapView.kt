@@ -51,6 +51,7 @@ fun KakaoMapView(
     onError: () -> Unit,
     modifier: Modifier = Modifier,
     focus: MapFocus? = null, // 바뀌면 지도를 그 지점으로 한 번 옮긴다 (위치 조건으로 고른 지역)
+    followNearestPin: Boolean = true, // false면 핀이 바뀌어도 카메라를 가장 가까운 핀으로 옮기지 않는다 ('현 지도에서 검색'으로 사용자가 고른 영역을 지킨다)
     topPadding: Dp = 0.dp,    // 검색창·칩이 덮는 높이
     bottomPadding: Dp = 0.dp, // 시트가 덮는 높이. 두 값으로 지도 중심이 가려지지 않은 영역의 가운데가 된다.
 ) {
@@ -129,10 +130,11 @@ fun KakaoMapView(
     }
 
     // 보여 줄 핀이 달라지면(처음 불러올 때, 종목·찜·조건을 바꿨을 때) 가장 가까운 핀으로 카메라를 옮긴다.
-    // 핀을 고르거나 찜을 눌러도 가장 가까운 핀이 그대로면 움직이지 않아 사용자가 보던 위치를 지키고,
-    // 핀이 하나도 없으면 그 자리에 둔다.
+    // 핀을 골라도 카메라는 옮기지 않는다. 찜을 눌러도 가장 가까운 핀이 그대로면 움직이지 않아 사용자가 보던 위치를 지키고,
+    // 핀이 하나도 없으면 그 자리에 둔다. '현 지도에서 검색'으로 영역을 고른 뒤에는 사용자가 옮긴 카메라를 그대로 둔다.
     val nearestKey = pins.firstOrNull()?.key
     LaunchedEffect(kakaoMap, nearestKey) {
+        if (!followNearestPin) return@LaunchedEffect
         val map = kakaoMap ?: return@LaunchedEffect
         val first = pins.firstOrNull() ?: return@LaunchedEffect
         map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(first.latitude, first.longitude)))
@@ -142,11 +144,6 @@ fun KakaoMapView(
         val map = kakaoMap ?: return@LaunchedEffect
         val target = focus ?: return@LaunchedEffect
         map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(target.point.latitude, target.point.longitude), DistrictZoom))
-    }
-    LaunchedEffect(kakaoMap, selectedKey) {
-        val map = kakaoMap ?: return@LaunchedEffect
-        val selected = pins.firstOrNull { it.key == selectedKey } ?: return@LaunchedEffect
-        map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(selected.latitude, selected.longitude)))
     }
 
     AndroidView(factory = { mapView }, modifier = modifier)
