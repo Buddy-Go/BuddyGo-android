@@ -130,7 +130,7 @@ fun KakaoMapView(
     }
 
     // 보여 줄 핀이 달라지면(처음 불러올 때, 종목·찜·조건을 바꿨을 때) 가장 가까운 핀으로 카메라를 옮긴다.
-    // 핀을 고르거나 찜을 눌러도 가장 가까운 핀이 그대로면 움직이지 않아 사용자가 보던 위치를 지키고,
+    // 핀을 골라도 카메라는 옮기지 않는다. 찜을 눌러도 가장 가까운 핀이 그대로면 움직이지 않아 사용자가 보던 위치를 지키고,
     // 핀이 하나도 없으면 그 자리에 둔다. '현 지도에서 검색'으로 영역을 고른 뒤에는 사용자가 옮긴 카메라를 그대로 둔다.
     val nearestKey = pins.firstOrNull()?.key
     LaunchedEffect(kakaoMap, nearestKey) {
@@ -144,11 +144,6 @@ fun KakaoMapView(
         val map = kakaoMap ?: return@LaunchedEffect
         val target = focus ?: return@LaunchedEffect
         map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(target.point.latitude, target.point.longitude), DistrictZoom))
-    }
-    LaunchedEffect(kakaoMap, selectedKey) {
-        val map = kakaoMap ?: return@LaunchedEffect
-        val selected = pins.firstOrNull { it.key == selectedKey } ?: return@LaunchedEffect
-        map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(selected.latitude, selected.longitude)))
     }
 
     AndroidView(factory = { mapView }, modifier = modifier)
