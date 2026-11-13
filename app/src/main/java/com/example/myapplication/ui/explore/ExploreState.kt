@@ -68,6 +68,9 @@ data class ExploreState(
 
     fun isSelected(pin: PinGroup) = pin.key == selectedPinKey
 
+    // 재검색으로 지도 영역을 골랐으면 카메라는 사용자가 옮긴 곳에 머문다. 결과가 와도 가장 가까운 핀으로 옮기지 않는다.
+    val followNearestPin: Boolean get() = searchBounds == null
+
     // '현 지도에서 검색' 버튼은 지도를 옮긴 뒤에만, 그리고 핀을 고르지 않았을 때만 보인다.
     val showResearchButton: Boolean get() = cameraMoved && selectedPin == null
 
