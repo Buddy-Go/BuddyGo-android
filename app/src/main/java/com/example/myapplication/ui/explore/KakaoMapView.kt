@@ -18,6 +18,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import com.example.myapplication.data.model.GeoPoint
 import com.example.myapplication.data.model.MapBounds
 import com.kakao.vectormap.GestureType
 import com.kakao.vectormap.KakaoMap
@@ -26,6 +27,7 @@ import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
 import com.kakao.vectormap.camera.CameraUpdateFactory
+import com.kakao.vectormap.label.LabelLayerOptions
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
@@ -36,6 +38,24 @@ private const val DefaultZoom = 15
 
 // 위치 조건(구·동)을 고르면 지도를 그 지역이 한눈에 들어오는 배율로 옮긴다.
 private const val DistrictZoom = 13
+
+private const val MyLocationLayerId = "my-location"
+
+// 내 위치로 옮길 때의 배율 (동네가 보이는 정도)
+const val MyLocationZoom = 16
+
+// 파란 점 + 흰 테두리 + 옅은 파란 번짐
+private fun myLocationDot(density: Float): Bitmap {
+    val size = (36 * density).toInt()
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    val c = size / 2f
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+    paint.color = 0x332F6BFF; canvas.drawCircle(c, c, c, paint)
+    paint.color = android.graphics.Color.WHITE; canvas.drawCircle(c, c, 9 * density, paint)
+    paint.color = 0xFF2F6BFF.toInt(); canvas.drawCircle(c, c, 7 * density, paint)
+    return bitmap
+}
 
 private data class PinImageKey(val style: PinStyle, val count: Int, val favorite: Boolean)
 
@@ -50,6 +70,7 @@ fun KakaoMapView(
     onMovedByUser: (MapBounds?) -> Unit, // 옮긴 뒤 지도에 보이는 영역(읽지 못하면 null)
     onError: () -> Unit,
     modifier: Modifier = Modifier,
+    myLocation: GeoPoint? = null, // 있으면 파란 점으로 표시한다
     focus: MapFocus? = null, // 바뀌면 지도를 그 지점으로 한 번 옮긴다 (위치 조건으로 고른 지역)
     followNearestPin: Boolean = true, // false면 핀이 바뀌어도 카메라를 가장 가까운 핀으로 옮기지 않는다 ('현 지도에서 검색'으로 사용자가 고른 영역을 지킨다)
     topPadding: Dp = 0.dp,    // 검색창·칩이 덮는 높이
@@ -143,7 +164,22 @@ fun KakaoMapView(
     LaunchedEffect(kakaoMap, focus) {
         val map = kakaoMap ?: return@LaunchedEffect
         val target = focus ?: return@LaunchedEffect
-        map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(target.point.latitude, target.point.longitude), DistrictZoom))
+        map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(target.point.latitude, target.point.longitude), target.zoom ?: DistrictZoom))
+    }
+
+    // 내 위치 파란 점. 핀과 다른 레이어에 그려 핀을 다시 그려도 지워지지 않고, 핀 아래에 깔린다.
+    val dotBitmap = remember { myLocationDot(context.resources.displayMetrics.density) }
+    LaunchedEffect(kakaoMap, myLocation) {
+        val map = kakaoMap ?: return@LaunchedEffect
+        val manager = map.labelManager ?: return@LaunchedEffect
+        val layer = manager.getLayer(MyLocationLayerId) ?: manager.addLayer(LabelLayerOptions.from(MyLocationLayerId).setZOrder(0)) ?: return@LaunchedEffect
+        layer.removeAll()
+        val here = myLocation ?: return@LaunchedEffect
+        layer.addLabel(
+            LabelOptions.from(LatLng.from(here.latitude, here.longitude))
+                .setStyles(LabelStyles.from(LabelStyle.from(dotBitmap).setApplyDpScale(false).setAnchorPoint(0.5f, 0.5f)))
+                .setClickable(false),
+        )
     }
 
     AndroidView(factory = { mapView }, modifier = modifier)
