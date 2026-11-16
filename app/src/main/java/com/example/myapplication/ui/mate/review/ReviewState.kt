@@ -81,7 +81,8 @@ data class ReviewState(
     val draft: ReviewDraft = ReviewDraft(),
     val isSubmitting: Boolean = false,
     val isAllDone: Boolean = false, // 12c로 갈 때
-    val loadFailed: Boolean = false, // 12a 평가 대상을 불러오지 못함 → 16g 오류 화면
+    val loadFailed: Boolean = false, // 12a 평가 대상을 처음부터 불러오지 못함(보여 줄 명단이 없음) → 16g 오류 화면
+    val refreshFailed: Boolean = false, // 명단은 있는데 다시 불러오지 못함(제출 뒤 재조회 등) → 화면은 그대로 두고 안내 띠 + '다시 불러오기'
     val submitFailed: Boolean = false, // 12b 제출 실패 → 16i 안내 띠 (기한 지남·이미 평가함 포함)
     val now: Long = 0L,
 ) {
@@ -161,6 +162,11 @@ data class ReviewState(
     // 메이트로 추가할 사람: 아직 메이트가 아닌 사람 (신청함 포함). 없으면 12c-2
     val mateSuggestions: List<ReviewTargetInfo> get() = targets.filter { !it.isMate }
 }
+
+// 제출에 성공한 사람은 서버 명단을 못 받았거나 옛 값을 받아도 '평가 완료'로 둔다. (제출한 평가는 수정·삭제할 수 없다)
+// 명단이 그대로면 '다음 메이트'나 12a에 이미 평가한 사람이 다시 나온다.
+fun ReviewSession.withReviewed(userIds: Set<String>): ReviewSession =
+    if (userIds.isEmpty()) this else copy(targets = targets.map { if (it.userId in userIds) it.copy(isReviewed = true) else it })
 
 // 판정을 바꾸면 새 판정에서 볼 수 없는 태그는 고른 것에서 뺀다. (안 보이는 태그가 개수에 잡히거나 제출되지 않게)
 // 이미 5개를 골랐으면 더 고를 수 없고, 고른 것을 다시 누르면 해제된다.
