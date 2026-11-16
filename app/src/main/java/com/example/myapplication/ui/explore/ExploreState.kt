@@ -9,7 +9,7 @@ import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.filter.MeetingFilter
 
 // 지도를 옮길 곳. 같은 곳을 다시 골라도 옮기도록 id를 함께 둔다.
-data class MapFocus(val point: GeoPoint, val id: Int)
+data class MapFocus(val point: GeoPoint, val id: Int, val zoom: Int? = null) // zoom이 있으면 그 배율로 옮긴다
 
 data class ExploreState(
     val meetings: UiState<List<Meeting>> = UiState.Loading,

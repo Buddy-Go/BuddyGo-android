@@ -134,6 +134,14 @@ class ExploreViewModel(
         _state.update { it.copy(myLocation = location ?: it.myLocation) }
     }
 
+    // 내 위치 버튼: 지도를 내 위치로 되돌린다. 위치를 못 얻었으면 false.
+    fun onMoveToMyLocation(location: GeoPoint?): Boolean {
+        val point = location ?: _state.value.myLocation ?: return false
+        onMyLocation(location)
+        _state.update { it.copy(mapFocus = MapFocus(point, (it.mapFocus?.id ?: 0) + 1, MyLocationZoom)) }
+        return true
+    }
+
     // 위치 권한은 앱을 켜고 한 번만 묻는다. 거절해도 화면을 열 때마다 다시 묻지 않는다.
     fun onLocationAsked() = _state.update { it.copy(locationAsked = true) }
 

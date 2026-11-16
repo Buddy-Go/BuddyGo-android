@@ -62,8 +62,13 @@ fun ExploreScreen(
     val state by viewModel.state.collectAsState()
     // 내 위치: 권한이 있으면 바로 가져오고, 없으면 이번 실행에서 한 번만 묻는다. 거절하면 위치 없이 쓴다.
     val context = LocalContext.current
+    var pendingMoveToMe by remember { mutableStateOf(false) } // 내 위치 버튼으로 권한을 물었으면, 허용 뒤 바로 옮긴다
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-        if (grants.values.any { it }) fetchMyLocation(context, viewModel::onMyLocation)
+        val move = pendingMoveToMe
+        pendingMoveToMe = false
+        if (grants.values.any { it }) {
+            fetchMyLocation(context) { loc -> if (move) viewModel.onMoveToMyLocation(loc) else viewModel.onMyLocation(loc) }
+        }
     }
     LaunchedEffect(Unit) {
         when {
@@ -109,6 +114,7 @@ fun ExploreScreen(
                 onMovedByUser = { bounds -> viewModel.onCameraMoved(bounds) },
                 onError = { mapFailed = true },
                 modifier = Modifier.fillMaxSize(),
+                myLocation = state.myLocation,
                 focus = state.mapFocus,
                 followNearestPin = state.followNearestPin,
                 topPadding = TopOverlayHeight,
@@ -129,6 +135,25 @@ fun ExploreScreen(
             ResearchButton(
                 onClick = viewModel::onResearch,
                 modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = ResearchButtonTop),
+            )
+        }
+
+        // 내 위치 버튼: 지도를 보다가 내 위치로 돌아온다. 시트(또는 접힌 시트) 바로 위 오른쪽에 둔다.
+        if (!mapFailed && !showFloatingCard) {
+            MyLocationButton(
+                onClick = {
+                    if (hasLocationPermission(context)) {
+                        fetchMyLocation(context) { loc ->
+                            if (!viewModel.onMoveToMyLocation(loc)) {
+                                android.widget.Toast.makeText(context, "현재 위치를 확인할 수 없어요. 위치 서비스를 확인해주세요.", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } else {
+                        pendingMoveToMe = true
+                        permissionLauncher.launch(LocationPermissions)
+                    }
+                },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = AppSpace.xxl, bottom = sheetBottomSpace + AppSpace.xl),
             )
         }
 
@@ -253,6 +278,17 @@ private fun ResearchButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             RefreshIcon(AppColor.TextPrimary)
             Text("현 지도에서 검색", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         }
+    }
+}
+
+// 내 위치로 돌아오는 회색 원형 버튼
+@Composable
+private fun MyLocationButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.size(48.dp).clip(CircleShape).iconButton("내 위치로 이동", onClick),
+        shape = CircleShape, color = AppColor.Surface, shadowElevation = 4.dp,
+    ) {
+        Box(contentAlignment = Alignment.Center) { MyLocationIcon(Color(0xFF6B7280)) }
     }
 }
 
