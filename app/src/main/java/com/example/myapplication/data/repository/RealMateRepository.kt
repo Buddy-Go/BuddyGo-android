@@ -118,6 +118,7 @@ class RealMateRepository(
                 mannerTemperature = profile.mannerTemperature.toFloat(),
                 topTags = profile.stats.topTags.map { TagCount(it.label, it.count.toInt()) },
                 relation = relation,
+                requestId = profile.buddy.requestId?.toString(),
                 workedOutTogether = profile.buddy.canRequest || profile.buddy.relation != "NONE",
                 activities = activities,
                 reviewCount = profile.stats.reviewCount.toInt(),

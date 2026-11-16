@@ -122,6 +122,17 @@ class MateProfileViewModel(
         }
     }
 
+    // 15c 신청함 → 신청 취소. 취소하면 신청이 남지 않고, 함께 운동한 사이면 다시 '메이트 신청'이 보인다.
+    fun onCancelRequest() {
+        val requestId = state.profile?.requestId ?: return
+        if (state.bottomButton != ProfileButton.REQUESTED || state.isSending) return
+        state = state.copy(isSending = true)
+        viewModelScope.launch {
+            repository.cancelRequest(requestId)
+            state = state.copy(profile = repository.getProfile(userId).getOrNull() ?: state.profile, isSending = false)
+        }
+    }
+
     fun onToggleNotification() {
         val enabled = state.profile?.notificationEnabled ?: return
         viewModelScope.launch {

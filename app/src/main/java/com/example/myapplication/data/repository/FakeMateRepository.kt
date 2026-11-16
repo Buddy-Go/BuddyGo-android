@@ -50,6 +50,13 @@ class FakeMateRepository : MateRepository {
         return Result.success(Unit)
     }
 
+    // 가짜 데이터에서는 신청 id가 상대의 id와 같다.
+    override suspend fun cancelRequest(requestId: String): Result<Unit> {
+        val person = people.find { it.id == requestId && it.relation == MateRelation.REQUESTED } ?: return Result.failure(NoSuchElementException(requestId))
+        update(person.id) { it.copy(relation = MateRelation.NONE) }
+        return Result.success(Unit)
+    }
+
     override suspend fun getProfile(userId: String): Result<MateProfile> {
         val p = people.find { it.id == userId } ?: return Result.failure(NoSuchElementException(userId))
         val isMate = p.relation == MateRelation.MATE
@@ -60,6 +67,7 @@ class FakeMateRepository : MateRepository {
                 mannerTemperature = p.manner,
                 topTags = listOf(TagCount("시간 약속을 지켜요", 9), TagCount("서로 배려해요", 6)),
                 relation = p.relation,
+                requestId = if (p.relation == MateRelation.REQUESTED) p.id else null,
                 workedOutTogether = p.lastWorkedOutAt != null,
                 activities = if (isMate) activities[p.id].orEmpty() else emptyList(),
                 reviewCount = 6,
