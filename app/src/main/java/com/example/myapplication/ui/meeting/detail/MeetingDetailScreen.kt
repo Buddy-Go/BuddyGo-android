@@ -93,6 +93,7 @@ fun MeetingDetailScreen(
     onOpenNotices: () -> Unit,                  // 호스트: 공지 목록(8d)
     onOpenNotice: (noticeId: String) -> Unit,   // 호스트: 공지 상세(8f)
     onEditMeeting: () -> Unit,                  // 호스트: 모임 수정
+    onHostProfileClick: (hostId: String) -> Unit = {},  // 호스트 카드: 호스트 프로필
     modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
     onAppliedHandled: () -> Unit = {},
@@ -164,6 +165,7 @@ fun MeetingDetailScreen(
                 onPlaceClick = { viewModel.onOpenSheet(DetailSheet.PLACE) },
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
                 onShare = { shareMeeting(context, loaded.data) },
+                onHostProfileClick = { onHostProfileClick(loaded.data.hostId) },
                 onHostAction = { action -> if (action == HostAction.EDIT) onEditMeeting() else viewModel.onHostAction(action) },
                 onManageParticipants = onManageParticipants,
                 onWriteNotice = onWriteNotice,
@@ -250,6 +252,7 @@ private fun DetailContent(
     onOpenNotices: () -> Unit,
     onOpenNotice: (String) -> Unit,
     onShare: () -> Unit,
+    onHostProfileClick: () -> Unit,
     onAction: (DetailAction) -> Unit,
 ) {
     val role = state.role
@@ -279,7 +282,7 @@ private fun DetailContent(
             } else {
                 ParticipantsSection(meeting, state.nowMillis)
                 InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
-                HostCard(meeting)
+                HostCard(meeting, onClick = onHostProfileClick)
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
             }
             Spacer(Modifier.height(AppSpace.md))
@@ -511,9 +514,9 @@ private fun InfoRow(title: String, value: String, onClick: (() -> Unit)? = null,
 }
 
 @Composable
-private fun HostCard(meeting: Meeting) {
+private fun HostCard(meeting: Meeting, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.lg)).background(AppColor.SurfaceMuted).padding(AppSpace.xxl),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.lg)).background(AppColor.SurfaceMuted).clickable(onClick = onClick).padding(AppSpace.xxl),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Avatar(meeting.hostNickname.take(1), 52.dp)
