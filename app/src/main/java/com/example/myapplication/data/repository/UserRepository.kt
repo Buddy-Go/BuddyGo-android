@@ -11,6 +11,10 @@ interface UserRepository {
     suspend fun getCurrentUser(): Result<User>
     suspend fun getUser(userId: String): Result<User>
 
+    // 내 운동 기록만 받아 온다. getCurrentUser는 기록을 못 받아도 내 정보를 돌려줘서 '기록 없음'과 구분되지 않는다.
+    // 이 호출은 기록을 못 받으면 실패로 돌려준다. 기록 수정 화면은 기존 기록이 지워지지 않게 이 호출로 불러온다.
+    suspend fun getMyRecord(): Result<ExerciseRecord> = getCurrentUser().map { it.record }
+
     // 회원가입 중복 검사 (service-rules 1장). true = 사용할 수 있음
     // 회원가입 요청. 성공하면 가입된 사용자를 돌려준다.
     suspend fun signUp(draft: SignUpDraft): Result<User>

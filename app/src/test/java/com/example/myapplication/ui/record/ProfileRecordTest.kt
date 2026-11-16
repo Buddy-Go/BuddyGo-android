@@ -112,14 +112,142 @@ class ProfileRecordTest {
         // 불러오기가 끝나기 전에 입력하는 상황을 만들려고, 사용자 조회를 직접 풀어 줄 때까지 멈춘다.
         val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
         val slow = object : UserRepository by FakeUserRepository() {
-            override suspend fun getCurrentUser(): Result<com.example.myapplication.data.model.User> {
+            override suspend fun getMyRecord(): Result<ExerciseRecord> {
                 gate.await()
-                return Result.success(MockUsers.me)
+                return Result.success(MockUsers.me.record)
             }
         }
         val v = profile(slow)
         v.onSelectArm(SkillLevel.BEGINNER) // 아직 기록이 도착하기 전
         gate.complete(Unit)
         assertEquals("손댄 값이 남는다", SkillLevel.BEGINNER, v.state.value.armLevel)
+    }
+
+    // ---- 저장된 기록을 불러오지 못했을 때: 빈 값으로 저장해 기존 기록이 지워지면 안 된다 ----
+
+    @Test
+    fun 기록을_불러오지_못하면_오류_상태가_되고_저장하지_못한다() {
+        var updated = false
+        val broken = object : UserRepository by FakeUserRepository() {
+            override suspend fun getMyRecord(): Result<ExerciseRecord> = Result.failure(java.io.IOException())
+            override suspend fun updateRecord(record: ExerciseRecord): Result<Unit> {
+                updated = true
+                return Result.success(Unit)
+            }
+        }
+        val v = profile(broken)
+        assertTrue(v.state.value.loadFailed)
+        assertFalse(v.state.value.loading)
+        assertFalse(v.state.value.canSave)
+
+        v.onTogglePart(com.example.myapplication.data.model.BodyPart.CHEST) // 비어 보이는 화면에서 무언가 골라도
+        v.onSave()
+        assertFalse("불러오지 못한 채로는 서버에 저장 요청을 보내지 않는다", updated)
+        assertFalse(v.state.value.saving)
+        assertFalse(v.state.value.saved)
+        assertFalse(v.state.value.saveFailed)
+    }
+
+    @Test
+    fun 러닝_등산_화면도_기록을_불러오지_못하면_저장하지_못한다() {
+        // 러닝·등산을 저장해도 헬스 기록은 함께 서버로 가므로, 헬스 기록을 모르는 채로 저장하면 지워진다.
+        var updated = false
+        val broken = object : UserRepository by FakeUserRepository() {
+            override suspend fun getMyRecord(): Result<ExerciseRecord> = Result.failure(java.io.IOException())
+            override suspend fun updateRecord(record: ExerciseRecord): Result<Unit> {
+                updated = true
+                return Result.success(Unit)
+            }
+        }
+        profile(broken, Sport.RUNNING).also { it.onSelectPace(330); it.onSave() }
+        assertFalse(updated)
+        profile(broken, Sport.HIKING).also { it.onSave() }
+        assertFalse(updated)
+    }
+
+    @Test
+    fun 기록을_불러오는_동안에는_저장하지_못하고_끝나면_저장할_수_있다() {
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val users = FakeUserRepository()
+        val slow = object : UserRepository by users {
+            override suspend fun getMyRecord(): Result<ExerciseRecord> {
+                gate.await()
+                return Result.success(MockUsers.me.record)
+            }
+        }
+        val v = profile(slow)
+        assertTrue(v.state.value.loading)
+        v.onSave() // 아직 기존 기록을 모른다
+        assertFalse(v.state.value.saved)
+        assertFalse(v.state.value.saving)
+        assertEquals("저장된 적 없음", MockUsers.me.record, record(users))
+
+        gate.complete(Unit)
+        assertFalse(v.state.value.loading)
+        v.onSave()
+        assertTrue(v.state.value.saved)
+    }
+
+    @Test
+    fun 다시_불러오면_오류가_풀리고_기존_기록을_지키며_저장한다() {
+        var failing = true
+        val users = FakeUserRepository()
+        val flaky = object : UserRepository by users {
+            override suspend fun getMyRecord(): Result<ExerciseRecord> =
+                if (failing) Result.failure(java.io.IOException()) else Result.success(MockUsers.me.record)
+        }
+        val v = profile(flaky)
+        assertTrue(v.state.value.loadFailed)
+
+        v.onRetryLoad() // 여전히 실패
+        assertTrue(v.state.value.loadFailed)
+        assertFalse(v.state.value.loading)
+
+        failing = false
+        v.onRetryLoad()
+        assertFalse(v.state.value.loadFailed)
+        assertFalse(v.state.value.loading)
+        assertTrue(v.state.value.canSave)
+        assertEquals("불러온 기존 기록으로 채워진다", MockUsers.me.record.benchPressKg, v.state.value.benchPressKg)
+
+        v.onSelectArm(SkillLevel.ADVANCED)
+        v.onSave()
+        assertTrue(v.state.value.saved)
+        val saved = record(users)
+        assertEquals(SkillLevel.ADVANCED, saved.armLevel)
+        assertEquals("기존 기록은 지워지지 않는다", MockUsers.me.record.benchPressKg, saved.benchPressKg)
+        assertEquals(MockUsers.me.record.squatKg, saved.squatKg)
+        assertEquals(MockUsers.me.record.pullUpCount, saved.pullUpCount)
+    }
+
+    @Test
+    fun 불러온_뒤에는_다시_불러오기를_눌러도_입력을_덮어쓰지_않는다() {
+        val v = profile(FakeUserRepository())
+        v.onSelectArm(SkillLevel.BEGINNER)
+        v.onRetryLoad() // 오류 상태가 아니므로 아무 일도 없다
+        assertEquals(SkillLevel.BEGINNER, v.state.value.armLevel)
+        assertFalse(v.state.value.loadFailed)
+    }
+
+    @Test
+    fun 저장_직전에_기록을_다시_받지_못해도_처음_불러온_기록으로_저장한다() {
+        var calls = 0
+        val users = FakeUserRepository()
+        val dropsLater = object : UserRepository by users {
+            override suspend fun getMyRecord(): Result<ExerciseRecord> =
+                if (calls++ == 0) Result.success(MockUsers.me.record) else Result.failure(java.io.IOException())
+        }
+        val v = profile(dropsLater)
+        v.onSelectArm(SkillLevel.ADVANCED)
+        v.onSave()
+        assertTrue(v.state.value.saved)
+        assertEquals("빈 기록으로 덮어쓰지 않는다", MockUsers.me.record.squatKg, record(users).squatKg)
+    }
+
+    @Test
+    fun 가입_중_모드는_기록을_불러오지_않으므로_바로_저장할_수_있다() {
+        val v = RecordViewModel(Sport.HEALTH).also { vm = it }
+        assertFalse(v.state.value.loading)
+        assertTrue(v.state.value.canSave)
     }
 }

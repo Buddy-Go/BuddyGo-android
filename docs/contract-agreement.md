@@ -31,6 +31,7 @@
 | `isNotificationEnabled()` / `setNotificationEnabled(enabled)` | 마이페이지(14) | 끄면 전체 알림을 받지 않는다. (12장) |
 | `logout()` | 마이페이지(14) | 성공하면 앱이 로그인 화면으로 보낸다. |
 | `updateRecord(record)` | 프로필 기록 수정(모임 신청·상세의 '기록 추가'·'기준 줄') | 내 운동 기록 전체를 저장한다. 이미 개설한 모임의 기록 복사본에는 영향이 없다. (service-rules 1장, 4장) |
+| `getMyRecord()` | 프로필 기록 수정 | 내 운동 기록만 받는다. 기록이 없으면 빈 `ExerciseRecord`이고, `getCurrentUser`와 달리 기록을 못 받으면 빈 기록이 아니라 실패로 돌려준다. 서버는 보낸 부위가 내 기록 전체가 되므로, 기존 기록을 모르는 채로 `updateRecord`를 보내면 기존 기록이 지워진다. 그래서 화면은 이 호출이 실패하면 저장하지 못하게 한다. |
 
 ## 2. 모델 변경 (공용)
 
