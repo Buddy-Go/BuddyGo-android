@@ -157,6 +157,10 @@ class MeetingCreateViewModel(
         state = state.copy(openSheet = null)
     }
 
+    // 10f 시간 설정에서 고를 수 있는 가장 이른 시작 시각. 오늘이 아니면 null.
+    fun minStartMinutes(): Int? =
+        StartTimeRules.minStart(state.selectedDateIndex?.let { state.dateOptions.getOrNull(it) }, nowMillis())
+
     // 10f 확인
     fun onTimeApply(startMinutes: Int, durationMinutes: Int) {
         // '시작은 지금부터 1시간 30분 이후' 검사는 서버가 개설·수정 때 판정하고, 어기면 토스트로 알린다. (service-rules 0장, 4장)
