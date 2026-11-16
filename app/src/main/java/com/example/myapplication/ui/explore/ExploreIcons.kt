@@ -108,3 +108,18 @@ fun RefreshIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 18.dp) {
         drawPath(arrow, color, style = Stroke(sw, cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
+
+// 내 위치(조준점): 바깥 원 + 십자 눈금 + 가운데 점
+@Composable
+fun MyLocationIcon(color: Color, modifier: Modifier = Modifier, size: Dp = 24.dp) {
+    Canvas(modifier.size(size)) {
+        val w = this.size.width
+        val c = Offset(w / 2f, w / 2f)
+        val sw = 2.dp.toPx()
+        drawCircle(color, radius = w * .27f, center = c, style = Stroke(sw))
+        drawCircle(color, radius = w * .09f, center = c)
+        for ((dx, dy) in listOf(0f to -1f, 0f to 1f, -1f to 0f, 1f to 0f)) {
+            drawLine(color, Offset(c.x + dx * w * .36f, c.y + dy * w * .36f), Offset(c.x + dx * w * .48f, c.y + dy * w * .48f), strokeWidth = sw, cap = StrokeCap.Round)
+        }
+    }
+}
