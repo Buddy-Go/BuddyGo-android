@@ -55,6 +55,8 @@ import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.ActionButton
+import com.example.myapplication.ui.common.ErrorType
+import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
@@ -105,9 +107,10 @@ fun RecordScreen(
             onStepOverhead = viewModel::onStepOverhead,
             onSelectArm = viewModel::onSelectArm,
             onSave = viewModel::onSave,
+            onRetryLoad = viewModel::onRetryLoad,
         )
-        Sport.RUNNING -> RunningRecordContent(state, onBack, viewModel::onSelectPace, viewModel::onSave)
-        Sport.HIKING -> HikingRecordContent(state, onBack, viewModel::onSelectHiking, viewModel::onSave)
+        Sport.RUNNING -> RunningRecordContent(state, onBack, viewModel::onSelectPace, viewModel::onSave, viewModel::onRetryLoad)
+        Sport.HIKING -> HikingRecordContent(state, onBack, viewModel::onSelectHiking, viewModel::onSave, viewModel::onRetryLoad)
     }
     }
 }
@@ -117,16 +120,25 @@ internal val LocalProfileEdit = androidx.compose.runtime.compositionLocalOf { fa
 
 // 세 종목이 같이 쓰는 틀: 위쪽 줄(뒤로 가기·제목·단계) + 내용(스크롤) + 아래 버튼 줄
 // caption이 있으면 버튼 위에 회색 안내 글자를 보여 준다. 건너뛰기는 저장 없이 돌아간다.
+// 저장된 기록을 불러오지 못했으면(loadFailed) 입력 대신 오류 화면을 보여 준다. 비어 보이는 값으로 저장하면 기존 기록이 지워진다.
+// canSave가 false(기록을 불러오는 중)이면 저장 버튼을 누를 수 없다.
 @Composable
 private fun RecordFrame(
     title: String,
     onBack: () -> Unit,
     onSave: () -> Unit,
+    canSave: Boolean = true,
+    loadFailed: Boolean = false,
+    onRetryLoad: () -> Unit = {},
     caption: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding()) {
         SignUpHeader(step = if (LocalProfileEdit.current) null else 2, total = 3, onBack = onBack, title = title)
+        if (loadFailed) {
+            FullScreenError(type = ErrorType.SERVER, onRetry = onRetryLoad, showHome = false, modifier = Modifier.weight(1f))
+            return@Column
+        }
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -140,7 +152,7 @@ private fun RecordFrame(
         }
         Row(Modifier.fillMaxWidth().padding(AppSpace.x4), horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
             ActionButton(text = "건너뛰기", onClick = onBack, outlined = true, modifier = Modifier.width(100.dp))
-            ActionButton(text = "저장", onClick = onSave, modifier = Modifier.weight(1f))
+            ActionButton(text = "저장", onClick = onSave, enabled = canSave, modifier = Modifier.weight(1f))
         }
     }
 }
@@ -156,9 +168,10 @@ private fun HealthRecordContent(
     onStepOverhead: (Int) -> Unit,
     onSelectArm: (SkillLevel) -> Unit,
     onSave: () -> Unit,
+    onRetryLoad: () -> Unit = {},
 ) {
     var guide by remember { mutableStateOf<Guide?>(null) }
-    RecordFrame(title = "헬스 기록", onBack = onBack, onSave = onSave) {
+    RecordFrame(title = "헬스 기록", onBack = onBack, onSave = onSave, canSave = state.canSave, loadFailed = state.loadFailed, onRetryLoad = onRetryLoad) {
             Spacer(Modifier.height(AppSpace.x4))
             Text("어떤 부위를\n주로 하세요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(AppSpace.xl))
@@ -352,11 +365,14 @@ fun InfoIcon(color: Color, size: Dp = 20.dp) {
 // 2d 종목 기록 · 러닝
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RunningRecordContent(state: RecordState, onBack: () -> Unit, onSelectPace: (Int) -> Unit, onSave: () -> Unit) {
+private fun RunningRecordContent(state: RecordState, onBack: () -> Unit, onSelectPace: (Int) -> Unit, onSave: () -> Unit, onRetryLoad: () -> Unit = {}) {
     RecordFrame(
         title = "러닝 기록",
         onBack = onBack,
         onSave = onSave,
+        canSave = state.canSave,
+        loadFailed = state.loadFailed,
+        onRetryLoad = onRetryLoad,
         caption = "건너뛰면 러닝 모임에서 내 페이스 기준을 확인할 수 없어요",
     ) {
         Spacer(Modifier.height(AppSpace.x4))
@@ -397,8 +413,8 @@ private fun RunningRecordContent(state: RecordState, onBack: () -> Unit, onSelec
 
 // 2e 종목 기록 · 등산 성향
 @Composable
-private fun HikingRecordContent(state: RecordState, onBack: () -> Unit, onSelect: (HikingStyle) -> Unit, onSave: () -> Unit) {
-    RecordFrame(title = "등산 성향", onBack = onBack, onSave = onSave) {
+private fun HikingRecordContent(state: RecordState, onBack: () -> Unit, onSelect: (HikingStyle) -> Unit, onSave: () -> Unit, onRetryLoad: () -> Unit = {}) {
+    RecordFrame(title = "등산 성향", onBack = onBack, onSave = onSave, canSave = state.canSave, loadFailed = state.loadFailed, onRetryLoad = onRetryLoad) {
         Spacer(Modifier.height(AppSpace.x4))
         Text("등산은\n어떤 쪽이에요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(AppSpace.x5 + AppSpace.md))

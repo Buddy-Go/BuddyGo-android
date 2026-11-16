@@ -132,4 +132,12 @@ class RecordStateTest {
         assertEquals(300, RecordViewModel(Sport.RUNNING).state.value.runningPaceSec)
         assertEquals(HikingStyle.HOBBY, RecordViewModel(Sport.HIKING).state.value.hikingStyle)
     }
+
+    @Test
+    fun 기록을_불러오는_중이거나_불러오지_못했으면_저장할_수_없다() {
+        assertTrue("가입 중 입력은 불러올 기록이 없어 바로 저장한다", RecordState().canSave)
+        assertFalse(RecordState(loading = true).canSave)
+        assertFalse("기존 기록을 모르는 채로 저장하면 기존 기록이 지워진다", RecordState(loadFailed = true).canSave)
+        assertTrue("불러온 기록으로 복원한 상태는 저장할 수 있다", RecordState.from(ExerciseRecord(benchPressKg = 85)).canSave)
+    }
 }

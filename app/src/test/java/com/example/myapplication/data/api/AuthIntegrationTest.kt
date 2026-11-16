@@ -4,6 +4,7 @@ import com.example.myapplication.data.local.InMemoryKeyValueStore
 import com.example.myapplication.data.local.TokenStore
 import com.example.myapplication.data.model.Gender
 import com.example.myapplication.data.model.SignUpDraft
+import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.repository.FakeUserRepository
 import com.example.myapplication.data.repository.RealUserRepository
 import kotlinx.coroutines.test.runTest
@@ -210,5 +211,31 @@ class AuthIntegrationTest {
 
         TokenStore(disk).clear()
         assertFalse(TokenStore(disk).hasSession)
+    }
+
+    @Test
+    fun getMyRecord_reads_gym_records_only() = runTest {
+        server.enqueue(json("""{"code":200,"message":"ok","data":{"records":[{"bodyPart":"CHEST","recorded":true,"recordValue":85,"armLevel":null},{"bodyPart":"BACK","recorded":false,"recordValue":null,"armLevel":null},{"bodyPart":"ARM","recorded":true,"recordValue":null,"armLevel":"BEGINNER"}]}}"""))
+
+        val record = repo.getMyRecord().getOrThrow()
+
+        assertEquals(85, record.benchPressKg)
+        assertNull("recorded=false인 부위는 미설정", record.pullUpCount)
+        assertEquals(SkillLevel.BEGINNER, record.armLevel)
+        assertEquals("/api/users/me/profile", server.takeRequest().path)
+    }
+
+    @Test
+    fun getMyRecord_fails_when_gym_profile_fails_unlike_getCurrentUser() = runTest {
+        // getCurrentUser는 기록을 못 받아도 내 정보를 돌려준다. 이 빈 기록으로 저장하면 서버의 기존 기록이 지워진다.
+        server.enqueue(json(meBody))
+        server.enqueue(json("""{"code":"G001","message":"서버 오류가 발생했습니다."}""", 500))
+        val me = repo.getCurrentUser().getOrThrow()
+        assertNull(me.record.benchPressKg)
+
+        // getMyRecord는 '기록 없음'과 구분되도록 실패로 돌려준다.
+        server.enqueue(json("""{"code":"G001","message":"서버 오류가 발생했습니다."}""", 500))
+        val e = repo.getMyRecord().exceptionOrNull() as ApiException
+        assertEquals(500, e.httpStatus)
     }
 }

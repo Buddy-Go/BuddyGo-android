@@ -21,12 +21,17 @@ data class RecordState(
     val runningPaceSec: Int? = null, // 초/km. 고르지 않았으면 null
     // ---- 등산 (2e) ----
     val hikingStyle: HikingStyle? = null,
+    val loading: Boolean = false, // 프로필 수정에서 저장된 내 기록을 불러오는 중. 끝나기 전에는 저장하지 못한다
+    val loadFailed: Boolean = false, // 저장된 내 기록을 불러오지 못했다 → 오류 화면. 비어 보이는 값으로 저장하면 기존 기록이 지워져서 저장하지 못한다
     val saving: Boolean = false, // 프로필에 저장하는 중
     val saveFailed: Boolean = false, // 저장하지 못했다. 한 번 안내하고 지운다
     val saved: Boolean = false, // 저장이 끝났는지. 화면이 보고 이전 화면으로 돌아간다.
 ) {
     // 가슴 · 등 · 하체 · 어깨 · 팔 순서로 고정
     val selectedParts: List<BodyPart> get() = BodyPart.entries.filter { it in parts }
+
+    // 저장할 수 있는 상태인지. 서버는 보낸 부위가 내 기록 전체가 되므로, 기존 기록을 모르는 채로 저장하면 그 기록이 지워진다.
+    val canSave: Boolean get() = !loading && !loadFailed
 
     // 1RM 기준 부위(가슴·하체·어깨). 그중 첫 번째에만 '1RM 기준' 제목과 안내 문구가 붙는다.
     val firstOneRmPart: BodyPart? get() = selectedParts.firstOrNull { it in ONE_RM_PARTS }

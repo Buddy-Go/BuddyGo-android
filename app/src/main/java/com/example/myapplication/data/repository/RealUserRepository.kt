@@ -73,6 +73,11 @@ class RealUserRepository(
             me.toUser().copy(record = record)
         }
 
+    // 내 헬스 기록만 받아 온다. getCurrentUser와 달리 못 받으면 빈 기록이 아니라 실패로 돌려준다.
+    // 못 받은 것을 빈 기록으로 보고 저장하면 서버의 기존 기록이 지워진다.
+    override suspend fun getMyRecord(): Result<ExerciseRecord> =
+        apiCall { userApi.gymProfile().requireData() }.map { it.records.toExerciseRecord() }
+
     // 헬스 기록만 서버에 저장한다. 서버는 보낸 부위가 내 기록 전체가 되므로 입력한 부위를 모두 보낸다.
     override suspend fun updateRecord(record: ExerciseRecord): Result<Unit> =
         apiCall { userApi.saveGymRecords(GymRecordsRequest(record.toGymRecordDtos())) }.map { }
