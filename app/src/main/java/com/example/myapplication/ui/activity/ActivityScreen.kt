@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import com.example.myapplication.ui.common.FullScreenError
+import com.example.myapplication.ui.common.swipeTabs
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -125,6 +126,10 @@ private fun ActivityContent(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                .swipeTabs(
+                    onNext = if (state.selectedTab == ActivityTab.HOST) ({ onTabSelect(ActivityTab.JOINED) }) else null,
+                    onPrevious = if (state.selectedTab == ActivityTab.JOINED) ({ onTabSelect(ActivityTab.HOST) }) else null,
+                )
                 .then(if (isEmpty) Modifier else Modifier.verticalScroll(rememberScrollState()))
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xxl, bottom = AppSpace.xxl),
         ) {

@@ -129,6 +129,13 @@ fun calendarDaysBetween(from: Long, to: Long, timeZone: TimeZone = TimeZone.getD
     return Math.round((dayStart(to) - dayStart(from)) / 86_400_000.0).toInt()
 }
 
+// 모집중이고 신청 마감까지 1시간 이내면 true. 카드 아래줄을 빨간색으로 강조한다.
+fun HostedMeetingItem.isDeadlineSoon(now: Long): Boolean {
+    if (status != HostedStatus.RECRUITING) return false
+    val left = (deadlineAt ?: return false) - now
+    return left in 1..3_600_000L
+}
+
 // 13-H 카드 아래줄
 fun HostedMeetingItem.metaText(now: Long, timeZone: TimeZone = TimeZone.getDefault()): String {
     val time = clockText(startAt, timeZone)
@@ -165,7 +172,7 @@ fun ReviewPendingItem.dueText(now: Long, timeZone: TimeZone = TimeZone.getDefaul
 
 // TODO(임시): 아래 두 값은 서버 설정값이다 (service-rules 5장 데드라인, 11장 평가 기한).
 // 서버가 '내 활동' 조회에서 마감·평가 기한 시각을 직접 내려주면 이 계산을 지운다.
-private const val DEADLINE_BEFORE_START_MILLIS = 90 * 60_000L
+const val DEADLINE_BEFORE_START_MILLIS = 90 * 60_000L
 private const val REVIEW_WINDOW_MILLIS = 3 * 24 * 60 * 60_000L
 
 const val SPORT_FILTER_MIN_COUNT = 4

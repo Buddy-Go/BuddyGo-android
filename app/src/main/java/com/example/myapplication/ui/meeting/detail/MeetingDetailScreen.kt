@@ -94,6 +94,7 @@ fun MeetingDetailScreen(
     onOpenNotice: (noticeId: String) -> Unit,   // 호스트: 공지 상세(8f) / 확정 참가자: 공지 상세(8g)
     onHostClick: (hostId: String) -> Unit = {}, // 호스트 카드: 호스트가 받은 후기 목록
     onEditMeeting: () -> Unit,                  // 호스트: 모임 수정
+    onHostProfileClick: (hostId: String) -> Unit = {},  // 호스트 카드: 호스트 프로필
     modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
     onAppliedHandled: () -> Unit = {},
@@ -165,6 +166,7 @@ fun MeetingDetailScreen(
                 onPlaceClick = { viewModel.onOpenSheet(DetailSheet.PLACE) },
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
                 onShare = { shareMeeting(context, loaded.data) },
+                onHostProfileClick = { onHostProfileClick(loaded.data.hostId) },
                 onHostAction = { action -> if (action == HostAction.EDIT) onEditMeeting() else viewModel.onHostAction(action) },
                 onManageParticipants = onManageParticipants,
                 onWriteNotice = onWriteNotice,
@@ -253,6 +255,7 @@ private fun DetailContent(
     onOpenNotice: (String) -> Unit,
     onHostClick: (String) -> Unit,
     onShare: () -> Unit,
+    onHostProfileClick: () -> Unit,
     onAction: (DetailAction) -> Unit,
 ) {
     val role = state.role

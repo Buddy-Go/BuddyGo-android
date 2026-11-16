@@ -2,6 +2,7 @@ package com.example.myapplication.ui.mate
 
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.ErrorType
+import com.example.myapplication.ui.common.swipeTabs
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -138,12 +139,21 @@ private fun MateContent(
             Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.DividerSoft))
         }
 
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .swipeTabs(
+                    onNext = if (state.selectedTab == MateTab.MATES) ({ onTabSelect(MateTab.WORKED_OUT) }) else null,
+                    onPrevious = if (state.selectedTab == MateTab.WORKED_OUT) ({ onTabSelect(MateTab.MATES) }) else null,
+                ),
+        ) {
         when (state.selectedTab) {
             MateTab.MATES -> MateListTab(
                 mates = state.mates,
                 now = state.now,
                 onMateClick = onProfileClick,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 timeZone = timeZone,
             )
             MateTab.WORKED_OUT -> WorkedOutTab(
@@ -156,9 +166,10 @@ private fun MateContent(
                 onSportFilterSelect = onSportFilterSelect,
                 onPersonClick = onProfileClick,
                 onRequest = onSendRequest,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 timeZone = timeZone,
             )
+        }
         }
     }
 }
