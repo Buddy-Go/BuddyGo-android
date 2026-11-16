@@ -94,6 +94,8 @@ private fun ReviewListContent(
                     .height(1.dp)
                     .background(AppColor.DividerSoft),
             )
+            // 제출 뒤 명단을 다시 불러오지 못해도 목록은 그대로 보인다. (제출한 사람은 '평가 완료'로 표시)
+            if (state.refreshFailed) RefreshFailedBanner(onRetry = onRetry, modifier = Modifier.padding(bottom = AppSpace.xl))
             if (state.isExpired) {
                 // 디자인에 없는 상태: 기한이 지나면 안내 띠를 보이고 평가 버튼을 막는다.
                 InlineErrorBanner("평가 기한이 지나서 더 이상 평가할 수 없어요.", Modifier.padding(bottom = AppSpace.xl))

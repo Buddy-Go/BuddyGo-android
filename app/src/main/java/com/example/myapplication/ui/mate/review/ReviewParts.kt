@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.data.repository.ReviewSession
 import com.example.myapplication.data.repository.ReviewTargetInfo
+import com.example.myapplication.ui.common.ExclamationIcon
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
@@ -84,6 +85,35 @@ internal fun ReviewTopBar(@DrawableRes iconRes: Int, iconDescription: String, on
         if (trailingText != null) {
             Text(text = trailingText, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColor.TextSecondary)
         }
+    }
+}
+
+// 평가 대상을 다시 불러오지 못했을 때의 안내 띠. 평가를 막지 않고(16g 전체 오류가 아님) '다시 불러오기'로 새로고침만 권한다.
+@Composable
+internal fun RefreshFailedBanner(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(AppColor.DestructiveSoftBg, RoundedCornerShape(AppRadius.lg))
+            .padding(horizontal = AppSpace.xxl, vertical = AppSpace.xl),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppSpace.xl),
+    ) {
+        ExclamationIcon(AppColor.DestructiveText)
+        Text(
+            text = "메이트 목록을 새로 불러오지 못했어요",
+            color = AppColor.DestructiveText,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = "다시 불러오기",
+            color = AppColor.DestructiveText,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable(onClick = onRetry),
+        )
     }
 }
 

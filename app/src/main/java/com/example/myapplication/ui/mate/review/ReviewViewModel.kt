@@ -9,6 +9,7 @@ import com.example.myapplication.data.model.Review
 import com.example.myapplication.data.model.ReviewVerdict
 import com.example.myapplication.data.repository.MateRepository
 import com.example.myapplication.data.repository.ReviewRepository
+import com.example.myapplication.data.repository.ReviewSession
 import kotlinx.coroutines.launch
 
 // 12a·12b·12c가 같이 쓰는 ViewModel. 세 화면이 같은 인스턴스를 받도록 화면을 띄우는 쪽에서 하나만 만든다.
@@ -21,15 +22,30 @@ class ReviewViewModel(
     var state by mutableStateOf(ReviewState())
         private set
 
+    // 이 화면에서 제출에 성공한 사람. 서버 명단을 못 받거나 늦은 값을 받아도 평가 완료로 둔다.
+    // init의 reload()가 이 값을 읽으므로 init보다 위에 둔다.
+    private val submittedTargetIds = mutableSetOf<String>()
+
     init {
         reload()
     }
 
+    // 12a 처음 불러오기, 그리고 '다시 불러오기'
     fun reload() {
         viewModelScope.launch {
-            val result = repository.getReviewSession(meetingId)
-            state = state.copy(session = result.getOrNull() ?: state.session, loadFailed = result.isFailure, now = System.currentTimeMillis())
+            applyFetched(repository.getReviewSession(meetingId))
         }
+    }
+
+    // 받은 명단을 반영한다. 못 받았을 때 보여 줄 명단이 없으면 16g 전체 오류, 있으면 화면은 그대로 두고 안내 띠만 띄운다.
+    private fun applyFetched(result: Result<ReviewSession>) {
+        val fetched = result.getOrNull()
+        state = state.copy(
+            session = (fetched ?: state.session)?.withReviewed(submittedTargetIds),
+            loadFailed = fetched == null && state.session == null,
+            refreshFailed = fetched == null && state.session != null,
+            now = System.currentTimeMillis(),
+        )
     }
 
     // 12a '평가하기' → 12b
@@ -70,14 +86,19 @@ class ReviewViewModel(
                 state = state.copy(isSubmitting = false, submitFailed = true)
                 return@launch
             }
-            val next = state.nextTargetId
-            val session = repository.getReviewSession(meetingId).getOrNull() ?: state.session
-            state = state.copy(
-                session = session,
+            // 제출은 서버에 반영됐다. 이어지는 재조회가 실패해도 이 사람은 평가 완료로 두고 다음으로 넘어간다.
+            // (옛 명단 그대로면 이미 평가한 사람이 '다음 메이트'로 돌아오고, 마지막 제출 뒤에도 12c로 못 간다)
+            submittedTargetIds += target
+            val fetched = repository.getReviewSession(meetingId).getOrNull()
+            val refreshed = state.copy(session = (fetched ?: state.session)?.withReviewed(submittedTargetIds))
+            val next = refreshed.nextTargetId
+            state = refreshed.copy(
                 isSubmitting = false,
                 draft = ReviewDraft(),
                 currentTargetId = next,
                 isAllDone = next == null,
+                loadFailed = false,
+                refreshFailed = fetched == null, // 막지 않고 안내 띠 + '다시 불러오기'로 알린다
             )
         }
     }

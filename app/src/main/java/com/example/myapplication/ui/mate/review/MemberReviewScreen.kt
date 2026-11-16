@@ -64,6 +64,7 @@ fun MemberReviewScreen(
         onTagToggle = viewModel::onTagToggle,
         onCommentChange = viewModel::onCommentChange,
         onSubmit = viewModel::onSubmit,
+        onRefresh = viewModel::reload,
     )
 }
 
@@ -76,6 +77,7 @@ private fun MemberReviewContent(
     onTagToggle: (ReviewTag) -> Unit,
     onCommentChange: (String) -> Unit,
     onSubmit: () -> Unit,
+    onRefresh: () -> Unit = {}, // 제출 뒤 명단 재조회가 실패했을 때 '다시 불러오기'
 ) {
     Column(
         modifier = Modifier
@@ -100,6 +102,7 @@ private fun MemberReviewContent(
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
             if (state.submitFailed) InlineErrorBanner("평가를 보내지 못했어요. 다시 시도해주세요.")
+            if (state.refreshFailed) RefreshFailedBanner(onRetry = onRefresh)
             if (target != null) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
                     ReviewAvatar(userId = target.userId, nickname = target.nickname)

@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.TimeZone
@@ -52,6 +53,19 @@ class ReviewStateTest {
         assertNull(last.nextTargetId)
         assertEquals("평가 제출", last.submitLabel)
         assertEquals("3 / 3", last.progressText)
+    }
+
+    @Test
+    fun 제출한_사람은_명단이_옛_값이어도_평가_완료로_둔다() {
+        val session = state.session!!
+        assertSame("제출한 사람이 없으면 그대로", session, session.withReviewed(emptySet()))
+        val marked = session.withReviewed(setOf("a", "없는 사람"))
+        assertEquals(listOf(true, true, false), marked.targets.map { it.isReviewed })
+        assertEquals("평가 여부 말고 다른 값은 그대로", session.targets[2], marked.targets[2])
+        // 마지막 사람(c)을 제출해도 이미 평가한 a가 '다음'으로 되돌아오지 않는다
+        val last = state.copy(session = marked, currentTargetId = "c")
+        assertNull(last.nextTargetId)
+        assertEquals("평가 제출", last.submitLabel)
     }
 
     @Test
