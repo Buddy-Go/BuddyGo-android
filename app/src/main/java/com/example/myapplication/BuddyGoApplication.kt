@@ -19,7 +19,7 @@ class BuddyGoApplication : Application() {
         Api.init(this)
         RecentDistrictStore.attach(AppStorage.store)
         PlaceSelectionStore.attach(AppStorage.store)
-        ActivityAreaStore.attach(AppStorage.store)
+        ActivityAreaStore.attach(AppStorage.store, Api.tokens.userId)
         BlockedUsersStore.attach(AppStorage.store)
     }
 }

@@ -29,6 +29,7 @@ data class MeetingDetailState(
     val checkIn: CheckInPrompt? = null,      // 체크인 확인창(9a, 9b). null이면 닫혀 있다
     val checkInPoint: GeoPoint? = null,      // 체크인 확인창에서 잰 내 위치. 체크인을 보낼 때 쓴다
     val hostSection: HostSectionState? = null, // 내가 호스트일 때만 채운다 (5a-H 계열)
+    val participantNotices: ParticipantNotices? = null, // 내가 확정 참가자일 때만 채운다 (공지는 호스트·확정 참가자만 읽는다, service-rules 9장)
     val hostDialog: HostDialog? = null,      // 취소 시트·삭제 확인창. null이면 닫혀 있다
     val deleted: Boolean = false,            // 모임을 삭제했다: 화면을 닫는다
 ) {
@@ -52,3 +53,6 @@ data class MeetingDetailState(
         return copy(meeting = UiState.Success(m.copy(isFavorite = favorite)))
     }
 }
+
+// 확정 참가자가 보는 공지 영역. 공지가 하나도 없으면 latest가 null이다.
+data class ParticipantNotices(val latest: HostNoticePreview?)

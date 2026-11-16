@@ -7,26 +7,42 @@ import kotlinx.coroutines.flow.update
 
 // 내 활동 지역(마이페이지 '위치 설정'). 구·동 하나. 저장된 값이 없으면 기본 지역으로 시작한다.
 // 쓰임새(추천 순서 등)는 서버가 정해지면 붙인다. 지금은 마이페이지 표시와 위치 설정 화면의 처음 값으로만 쓴다.
+// 서버에 저장할 곳이 없어 기기에 계정별로 저장한다. 로그아웃하면 화면에서만 기본값으로 돌리고,
+// 같은 계정으로 다시 로그인하면 그 계정이 설정해 둔 지역을 다시 불러온다. 다른 사람에게는 보이지 않는다.
 object ActivityAreaStore {
-    private const val KEY = "activity_area"
+    private const val KEY_PREFIX = "activity_area:"
     const val DEFAULT_AREA = "마포구"
 
     private var store: KeyValueStore? = null
+    private var userId: String? = null
     private val _area = MutableStateFlow<String?>(DEFAULT_AREA)
     val area: StateFlow<String?> = _area.asStateFlow()
 
-    fun attach(store: KeyValueStore) {
+    // 앱을 켤 때. 로그인이 유지된 상태면 그 계정의 지역을 불러온다.
+    fun attach(store: KeyValueStore, userId: String?) {
         this.store = store
-        store.get(KEY)?.let { _area.value = it.ifBlank { null } }
+        switchUser(userId)
     }
 
-    // 빈 값이면 지역을 해제한다.
+    // 로그인한 계정이 바뀔 때(로그인 성공: 그 계정 id, 로그아웃: null).
+    fun switchUser(userId: String?) {
+        this.userId = userId
+        val saved = userId?.let { store?.get(KEY_PREFIX + it) }
+        _area.value = when {
+            saved == null -> DEFAULT_AREA // 로그아웃했거나 이 계정은 아직 지역을 고른 적이 없다
+            saved.isBlank() -> null // 지역을 해제해 둔 계정
+            else -> saved
+        }
+    }
+
+    // 빈 값이면 지역을 해제한다. 로그인한 계정이 있을 때만 기기에 남긴다.
     fun set(area: String?) {
         _area.value = area?.takeIf { it.isNotBlank() }
-        store?.put(KEY, _area.value.orEmpty())
+        userId?.let { store?.put(KEY_PREFIX + it, _area.value.orEmpty()) }
     }
 
-    fun reset() = set(DEFAULT_AREA)
+    // 로그아웃: 화면에서는 기본값으로 돌리되, 계정에 저장한 값은 지우지 않는다.
+    fun reset() = switchUser(null)
 }
 
 data class BlockedUser(val userId: String, val nickname: String)
