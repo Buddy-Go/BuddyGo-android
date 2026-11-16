@@ -65,6 +65,7 @@ import com.example.myapplication.ui.meeting.notice.NoticeEditViewModel
 import com.example.myapplication.ui.meeting.notice.NoticeListScreen
 import com.example.myapplication.ui.meeting.notice.NoticeListViewModel
 import com.example.myapplication.ui.mypage.AllReviewsScreen
+import com.example.myapplication.ui.mypage.HostedMeetingsScreen
 import com.example.myapplication.ui.mypage.AllReviewsViewModel
 import com.example.myapplication.ui.mypage.MyPageScreen
 import com.example.myapplication.ui.notification.NotificationScreen
@@ -455,6 +456,14 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         onExploreClick = { goTab(Routes.EXPLORE) },
                     )
                 }
+                composable(Routes.MY_HOSTED) {
+                    HostedMeetingsScreen(
+                        viewModel = viewModel(key = "my-hosted") { ActivityViewModel(meetingRepository, userRepository) },
+                        onBack = { navController.popBackStack() },
+                        onMeetingClick = { meetingId -> navController.navigate(Routes.meetingDetail(meetingId)) },
+                        onCreateClick = { goTab(Routes.MEETING_CREATE) },
+                    )
+                }
                 composable(Routes.MY_REVIEWS) {
                     val vm = viewModel<AllReviewsViewModel>(key = "my-reviews") { AllReviewsViewModel(users = userRepository) }
                     val state by vm.state.collectAsState()
@@ -487,6 +496,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 composable(Routes.MYPAGE) {
                     MyPageScreen(
                         onAllReviewsClick = { navController.navigate(Routes.MY_REVIEWS) },
+                        onHostedClick = { navController.navigate(Routes.MY_HOSTED) },
                         onLocationClick = { navController.navigate(Routes.ACTIVITY_AREA) },
                         onBlockManageClick = { navController.navigate(Routes.BLOCK_MANAGE) },
                         onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },

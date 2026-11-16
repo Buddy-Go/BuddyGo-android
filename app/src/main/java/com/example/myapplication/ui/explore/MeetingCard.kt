@@ -29,10 +29,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.data.mock.MockMeetings
+import com.example.myapplication.data.model.DEADLINE_BEFORE_START_MINUTES
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
 import com.example.myapplication.data.model.MeetingStatus
-import com.example.myapplication.ui.activity.DEADLINE_BEFORE_START_MILLIS
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.record.bodyPartLabel
@@ -61,10 +61,9 @@ fun criteriaChipText(meeting: Meeting): String = when (val c = meeting.criteria)
 private const val URGENT_WITHIN_MILLIS = 60 * 60_000L
 
 // 모집중이고 신청 마감까지 1시간 이내면 "마감 임박 · 45분", 아니면 null.
-// TODO(임시): 마감 시각은 서버 정책값(시작 90분 전)이다. 서버가 내려주면 그 값을 쓴다.
 fun deadlineBadgeText(meeting: Meeting, nowMillis: Long): String? {
     if (meeting.status != MeetingStatus.RECRUITING) return null
-    val remain = meeting.startAtMillis - DEADLINE_BEFORE_START_MILLIS - nowMillis
+    val remain = meeting.deadlineAtMillis - nowMillis
     if (remain <= 0 || remain > URGENT_WITHIN_MILLIS) return null
     val minutes = ((remain + 59_999) / 60_000).coerceIn(1, 60)
     return "마감 임박 · ${minutes}분"
@@ -202,7 +201,7 @@ private fun MeetingCardPreview() {
             MeetingCard(MockMeetings.pending.copy(isFavorite = true), {}, {}, showCriteriaChip = true)
             val now = System.currentTimeMillis()
             MeetingCard(
-                MockMeetings.recruiting.copy(startAtMillis = now + DEADLINE_BEFORE_START_MILLIS + 45 * 60_000L),
+                MockMeetings.recruiting.copy(startAtMillis = now + (DEADLINE_BEFORE_START_MINUTES + 45) * 60_000L),
                 {}, {}, nowMillis = now,
             )
         }

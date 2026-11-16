@@ -122,6 +122,17 @@ class MateProfileViewModel(
         }
     }
 
+    // 15c 신청함 → 신청 취소. 취소하면 신청이 남지 않고, 함께 운동한 사이면 다시 '메이트 신청'이 보인다.
+    fun onCancelRequest() {
+        val requestId = state.profile?.requestId ?: return
+        if (state.bottomButton != ProfileButton.REQUESTED || state.isSending) return
+        state = state.copy(isSending = true)
+        viewModelScope.launch {
+            repository.cancelRequest(requestId)
+            state = state.copy(profile = repository.getProfile(userId).getOrNull() ?: state.profile, isSending = false)
+        }
+    }
+
     fun onToggleNotification() {
         val enabled = state.profile?.notificationEnabled ?: return
         viewModelScope.launch {
@@ -140,11 +151,15 @@ class MateProfileViewModel(
         state = state.copy(reportedMessage = null)
     }
 
-    // 차단하기: 차단 목록에 넣고 화면을 닫는다.
+    // 차단하기: 메이트 관계도 함께 끊고(이미 메이트가 아니면 실패해도 무시), 차단 목록에 넣고 화면을 닫는다.
+    // 차단을 풀어도 메이트로 돌아오지 않고 다시 신청해야 한다.
     fun onBlock() {
         val p = state.profile ?: return
-        BlockedUsersStore.block(p.userId, p.nickname)
-        state = state.copy(isBlocked = true)
+        viewModelScope.launch {
+            repository.removeMate(userId)
+            BlockedUsersStore.block(p.userId, p.nickname)
+            state = state.copy(isBlocked = true)
+        }
     }
 
     // 메이트 끊기. 확인 창은 화면(MateProfileScreen)이 공용 ConfirmDialog로 먼저 띄운다.

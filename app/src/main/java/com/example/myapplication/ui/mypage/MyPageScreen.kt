@@ -68,6 +68,7 @@ import com.example.myapplication.ui.theme.AppSpace
 fun MyPageScreen(
     onLogout: () -> Unit,
     onAllReviewsClick: () -> Unit = {},
+    onHostedClick: () -> Unit = {},
     onLocationClick: () -> Unit = {},
     onBlockManageClick: () -> Unit = {},
     onEditRecord: (Sport) -> Unit = {},
@@ -88,7 +89,7 @@ fun MyPageScreen(
         is UiState.Success -> {
             val d = s.data
             Column(modifier.fillMaxSize().background(AppColor.Surface).verticalScroll(rememberScrollState())) {
-                ProfileHeader(d)
+                ProfileHeader(d, onAllReviewsClick, onHostedClick)
                 if (d.stats.topTags.isNotEmpty()) TopTags(d.stats.topTags)
                 ReviewSection(d.reviews, onAllReviewsClick)
                 Spacer(Modifier.height(AppSpace.xxl))
@@ -137,7 +138,7 @@ fun MyPageScreen(
 }
 
 @Composable
-private fun ProfileHeader(d: MyPageData) {
+private fun ProfileHeader(d: MyPageData, onReviewsClick: () -> Unit, onHostedClick: () -> Unit) {
     Column(
         Modifier.fillMaxWidth()
             .background(AppColor.Accent)
@@ -164,9 +165,9 @@ private fun ProfileHeader(d: MyPageData) {
         ) {
             Stat("매너온도", formatTemperature(d.user.mannerTemperature), Modifier.weight(1.3f), thermometer = true)
             StatDivider()
-            Stat("받은 후기", d.stats.receivedReviewCount.toString(), Modifier.weight(1f))
+            Stat("받은 후기", d.stats.receivedReviewCount.toString(), Modifier.weight(1f), onClick = onReviewsClick)
             StatDivider()
-            Stat("개설한 모임", d.stats.hostedMeetingCount.toString(), Modifier.weight(1f))
+            Stat("개설한 모임", d.stats.hostedMeetingCount.toString(), Modifier.weight(1f), onClick = onHostedClick)
         }
     }
 }
@@ -211,8 +212,8 @@ private fun RecordIcon() {
 }
 
 @Composable
-private fun Stat(label: String, value: String, modifier: Modifier, thermometer: Boolean = false) {
-    Column(modifier.padding(horizontal = AppSpace.xxl).semantics(mergeDescendants = true) { contentDescription = "$label $value" }) {
+private fun Stat(label: String, value: String, modifier: Modifier, thermometer: Boolean = false, onClick: (() -> Unit)? = null) {
+    Column((if (onClick != null) modifier.clickable(role = Role.Button, onClickLabel = "$label 보기", onClick = onClick) else modifier).padding(horizontal = AppSpace.xxl).semantics(mergeDescendants = true) { contentDescription = "$label $value" }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (thermometer) {
                 ThermometerIcon(AppColor.TextPrimary, size = 16.dp)
