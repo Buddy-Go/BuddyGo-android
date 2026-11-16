@@ -114,7 +114,7 @@ private fun SheetHeader(state: ExploreState) {
             }
         }
         Text(
-            text = if (place != null) "모임 ${state.sheetMeetings.size}" else "거리순 ▾",
+            text = if (place != null) "모임 ${state.sheetMeetings.size}" else "거리순",
             color = AppColor.TextSecondary, fontSize = 15.sp,
         )
     }
