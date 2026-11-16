@@ -16,7 +16,7 @@ object CriteriaDefaults {
     // 슬라이더 범위
     const val WEIGHT_TICK_KG = 5        // 헬스 중량은 5kg 단위(눈금·기록 입력·범위 모두)
     const val SLIDER_MIN_WEIGHT = 30   // 슬라이더 범위를 좁혀 ±10kg 구간이 디자인(4d)처럼 눈에 보이게 한다
-    const val SLIDER_MAX_WEIGHT = 150  // 기록 입력 상한(400kg)보다 낮춘 값
+    const val SLIDER_MAX_WEIGHT = 150  // 기록 입력 상한(300kg)보다 낮춘 값
     const val SLIDER_MAX_PULL_UP = 30
     const val PACE_MIN_SEC = 240
     const val PACE_MAX_SEC = 480
