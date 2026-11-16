@@ -61,6 +61,7 @@ object Routes {
     const val ACTIVITY_AREA = "mypage/area" // 위치 설정(활동 지역)
     const val BLOCK_MANAGE = "mypage/block" // 신고 · 차단 관리
     const val MY_REVIEWS = "mypage/reviews"
+    const val MY_HOSTED = "mypage/hosted"
     const val MATE_REVIEWS = "mate/profile/{$ARG_USER_ID}/reviews"
 
     // 하단 탭 바에 있는 화면 (탐색·활동·개설·메이트·마이)
