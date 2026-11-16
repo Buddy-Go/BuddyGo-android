@@ -39,7 +39,7 @@ class HostWiringTest {
     }
 
     private fun vm(id: String, repo: FakeMeetingRepository = FakeMeetingRepository()) =
-        MeetingDetailViewModel(id, repo, FakeUserRepository(), FakeNoticeRepository(), nowMillis = 1_798_761_600_000L)
+        MeetingDetailViewModel(id, repo, FakeUserRepository(), FakeNoticeRepository(), nowMillis = { 1_798_761_600_000L })
             .also { created += it }
 
     @Test

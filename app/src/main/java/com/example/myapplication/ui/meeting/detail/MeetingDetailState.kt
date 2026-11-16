@@ -20,7 +20,7 @@ data class MeetingDetailState(
     val myGender: Gender? = null,
     val myLocation: GeoPoint? = null,        // 탐색에서 알아낸 내 위치. 장소 시트의 거리 계산에 쓴다
     val myRecord: ExerciseRecord? = null,   // 기준 시트에서 내 기록과 비교할 때 쓴다
-    val nowMillis: Long = 0L,
+    val nowMillis: Long = 0L,                // 지금 시각. 체크인 열림 같은 시각 기준 값에 쓰고, ViewModel이 값이 바뀌는 시각마다 새로 읽는다
     val submitting: Boolean = false,       // 신청 취소 같은 요청을 보내는 중
     val message: String? = null,           // 사용자에게 한 번 보여 줄 안내(실패 등)
     val openSheet: DetailSheet? = null,

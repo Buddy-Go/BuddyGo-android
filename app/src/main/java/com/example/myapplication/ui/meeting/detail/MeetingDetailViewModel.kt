@@ -15,6 +15,8 @@ import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.GeoPoint
 import com.example.myapplication.ui.explore.LastKnownLocation
 import java.io.IOException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,10 +28,13 @@ class MeetingDetailViewModel(
     private val repository: MeetingRepository = Repositories.meetings,
     private val userRepository: UserRepository = Repositories.users,
     private val noticeRepository: NoticeRepository = Repositories.notices,
-    nowMillis: Long = System.currentTimeMillis(),
+    private val nowMillis: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(MeetingDetailState(nowMillis = nowMillis, myLocation = LastKnownLocation.point.value))
+    private val _state = MutableStateFlow(MeetingDetailState(nowMillis = nowMillis(), myLocation = LastKnownLocation.point.value))
     val state: StateFlow<MeetingDetailState> = _state.asStateFlow()
+
+    // 지금 시각(state.nowMillis)을 다음 변화 시각까지 기다렸다가 다시 읽는 작업. 모임을 받을 때마다 새로 시작한다.
+    private var clockJob: Job? = null
 
     init {
         load()
@@ -50,6 +55,24 @@ class MeetingDetailViewModel(
                         onFailure = { e -> UiState.Error(if (e is IOException) ErrorType.NETWORK else ErrorType.SERVER) },
                     ),
                 )
+            }
+            restartClock()
+        }
+    }
+
+    // 화면을 연 채로도 체크인 버튼처럼 시각으로 정해지는 값이 제때 바뀌게 한다. (service-rules 7장: 시작 10분 전에 체크인이 열린다)
+    // 지금 시각을 한 번만 읽어 두면 화면을 닫기 전까지 그 값이라, 값이 바뀌는 다음 시각(nextDetailChangeMillis)까지 기다렸다가 다시 읽는다.
+    // 일정 간격으로 깨어나지 않아서 그 시각 사이에는 상태가 바뀌지 않고 화면도 다시 그려지지 않는다.
+    // 기기가 잠든 동안은 기다리는 시간이 흐르지 않을 수 있어서, 화면이 다시 보일 때(onResume)에도 새로 읽는다.
+    private fun restartClock() {
+        clockJob?.cancel()
+        clockJob = viewModelScope.launch {
+            while (true) {
+                val now = nowMillis()
+                _state.update { if (it.nowMillis == now) it else it.copy(nowMillis = now) }
+                val meeting = _state.value.loaded ?: return@launch
+                val next = nextDetailChangeMillis(meeting, now) ?: return@launch
+                delay(next - now)
             }
         }
     }
@@ -159,6 +182,7 @@ class MeetingDetailViewModel(
         repository.getMeeting(meetingId).onSuccess { meeting ->
             loadHostSection(meeting)
             _state.update { it.copy(meeting = UiState.Success(meeting)) }
+            restartClock()
         }
     }
 
@@ -166,6 +190,7 @@ class MeetingDetailViewModel(
     // 프로필 기록 수정 화면에서 돌아왔을 수도 있어서 내 기록도 새로 받는다. (기준 시트의 '내 기록'과 판정에 쓰인다)
     fun onResume() {
         if (_state.value.loaded == null) return
+        restartClock() // 화면이 꺼져 있던 사이에 시각이 지났을 수 있다
         viewModelScope.launch {
             userRepository.getCurrentUser().onSuccess { me -> _state.update { it.copy(myGender = me.gender, myRecord = me.record) } }
             reloadMeeting()
