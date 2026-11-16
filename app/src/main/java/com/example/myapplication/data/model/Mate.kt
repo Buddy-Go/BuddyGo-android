@@ -62,6 +62,7 @@ data class MateProfile(
     val mannerTemperature: Float,
     val topTags: List<TagCount>,
     val relation: MateRelation,
+    val requestId: String? = null, // 내가 보낸 신청이 대기 중일 때(relation = REQUESTED)의 신청 id. 취소할 때 쓴다.
     val workedOutTogether: Boolean, // 아니면 '메이트 신청' 버튼을 숨긴다
     val activities: List<MateActivity>, // 메이트일 때만 서버가 채운다
     val reviewCount: Int,

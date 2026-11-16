@@ -71,6 +71,7 @@ fun MateProfileScreen(
         onActivityClick = onActivityClick,
         onAllReviewsClick = onAllReviewsClick,
         onSendRequest = viewModel::onSendRequest,
+        onCancelRequest = viewModel::onCancelRequest,
         onToggleNotification = viewModel::onToggleNotification,
         onRemoveMate = viewModel::onRemoveMate,
         onReport = viewModel::onReport,
@@ -87,6 +88,7 @@ private fun MateProfileContent(
     onActivityClick: (String) -> Unit,
     onAllReviewsClick: () -> Unit,
     onSendRequest: () -> Unit,
+    onCancelRequest: () -> Unit = {},
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
     onReport: (String) -> Unit = {},
@@ -135,6 +137,22 @@ private fun MateProfileContent(
             dismissText = "",
             onConfirm = { reported = false },
             onDismiss = { reported = false },
+        )
+    }
+    // 잘못 보낸 신청을 상대가 수락하기 전에 취소한다. 실수로 눌러도 되돌릴 수 있게 먼저 확인한다. (문구는 임시)
+    var confirmCancel by remember { mutableStateOf(false) }
+    if (confirmCancel) {
+        ConfirmDialog(
+            title = "메이트 신청을 취소할까요?",
+            message = "${profile?.nickname ?: "이 사람"}님에게 보낸 신청이 사라져요",
+            confirmText = "신청 취소",
+            dismissText = "닫기",
+            destructive = true,
+            onConfirm = {
+                confirmCancel = false
+                onCancelRequest()
+            },
+            onDismiss = { confirmCancel = false },
         )
     }
     // 메이트 끊기는 되돌릴 수 없어 먼저 확인한다. 확인 창 디자인이 없어 공용 ConfirmDialog를 쓴다. (문구는 임시)
@@ -277,7 +295,12 @@ private fun MateProfileContent(
 
         when (state.bottomButton) {
             ProfileButton.REQUEST -> BottomButton("메이트 신청", filled = true, enabled = !state.isSending, onClick = onSendRequest)
-            ProfileButton.REQUESTED -> BottomButton("신청함", filled = false, enabled = false, onClick = {})
+            // 신청 id를 알 때만 취소할 수 있다. 모르면 예전처럼 눌리지 않는 '신청함'으로 둔다.
+            ProfileButton.REQUESTED -> if (profile.requestId != null) {
+                BottomButton("신청함 · 취소", filled = false, enabled = !state.isSending, textColor = AppColor.TextPrimary, onClick = { confirmCancel = true })
+            } else {
+                BottomButton("신청함", filled = false, enabled = false, onClick = {})
+            }
             ProfileButton.NONE -> Unit
         }
     }
@@ -419,7 +442,7 @@ private fun ReviewItem(review: ProfileReview, timeZone: TimeZone) {
 }
 
 @Composable
-private fun BottomButton(text: String, filled: Boolean, enabled: Boolean, onClick: () -> Unit) {
+private fun BottomButton(text: String, filled: Boolean, enabled: Boolean, onClick: () -> Unit, textColor: androidx.compose.ui.graphics.Color? = null) {
     val shape = RoundedCornerShape(AppRadius.md)
     Column(modifier = Modifier.background(AppColor.Surface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.DividerSoft))
@@ -438,7 +461,7 @@ private fun BottomButton(text: String, filled: Boolean, enabled: Boolean, onClic
                 text = text,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (filled) AppColor.OnAccent else AppColor.TextDisabled,
+                color = textColor ?: if (filled) AppColor.OnAccent else AppColor.TextDisabled,
             )
         }
     }
