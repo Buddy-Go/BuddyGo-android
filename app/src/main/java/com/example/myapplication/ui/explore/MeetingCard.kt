@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.data.mock.MockMeetings
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
+import com.example.myapplication.data.model.MeetingStatus
+import com.example.myapplication.ui.activity.DEADLINE_BEFORE_START_MILLIS
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.ui.common.sportLabel
 import com.example.myapplication.ui.record.bodyPartLabel
@@ -54,6 +56,18 @@ fun criteriaChipText(meeting: Meeting): String = when (val c = meeting.criteria)
     is MeetingCriteria.Health -> c.parts.sortedBy { it.ordinal }.joinToString("·") { bodyPartLabel(it) }
     is MeetingCriteria.Running -> "${c.distanceKm.toString().removeSuffix(".0")}km"
     is MeetingCriteria.Hiking -> hikingStyleLabel(c.style)
+}
+
+private const val URGENT_WITHIN_MILLIS = 60 * 60_000L
+
+// 모집중이고 신청 마감까지 1시간 이내면 "마감 임박 · 45분", 아니면 null.
+// TODO(임시): 마감 시각은 서버 정책값(시작 90분 전)이다. 서버가 내려주면 그 값을 쓴다.
+fun deadlineBadgeText(meeting: Meeting, nowMillis: Long): String? {
+    if (meeting.status != MeetingStatus.RECRUITING) return null
+    val remain = meeting.startAtMillis - DEADLINE_BEFORE_START_MILLIS - nowMillis
+    if (remain <= 0 || remain > URGENT_WITHIN_MILLIS) return null
+    val minutes = ((remain + 59_999) / 60_000).coerceIn(1, 60)
+    return "마감 임박 · ${minutes}분"
 }
 
 // 3-After 목록 카드 / 3-3-After 떠 있는 카드.
@@ -84,6 +98,10 @@ fun MeetingCard(
         Column(Modifier.padding(AppSpace.xxl), verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Chip(sportLabel(meeting.sport), tone.soft, tone.text)
+                deadlineBadgeText(meeting, nowMillis)?.let {
+                    Spacer(Modifier.width(AppSpace.md))
+                    Chip(it, Color(0xFFE5383B), Color.White, bold = true)
+                }
                 if (showCriteriaChip) {
                     Spacer(Modifier.width(AppSpace.md))
                     Chip(criteriaChipText(meeting), AppColor.ChipNeutralBg, AppColor.TextPrimary)
@@ -113,9 +131,10 @@ fun MeetingCard(
 }
 
 @Composable
-private fun Chip(text: String, background: Color, textColor: Color) {
+private fun Chip(text: String, background: Color, textColor: Color, bold: Boolean = false) {
     Text(
-        text, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+        text, color = textColor, fontSize = 13.sp, fontWeight = if (bold) FontWeight.Bold else FontWeight.Medium,
+        maxLines = 1,
         modifier = Modifier
             .clip(RoundedCornerShape(AppRadius.pill))
             .background(background)
@@ -181,6 +200,11 @@ private fun MeetingCardPreview() {
         Column(Modifier.padding(AppSpace.xxl), verticalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
             MeetingCard(MockMeetings.recruiting, {}, {}, selected = true)
             MeetingCard(MockMeetings.pending.copy(isFavorite = true), {}, {}, showCriteriaChip = true)
+            val now = System.currentTimeMillis()
+            MeetingCard(
+                MockMeetings.recruiting.copy(startAtMillis = now + DEADLINE_BEFORE_START_MILLIS + 45 * 60_000L),
+                {}, {}, nowMillis = now,
+            )
         }
     }
 }
