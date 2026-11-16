@@ -37,7 +37,7 @@ data class MeetingDetailState(
     // 모임에서 본 나의 역할. 판단은 Meeting.roleOf 한 곳에서만 한다.
     val role: MeetingRole get() = loaded?.roleOf(myUserId) ?: MeetingRole.NONE
 
-    // 지금 하단에 보여 줄 큰 버튼 (호스트이거나 모임을 못 불러왔으면 null)
+    // 지금 하단에 보여 줄 큰 버튼 (모임을 못 불러왔으면 null). 호스트는 체크인이 열려 있을 때만 있다. (그 밖의 호스트 버튼은 HostSection)
     val bottomAction: BottomAction?
         get() = loaded?.let { bottomActionOf(it, role, myUserId, nowMillis, myGender) }
 

@@ -5,7 +5,9 @@ import com.example.myapplication.data.mock.MockMeetings
 import com.example.myapplication.data.model.CheckInOutOfRangeException
 import com.example.myapplication.data.model.CheckInResult
 import com.example.myapplication.data.model.Meeting
+import com.example.myapplication.data.model.MeetingMember
 import com.example.myapplication.data.model.MeetingRole
+import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.repository.FakeMeetingRepository
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.ui.common.ErrorType
@@ -22,6 +24,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -254,6 +257,43 @@ class MeetingDetailViewModelTest {
         vm.onCheckInLocation(mountain)
         assertEquals(mountain, LastKnownLocation.point.value)
         LastKnownLocation.clear()
+    }
+
+    // 내가 호스트인 모임. 호스트도 체크인 대상이다. (service-rules 7장)
+    private val now = 1_798_761_600_000L
+    private val hostedLive = MockMeetings.hostedClosed.copy(
+        id = "m-host-live", status = MeetingStatus.IN_PROGRESS, startAtMillis = now - 2 * 60_000L,
+        place = MockMeetings.inProgress.place,
+        members = listOf(MeetingMember("u1", "민준"), MeetingMember("u2", "서연"), MeetingMember("u3", "태")),
+    )
+
+    @Test
+    fun 호스트도_체크인이_열리면_하단에_체크인_버튼이_있다() {
+        val live = vm(hostedLive.id, FakeMeetingRepository(listOf(hostedLive)))
+        assertEquals(MeetingRole.HOST, live.state.value.role)
+        assertEquals(DetailAction.CHECK_IN, live.state.value.bottomAction?.action)
+        assertNotNull("호스트 영역도 그대로 있다", live.state.value.hostSection)
+
+        val soon = hostedLive.copy(id = "m-host-soon", status = MeetingStatus.CLOSED, startAtMillis = now + 5 * 60_000L)
+        assertEquals("마감 상태는 시작 십분 전부터", DetailAction.CHECK_IN, vm(soon.id, FakeMeetingRepository(listOf(soon))).state.value.bottomAction?.action)
+
+        val early = soon.copy(id = "m-host-early", startAtMillis = now + 11 * 60_000L)
+        assertNull("아직 열리기 전에는 참가자 관리만 보인다", vm(early.id, FakeMeetingRepository(listOf(early))).state.value.bottomAction)
+    }
+
+    @Test
+    fun 호스트가_체크인하면_체크인_완료로_바뀌고_체크인_수가_늘어난다() {
+        val vm = vm(hostedLive.id, FakeMeetingRepository(listOf(hostedLive)))
+        vm.onCheckInStart()
+        vm.onCheckInLocation(mountain)
+        assertEquals(CheckInPrompt.Ready(0), vm.state.value.checkIn)
+        vm.onCheckInConfirm()
+        assertNull(vm.state.value.checkIn)
+        assertEquals("체크인했어요", vm.state.value.notice)
+        assertEquals(1, vm.state.value.loaded!!.checkedInCount)
+        assertTrue(vm.state.value.loaded!!.members.first { it.userId == "u1" }.checkedIn)
+        assertEquals("✓ 체크인 완료", vm.state.value.bottomAction?.title)
+        assertNotNull("체크인 뒤에도 호스트 영역이 그대로다", vm.state.value.hostSection)
     }
 
     // ---- 나가기 ----

@@ -222,8 +222,47 @@ class MeetingDetailRulesTest {
     private fun action(m: Meeting, role: MeetingRole, now: Long) = bottomActionOf(m, role, me, now)
 
     @Test
-    fun 호스트는_하단_버튼이_없다() {
-        assertNull(action(meeting(), MeetingRole.HOST, millis(9, 8, 0)))
+    fun 호스트는_체크인이_열리기_전에는_하단_버튼이_없다() {
+        assertNull("모집중", action(meeting(), MeetingRole.HOST, millis(9, 8, 0)))
+        val closed = meeting(MeetingStatus.CLOSED, start = millis(9, 8, 7), confirmed = 6)
+        assertNull("마감이어도 시작 십분 전 전에는 참가자 관리만 보인다", action(closed, MeetingRole.HOST, millis(9, 8, 6, 49)))
+    }
+
+    @Test
+    fun 마감된_모임에서_호스트도_시작_십분_전부터_체크인할_수_있다() {
+        val m = meeting(MeetingStatus.CLOSED, start = millis(9, 8, 7), confirmed = 6)
+        val open = action(m, MeetingRole.HOST, millis(9, 8, 6, 50))!!
+        assertEquals(DetailAction.CHECK_IN, open.action)
+        assertEquals("체크인하기", open.title)
+        assertTrue(open.enabled)
+    }
+
+    @Test
+    fun 진행중_모임에서_호스트는_시작_후_십분까지만_체크인할_수_있다() {
+        val start = millis(9, 8, 7)
+        val m = meeting(MeetingStatus.IN_PROGRESS, start = start, confirmed = 6)
+        assertEquals(DetailAction.CHECK_IN, action(m, MeetingRole.HOST, start)!!.action)
+        assertTrue("경계 포함", action(m, MeetingRole.HOST, start + 10 * minute)!!.enabled)
+        val late = action(m, MeetingRole.HOST, start + 10 * minute + 1)!!
+        assertFalse(late.enabled)
+        assertEquals("체크인 시간이 지났어요", late.subtitle)
+    }
+
+    @Test
+    fun 호스트가_체크인했으면_체크인_완료_회색_버튼이다() {
+        val start = millis(9, 8, 7)
+        val m = meeting(MeetingStatus.IN_PROGRESS, start = start, confirmed = 2,
+            members = listOf(MeetingMember(me, "민준", true, checkedInAtMillis = start + 2 * minute)))
+        val a = action(m, MeetingRole.HOST, start + 5 * minute)!!
+        assertEquals("✓ 체크인 완료", a.title)
+        assertFalse(a.enabled)
+        assertEquals(formatCheckInTime(start + 2 * minute), a.subtitle)
+    }
+
+    @Test
+    fun 종료되거나_취소된_모임에서_호스트는_하단_버튼이_없다() {
+        assertNull(action(meeting(MeetingStatus.ENDED), MeetingRole.HOST, millis(9, 9, 0)))
+        assertNull(action(meeting(MeetingStatus.CANCELED), MeetingRole.HOST, millis(9, 8, 0)))
     }
 
     @Test
