@@ -253,12 +253,20 @@ fun HostNoticeSection(
 
 // ---------- 하단 '참가자 관리' ----------
 
+// checkIn: 체크인이 열려 있을 때 '참가자 관리' 위에 끼우는 호스트의 체크인 버튼 (service-rules 7장: 호스트도 체크인 대상). 본체가 그려서 넘긴다.
 @Composable
-fun HostBottomBar(state: HostSectionState, onManageClick: () -> Unit) {
+fun HostBottomBar(
+    state: HostSectionState,
+    onManageClick: () -> Unit,
+    checkIn: (@Composable () -> Unit)? = null,
+) {
     val shape = RoundedCornerShape(AppRadius.md)
     val highlight = state.highlightManageButton
     Column(modifier = Modifier.background(AppColor.Surface)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.DividerSoft))
+        if (checkIn != null) {
+            Box(Modifier.fillMaxWidth().padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xl)) { checkIn() }
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -291,7 +291,12 @@ private fun DetailContent(
             }
             Spacer(Modifier.height(AppSpace.md))
         }
-        if (host != null) HostBottomBar(host, onManageClick = onManageParticipants)
+        // 호스트도 체크인 대상이라, 체크인이 열려 있으면 '참가자 관리' 위에 체크인 버튼을 함께 보여 준다. (service-rules 7장)
+        if (host != null) HostBottomBar(
+            host,
+            onManageClick = onManageParticipants,
+            checkIn = state.bottomAction?.let { action -> { ActionBox(action, state.submitting, onAction, Modifier.fillMaxWidth()) } },
+        )
         else BottomBar(meeting.isFavorite, state.bottomAction, state.submitting, onToggleFavorite, onAction)
     }
 }

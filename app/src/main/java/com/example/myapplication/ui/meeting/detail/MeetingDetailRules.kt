@@ -238,7 +238,8 @@ data class BottomAction(
     val outlined: Boolean = false,
 )
 
-// 지금 이 사람에게 보여 줄 하단 큰 버튼. 호스트는 호스트 영역(HostSection)이 맡으므로 null이다.
+// 지금 이 사람에게 보여 줄 하단 큰 버튼. 호스트의 하단 버튼은 호스트 영역(HostSection)의 '참가자 관리'가 맡으므로,
+// 호스트에게는 체크인이 열려 있을 때의 체크인 버튼만 있고 그 밖에는 null이다.
 fun bottomActionOf(
     meeting: Meeting,
     role: MeetingRole,
@@ -246,7 +247,7 @@ fun bottomActionOf(
     nowMillis: Long,
     myGender: com.example.myapplication.data.model.Gender? = null,
 ): BottomAction? {
-    if (role == MeetingRole.HOST) return null
+    if (role == MeetingRole.HOST) return hostCheckInAction(meeting, myUserId, nowMillis)
     val myMember = meeting.members.firstOrNull { it.userId == myUserId }
     val iCheckedIn = myMember?.checkedIn == true
     val myCheckInAt = myMember?.checkedInAtMillis
@@ -277,6 +278,18 @@ fun bottomActionOf(
             else BottomAction(DetailAction.NONE, "종료된 모임", enabled = false)
         MeetingStatus.CANCELED -> BottomAction(DetailAction.NONE, "취소된 모임", "호스트가 모임을 취소했어요", enabled = false)
     }
+}
+
+// 호스트도 체크인 대상이다. (7장: 호스트를 포함한 모든 확정 참가자) 체크인 호출은 참가자와 같다.
+// 마감 상태에서는 시작 10분 전부터, 진행중에는 계속 체크인 버튼이 있고, 그 밖의 때는 '참가자 관리'만 보이도록 null이다.
+private fun hostCheckInAction(meeting: Meeting, myUserId: String, nowMillis: Long): BottomAction? {
+    val myMember = meeting.members.firstOrNull { it.userId == myUserId }
+    val shown = when (meeting.status) {
+        MeetingStatus.CLOSED -> nowMillis >= meeting.startAtMillis - CHECK_IN_OPENS_BEFORE_MINUTES * MINUTE
+        MeetingStatus.IN_PROGRESS -> true
+        else -> false
+    }
+    return if (shown) checkInAction(meeting, myMember?.checkedIn == true, nowMillis, myMember?.checkedInAtMillis) else null
 }
 
 // 체크인은 한 번만 할 수 있고, 시작 10분 전부터 시작 후 10분까지만 열린다. (7장)
