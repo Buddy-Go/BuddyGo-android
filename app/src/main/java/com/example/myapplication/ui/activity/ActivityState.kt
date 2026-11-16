@@ -129,6 +129,13 @@ fun calendarDaysBetween(from: Long, to: Long, timeZone: TimeZone = TimeZone.getD
     return Math.round((dayStart(to) - dayStart(from)) / 86_400_000.0).toInt()
 }
 
+// 모집중이고 신청 마감까지 1시간 이내면 true. 카드 아래줄을 빨간색으로 강조한다.
+fun HostedMeetingItem.isDeadlineSoon(now: Long): Boolean {
+    if (status != HostedStatus.RECRUITING) return false
+    val left = (deadlineAt ?: return false) - now
+    return left in 1..3_600_000L
+}
+
 // 13-H 카드 아래줄
 fun HostedMeetingItem.metaText(now: Long, timeZone: TimeZone = TimeZone.getDefault()): String {
     val time = clockText(startAt, timeZone)

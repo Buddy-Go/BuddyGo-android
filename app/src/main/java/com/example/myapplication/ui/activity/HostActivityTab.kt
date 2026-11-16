@@ -62,6 +62,7 @@ fun HostActivityTab(
                     isPast = false,
                     title = item.title,
                     meta = item.metaText(now, timeZone),
+                    metaUrgent = item.isDeadlineSoon(now),
                     onClick = { onMeetingClick(item.meetingId) },
                     timeZone = timeZone,
                 ) {
@@ -176,6 +177,7 @@ internal fun ActivityMeetingCard(
     isPast: Boolean,
     title: String,
     meta: String,
+    metaUrgent: Boolean = false,
     onClick: () -> Unit,
     timeZone: TimeZone,
     chips: @Composable RowScope.() -> Unit,
@@ -219,7 +221,7 @@ internal fun ActivityMeetingCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(text = meta, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
+            Text(text = meta, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = if (metaUrgent) AppColor.Danger else AppColor.TextSecondary)
         }
     }
 }
