@@ -51,12 +51,13 @@ class RecordStateTest {
     }
 
     @Test
-    fun 무게는_5kg씩_최솟값에서_400까지() {
+    fun 무게는_5kg씩_최솟값에서_300까지() {
         val vm = RecordViewModel()
         vm.onStepBench(1)
         assertEquals(RecordState.DEFAULT_BENCH_KG + 5, vm.state.value.benchPressKg)
         repeat(200) { vm.onStepBench(1) }
         assertEquals(RecordState.MAX_WEIGHT, vm.state.value.benchPressKg)
+        assertEquals("서버 상한이 300kg이라 그 위로 올라가지 않음", 300, vm.state.value.benchPressKg)
         repeat(200) { vm.onStepBench(-1) }
         assertEquals("서버가 0kg을 거절(HTTP 400)해서 0까지 내려가지 않음", RecordState.MIN_WEIGHT, vm.state.value.benchPressKg)
         assertTrue("최솟값은 0보다 크다", RecordState.MIN_WEIGHT > 0)
@@ -102,6 +103,15 @@ class RecordStateTest {
         assertEquals(RecordState.MIN_WEIGHT, state.squatKg)
         assertEquals("최솟값 이상은 그대로", 50, state.overheadPressKg)
         assertEquals("그대로 저장해도 0kg이 나가지 않음", RecordState.MIN_WEIGHT, state.toRecord(ExerciseRecord()).benchPressKg)
+    }
+
+    @Test
+    fun 서버_상한을_넘는_옛_무게는_복원할_때_상한으로_내린다() {
+        val state = RecordState.from(ExerciseRecord(benchPressKg = 400, squatKg = 305, overheadPressKg = 300))
+        assertEquals(RecordState.MAX_WEIGHT, state.benchPressKg)
+        assertEquals(RecordState.MAX_WEIGHT, state.squatKg)
+        assertEquals("상한 그대로는 유지", 300, state.overheadPressKg)
+        assertEquals("그대로 저장해도 300kg을 넘지 않음", RecordState.MAX_WEIGHT, state.toRecord(ExerciseRecord()).benchPressKg)
     }
 
     @Test
