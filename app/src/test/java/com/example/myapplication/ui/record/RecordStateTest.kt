@@ -6,6 +6,7 @@ import com.example.myapplication.data.model.HikingStyle
 import com.example.myapplication.data.model.SkillLevel
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.SignUpDraftStore
+import com.example.myapplication.data.repository.toGymRecordDtos
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -50,14 +51,57 @@ class RecordStateTest {
     }
 
     @Test
-    fun 무게는_5kg씩_0에서_400까지() {
+    fun 무게는_5kg씩_최솟값에서_400까지() {
         val vm = RecordViewModel()
         vm.onStepBench(1)
         assertEquals(RecordState.DEFAULT_BENCH_KG + 5, vm.state.value.benchPressKg)
         repeat(200) { vm.onStepBench(1) }
         assertEquals(RecordState.MAX_WEIGHT, vm.state.value.benchPressKg)
         repeat(200) { vm.onStepBench(-1) }
-        assertEquals(0, vm.state.value.benchPressKg)
+        assertEquals("서버가 0kg을 거절(HTTP 400)해서 0까지 내려가지 않음", RecordState.MIN_WEIGHT, vm.state.value.benchPressKg)
+        assertTrue("최솟값은 0보다 크다", RecordState.MIN_WEIGHT > 0)
+    }
+
+    @Test
+    fun 가슴_하체_어깨_무게_모두_0kg까지_내려가지_않는다() {
+        val vm = RecordViewModel()
+        repeat(200) {
+            vm.onStepBench(-1)
+            vm.onStepSquat(-1)
+            vm.onStepOverhead(-1)
+        }
+        assertEquals(RecordState.MIN_WEIGHT, vm.state.value.benchPressKg)
+        assertEquals(RecordState.MIN_WEIGHT, vm.state.value.squatKg)
+        assertEquals(RecordState.MIN_WEIGHT, vm.state.value.overheadPressKg)
+    }
+
+    @Test
+    fun 무게를_가장_낮게_내려도_서버로_가는_기록에_0kg이_없다() {
+        val vm = RecordViewModel()
+        listOf(BodyPart.CHEST, BodyPart.BACK, BodyPart.LEGS, BodyPart.SHOULDER).forEach { vm.onTogglePart(it) }
+        repeat(200) {
+            vm.onStepBench(-1)
+            vm.onStepSquat(-1)
+            vm.onStepOverhead(-1)
+            vm.onStepPullUp(-1)
+        }
+        vm.onSave()
+
+        val dtos = SignUpDraftStore.draft.value.record.toGymRecordDtos().associateBy { it.bodyPart }
+        listOf("CHEST", "LEGS", "SHOULDER").forEach { part ->
+            assertTrue("$part 무게는 0보다 커야 서버가 받는다", (dtos.getValue(part).recordValue ?: 0.0) > 0.0)
+        }
+        assertEquals("턱걸이는 0회도 서버가 받는다", 0.0, dtos.getValue("BACK").recordValue!!, 0.0)
+    }
+
+    @Test
+    fun 서버가_받지_않는_옛_무게는_복원할_때_최솟값으로_올린다() {
+        val state = RecordState.from(ExerciseRecord(benchPressKg = 0, squatKg = 3, overheadPressKg = 50))
+        assertEquals(setOf(BodyPart.CHEST, BodyPart.LEGS, BodyPart.SHOULDER), state.parts)
+        assertEquals(RecordState.MIN_WEIGHT, state.benchPressKg)
+        assertEquals(RecordState.MIN_WEIGHT, state.squatKg)
+        assertEquals("최솟값 이상은 그대로", 50, state.overheadPressKg)
+        assertEquals("그대로 저장해도 0kg이 나가지 않음", RecordState.MIN_WEIGHT, state.toRecord(ExerciseRecord()).benchPressKg)
     }
 
     @Test

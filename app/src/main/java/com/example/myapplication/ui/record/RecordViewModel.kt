@@ -82,6 +82,7 @@ class RecordViewModel(sport: Sport = Sport.HEALTH, private val users: UserReposi
     }
 
     // 5kg 눈금에서만 움직인다. 눈금에 안 맞는 옛 값은 가장 가까운 눈금으로 맞춘 뒤 한 칸 움직인다.
+    // 서버가 0kg을 거절하므로(HTTP 400) 5kg(MIN_WEIGHT) 아래로는 내려가지 않는다.
     private fun stepWeight(current: Int, delta: Int) =
-        (snapWeight(current) + delta * RecordState.WEIGHT_STEP).coerceIn(0, RecordState.MAX_WEIGHT)
+        (snapWeight(current) + delta * RecordState.WEIGHT_STEP).coerceIn(RecordState.MIN_WEIGHT, RecordState.MAX_WEIGHT)
 }

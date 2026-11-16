@@ -47,6 +47,7 @@ data class RecordState(
 
     companion object {
         const val WEIGHT_STEP = 5      // 무게 −/+ 한 번에 바뀌는 kg
+        const val MIN_WEIGHT = WEIGHT_STEP // 서버가 0kg 기록을 HTTP 400으로 거절한다. 5kg 눈금에서 0 다음인 5kg부터 받는다. (턱걸이는 0회 가능)
         const val MAX_WEIGHT = 400
         const val MAX_PULL_UP = 100
         const val DEFAULT_BENCH_KG = 40
@@ -68,6 +69,7 @@ data class RecordState(
         }
 
         // 저장해 둔 기록에서 화면 값을 복원한다. 기록이 있는 부위는 선택된 상태가 된다.
+        // 서버가 받지 않는 무게(MIN_WEIGHT 미만)가 옛 기록으로 남아 있어도 화면에는 MIN_WEIGHT로 올려, 그대로 저장해 400이 나지 않게 한다.
         fun from(record: ExerciseRecord, sport: Sport = Sport.HEALTH) = RecordState(
             sport = sport,
             parts = buildSet {
@@ -77,10 +79,10 @@ data class RecordState(
                 if (record.overheadPressKg != null) add(BodyPart.SHOULDER)
                 if (record.armLevel != null) add(BodyPart.ARM)
             },
-            benchPressKg = record.benchPressKg ?: DEFAULT_BENCH_KG,
+            benchPressKg = record.benchPressKg?.coerceAtLeast(MIN_WEIGHT) ?: DEFAULT_BENCH_KG,
             pullUpCount = record.pullUpCount ?: DEFAULT_PULL_UP,
-            squatKg = record.squatKg ?: DEFAULT_SQUAT_KG,
-            overheadPressKg = record.overheadPressKg ?: DEFAULT_OVERHEAD_KG,
+            squatKg = record.squatKg?.coerceAtLeast(MIN_WEIGHT) ?: DEFAULT_SQUAT_KG,
+            overheadPressKg = record.overheadPressKg?.coerceAtLeast(MIN_WEIGHT) ?: DEFAULT_OVERHEAD_KG,
             armLevel = record.armLevel,
             runningPaceSec = record.runningPaceSec,
             hikingStyle = record.hikingStyle,
