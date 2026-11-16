@@ -75,6 +75,18 @@ fun formatUntilDeadline(meeting: Meeting, nowMillis: Long): String? {
     return "마감까지 $text"
 }
 
+// 지금 시각을 다시 읽어야 하는 다음 시각. 이 시각을 지나면 체크인 버튼(열림·닫힘)과 마감 문구·나가기 안내(데드라인)가 바뀐다.
+// nowMillis보다 뒤의 시각만 돌려주고, 더 바뀔 것이 없으면(종료·취소된 모임이거나 모두 지났으면) null이다.
+// 체크인은 시작 후 10분을 '넘으면' 닫히므로(checkInAction) 닫힘은 그보다 1ms 뒤로 잡는다.
+fun nextDetailChangeMillis(meeting: Meeting, nowMillis: Long): Long? {
+    if (meeting.status == MeetingStatus.ENDED || meeting.status == MeetingStatus.CANCELED) return null
+    return listOf(
+        deadlineMillis(meeting),
+        meeting.startAtMillis - CHECK_IN_OPENS_BEFORE_MINUTES * MINUTE,
+        meeting.startAtMillis + CHECK_IN_CLOSES_AFTER_MINUTES * MINUTE + 1,
+    ).filter { it > nowMillis }.minOrNull()
+}
+
 // ---- 상태 칩 ----
 
 enum class ChipTone { Lime, Dark, Gray, Outlined }

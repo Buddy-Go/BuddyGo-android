@@ -344,6 +344,45 @@ class MeetingDetailRulesTest {
         assertFalse(a.enabled)
     }
 
+    // ---- 다음으로 값이 바뀌는 시각 ----
+
+    @Test
+    fun 다음_변화_시각은_데드라인_체크인_열림_닫힘_순이다() {
+        val start = millis(9, 8, 7)
+        val m = meeting(MeetingStatus.CLOSED, start = start, confirmed = 6)
+        assertEquals("데드라인(시작 90분 전)", start - 90 * minute, nextDetailChangeMillis(m, start - 5 * 60 * minute))
+        assertEquals("체크인 열림(시작 10분 전)", start - 10 * minute, nextDetailChangeMillis(m, start - 90 * minute))
+        assertEquals("체크인 닫힘(시작 후 10분을 넘긴 때)", start + 10 * minute + 1, nextDetailChangeMillis(m, start - 10 * minute))
+        assertEquals(start + 10 * minute + 1, nextDetailChangeMillis(m, start + 10 * minute))
+        assertNull("모두 지났다", nextDetailChangeMillis(m, start + 10 * minute + 1))
+    }
+
+    @Test
+    fun 다음_변화_시각은_항상_지금보다_뒤다() {
+        val m = meeting(MeetingStatus.CLOSED, confirmed = 6)
+        val opens = m.startAtMillis - 10 * minute
+        assertTrue(nextDetailChangeMillis(m, opens - 1)!! > opens - 1)
+        assertTrue("정각이면 그 다음 경계", nextDetailChangeMillis(m, opens)!! > opens)
+    }
+
+    @Test
+    fun 종료되거나_취소된_모임은_더_바뀔_것이_없다() {
+        assertNull(nextDetailChangeMillis(meeting(MeetingStatus.ENDED), millis(9, 8, 0)))
+        assertNull(nextDetailChangeMillis(meeting(MeetingStatus.CANCELED), millis(9, 8, 0)))
+    }
+
+    @Test
+    fun 다음_변화_시각에_체크인_버튼이_실제로_바뀐다() {
+        val m = meeting(MeetingStatus.CLOSED, confirmed = 6)
+        val before = m.startAtMillis - 11 * minute
+        val opens = nextDetailChangeMillis(m, before)!!
+        assertEquals("모임 마감", action(m, MeetingRole.CONFIRMED, opens - 1)!!.title)
+        assertEquals(DetailAction.CHECK_IN, action(m, MeetingRole.CONFIRMED, opens)!!.action)
+        val closes = nextDetailChangeMillis(m, opens)!!
+        assertTrue(action(m, MeetingRole.CONFIRMED, closes - 1)!!.enabled)
+        assertFalse(action(m, MeetingRole.CONFIRMED, closes)!!.enabled)
+    }
+
     // ---- 장소 시트 ----
 
     @Test

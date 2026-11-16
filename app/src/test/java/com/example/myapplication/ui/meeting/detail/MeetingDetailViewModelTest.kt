@@ -16,6 +16,7 @@ import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -23,6 +24,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -30,9 +32,10 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class MeetingDetailViewModelTest {
     private val created = mutableListOf<MeetingDetailViewModel>()
+    private val scheduler = TestCoroutineScheduler() // 가상 시간. 화면을 연 채로 시간이 흐르는 것을 흉내 낸다.
 
     @Before
-    fun 준비() = Dispatchers.setMain(UnconfinedTestDispatcher())
+    fun 준비() = Dispatchers.setMain(UnconfinedTestDispatcher(scheduler))
 
     @After
     fun 정리() {
@@ -61,7 +64,7 @@ class MeetingDetailViewModelTest {
     }
 
     private fun vm(id: String, repo: MeetingRepository = FakeMeetingRepository()) =
-        MeetingDetailViewModel(id, repo, nowMillis = 1_798_761_600_000L).also { created += it }
+        MeetingDetailViewModel(id, repo, nowMillis = { 1_798_761_600_000L }).also { created += it }
 
     @Test
     fun 모임을_불러오고_내_역할을_판단한다() {
@@ -315,5 +318,85 @@ class MeetingDetailViewModelTest {
         val vm = vm(closedId)
         vm.onLeaveConfirm()
         assertEquals(MeetingRole.CONFIRMED, vm.state.value.role)
+    }
+
+    // ---- 화면을 연 채로 시간이 흐를 때 ----
+
+    private val liveNow = 1_798_761_600_000L
+    private fun minutes(n: Long) = n * 60_000L
+
+    // 가상 시간을 흘려 보낸다. 도착한 시각에 예약된 일까지 실행한다.
+    private fun elapse(millis: Long) {
+        scheduler.advanceTimeBy(millis)
+        scheduler.runCurrent()
+    }
+
+    // 시작 30분 전에 열어 둔, 내가 확정된 마감 모임. 시간은 가상 시간(scheduler)만큼 흐른다.
+    private fun liveVm(): MeetingDetailViewModel {
+        val meeting = MockMeetings.closed.copy(id = "m-live", startAtMillis = liveNow + minutes(30))
+        return MeetingDetailViewModel("m-live", FakeMeetingRepository(listOf(meeting)), nowMillis = { liveNow + scheduler.currentTime })
+            .also { created += it }
+    }
+
+    @Test
+    fun 화면을_연_채로_시작_십분_전이_되면_체크인_버튼이_저절로_열린다() {
+        val vm = liveVm()
+        assertEquals("열리기 전에는 마감 안내", "모임 마감", vm.state.value.bottomAction?.title)
+        elapse(minutes(20) - 1) // 시작 10분 전의 1ms 앞
+        assertEquals("모임 마감", vm.state.value.bottomAction?.title)
+        elapse(1) // 시작 10분 전
+        assertEquals(DetailAction.CHECK_IN, vm.state.value.bottomAction?.action)
+        assertTrue(vm.state.value.bottomAction!!.enabled)
+    }
+
+    @Test
+    fun 체크인_시간이_지나면_저절로_닫힌다() {
+        val vm = liveVm()
+        elapse(minutes(40)) // 시작 후 10분 정각까지는 열려 있다
+        assertEquals(DetailAction.CHECK_IN, vm.state.value.bottomAction?.action)
+        elapse(1) // 시작 후 10분을 넘겼다
+        val closed = vm.state.value.bottomAction!!
+        assertFalse(closed.enabled)
+        assertEquals("체크인 시간이 지났어요", closed.subtitle)
+    }
+
+    @Test
+    fun 값이_바뀌는_시각_사이에는_상태가_다시_만들어지지_않는다() {
+        val vm = liveVm()
+        elapse(minutes(20)) // 체크인이 열렸다
+        val opened = vm.state.value
+        elapse(minutes(15)) // 다음 경계(시작 후 10분)까지는 바뀔 것이 없다
+        assertSame("경계 사이에는 같은 상태 그대로다", opened, vm.state.value)
+    }
+
+    @Test
+    fun 모든_경계가_지난_뒤에도_상태는_그대로다() {
+        val vm = liveVm()
+        elapse(minutes(41))
+        val last = vm.state.value
+        elapse(minutes(600))
+        assertSame(last, vm.state.value)
+    }
+
+    @Test
+    fun 종료되거나_취소된_모임은_시간이_흘러도_상태가_그대로다() {
+        for (finished in listOf(MockMeetings.ended, MockMeetings.canceled)) {
+            val vm = MeetingDetailViewModel(finished.id, FakeMeetingRepository(listOf(finished)), nowMillis = { liveNow + scheduler.currentTime })
+                .also { created += it }
+            val before = vm.state.value
+            elapse(minutes(600))
+            assertSame(finished.status.name, before, vm.state.value)
+        }
+    }
+
+    @Test
+    fun 화면이_다시_보이면_지금_시각을_새로_읽는다() {
+        var clock = liveNow
+        val meeting = MockMeetings.closed.copy(id = "m-live", startAtMillis = liveNow + minutes(30))
+        val vm = MeetingDetailViewModel("m-live", FakeMeetingRepository(listOf(meeting)), nowMillis = { clock }).also { created += it }
+        assertEquals("모임 마감", vm.state.value.bottomAction?.title)
+        clock = liveNow + minutes(25) // 기기가 잠든 사이 대기 시간이 흐르지 않았어도 시각은 지났다
+        vm.onResume()
+        assertEquals(DetailAction.CHECK_IN, vm.state.value.bottomAction?.action)
     }
 }
