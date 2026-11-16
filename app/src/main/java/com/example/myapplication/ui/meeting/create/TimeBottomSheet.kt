@@ -41,6 +41,8 @@ import com.example.myapplication.R
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
+import java.util.Calendar
+import java.util.TimeZone
 
 // 시간 설정 시트 ← 10f. 시작 시각(시·분 휠) + 진행 시간(−/+). 종료 = 시작 + 진행 시간.
 
@@ -61,14 +63,40 @@ internal object DurationRules {
     fun canPlus(minutes: Int): Boolean = minutes < MAX
 }
 
+// 시작 시각 규칙: 오늘을 골랐다면 이미 지난 시각은 고를 수 없다. (서버의 '지금+1시간 30분' 검사와 별개로, 지난 시간을 막는 화면 쪽 안전장치)
+internal object StartTimeRules {
+    private const val LAST_START = 23 * 60 + 50
+
+    // 고를 수 있는 가장 이른 시작 시각(자정부터 분). 오늘이 아니면 null(제한 없음). 10분 단위로 올림한다.
+    fun minStart(date: DateOption?, nowMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): Int? {
+        date ?: return null
+        val now = Calendar.getInstance(timeZone).apply { timeInMillis = nowMillis }
+        val isToday = now.get(Calendar.YEAR) == date.year &&
+            now.get(Calendar.MONTH) + 1 == date.month &&
+            now.get(Calendar.DAY_OF_MONTH) == date.day
+        if (!isToday) return null
+        val minutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+        val rounded = (minutes + MINUTE_STEP - 1) / MINUTE_STEP * MINUTE_STEP
+        return rounded.coerceAtMost(LAST_START)
+    }
+
+    // 처음 보일 시작 시각: 이미 고른 값이 있으면 그 값, 없으면 19:00. 둘 다 제한보다 이르면 제한 시각.
+    // 고른 시(時)에서 고를 수 있는 가장 이른 분 칸 번호.
+    fun minMinuteIndex(minStart: Int?, hour: Int): Int =
+        if (minStart != null && hour == minStart / 60) minStart % 60 / MINUTE_STEP else 0
+
+    fun initialStart(chosen: Int?, minStart: Int?): Int = (chosen ?: DEFAULT_START).coerceAtLeast(minStart ?: 0)
+}
+
 @Composable
 fun TimeBottomSheet(
     initialStartMinutes: Int?,
     initialDurationMinutes: Int?,
+    minStartMinutes: Int?,
     onApply: (startMinutes: Int, durationMinutes: Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val start = initialStartMinutes ?: DEFAULT_START
+    val start = StartTimeRules.initialStart(initialStartMinutes, minStartMinutes)
     var hour by remember { mutableIntStateOf(start / 60) }
     var minuteIndex by remember { mutableIntStateOf(start % 60 / MINUTE_STEP) }
     var duration by remember { mutableIntStateOf(initialDurationMinutes ?: DEFAULT_DURATION) }
@@ -78,7 +106,13 @@ fun TimeBottomSheet(
             hour = hour,
             minuteIndex = minuteIndex,
             durationMinutes = duration,
-            onHourSelect = { hour = it },
+            minStartMinutes = minStartMinutes,
+            onHourSelect = {
+                hour = it
+                // 제한 시각의 시(時)로 오면 지난 분은 제한 분으로 끌어올린다.
+                val minIdx = StartTimeRules.minMinuteIndex(minStartMinutes, it)
+                if (minuteIndex < minIdx) minuteIndex = minIdx
+            },
             onMinuteSelect = { minuteIndex = it },
             onDurationMinus = { duration = DurationRules.minus(duration) },
             onDurationPlus = { duration = DurationRules.plus(duration) },
@@ -92,6 +126,7 @@ internal fun TimeSheetBody(
     hour: Int,
     minuteIndex: Int,
     durationMinutes: Int,
+    minStartMinutes: Int? = null,
     onHourSelect: (Int) -> Unit,
     onMinuteSelect: (Int) -> Unit,
     onDurationMinus: () -> Unit,
@@ -141,6 +176,7 @@ internal fun TimeSheetBody(
                     WheelColumn(
                         values = remember { List(24) { it.toString().padStart(2, '0') } },
                         selectedIndex = hour,
+                        minIndex = (minStartMinutes ?: 0) / 60,
                         onSelect = onHourSelect,
                         modifier = Modifier.weight(1f),
                     )
@@ -148,6 +184,7 @@ internal fun TimeSheetBody(
                     WheelColumn(
                         values = remember { List(60 / MINUTE_STEP) { (it * MINUTE_STEP).toString().padStart(2, '0') } },
                         selectedIndex = minuteIndex,
+                        minIndex = StartTimeRules.minMinuteIndex(minStartMinutes, hour),
                         onSelect = onMinuteSelect,
                         modifier = Modifier.weight(1f),
                     )
@@ -212,6 +249,7 @@ private val WHEEL_ITEM_HEIGHT = 44.dp
 private fun WheelColumn(
     values: List<String>,
     selectedIndex: Int,
+    minIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -225,8 +263,15 @@ private fun WheelColumn(
             index.coerceIn(0, values.lastIndex)
         }
     }
-    LaunchedEffect(listState.isScrollInProgress) {
-        if (!listState.isScrollInProgress) onSelect(centerIndex)
+    // 멈춘 자리가 지난 시각이면 고를 수 있는 첫 칸으로 되돌린다. 제한이 바뀌어도(시를 옮겨 분 제한이 달라질 때) 같다.
+    LaunchedEffect(listState.isScrollInProgress, minIndex) {
+        if (listState.isScrollInProgress) return@LaunchedEffect
+        if (centerIndex < minIndex) {
+            listState.animateScrollToItem(minIndex)
+            onSelect(minIndex)
+        } else {
+            onSelect(centerIndex)
+        }
     }
 
     LazyColumn(
@@ -238,6 +283,7 @@ private fun WheelColumn(
         item { Spacer(Modifier.height(WHEEL_ITEM_HEIGHT)) }
         itemsIndexed(values) { index, value ->
             val selected = index == centerIndex
+            val disabled = index < minIndex
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -248,7 +294,11 @@ private fun WheelColumn(
                     text = value,
                     fontSize = if (selected) 20.sp else 16.sp,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (selected) AppColor.TextPrimary else AppColor.TextDisabled,
+                    color = when {
+                        disabled -> AppColor.TextDisabled.copy(alpha = 0.4f) // 지난 시각: 더 흐리게
+                        selected -> AppColor.TextPrimary
+                        else -> AppColor.TextDisabled
+                    },
                 )
             }
         }

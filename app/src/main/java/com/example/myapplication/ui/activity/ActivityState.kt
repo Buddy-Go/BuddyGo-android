@@ -172,7 +172,7 @@ fun ReviewPendingItem.dueText(now: Long, timeZone: TimeZone = TimeZone.getDefaul
 
 // TODO(임시): 아래 두 값은 서버 설정값이다 (service-rules 5장 데드라인, 11장 평가 기한).
 // 서버가 '내 활동' 조회에서 마감·평가 기한 시각을 직접 내려주면 이 계산을 지운다.
-private const val DEADLINE_BEFORE_START_MILLIS = 90 * 60_000L
+const val DEADLINE_BEFORE_START_MILLIS = 90 * 60_000L
 private const val REVIEW_WINDOW_MILLIS = 3 * 24 * 60 * 60_000L
 
 const val SPORT_FILTER_MIN_COUNT = 4
