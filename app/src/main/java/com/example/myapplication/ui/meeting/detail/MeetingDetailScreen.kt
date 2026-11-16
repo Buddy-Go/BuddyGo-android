@@ -92,9 +92,8 @@ fun MeetingDetailScreen(
     onWriteNotice: () -> Unit,                  // 호스트: 공지 작성(8a)
     onOpenNotices: () -> Unit,                  // 호스트: 공지 목록(8d)
     onOpenNotice: (noticeId: String) -> Unit,   // 호스트: 공지 상세(8f) / 확정 참가자: 공지 상세(8g)
-    onHostClick: (hostId: String) -> Unit = {}, // 호스트 카드: 호스트가 받은 후기 목록
     onEditMeeting: () -> Unit,                  // 호스트: 모임 수정
-    onHostProfileClick: (hostId: String) -> Unit = {},  // 호스트 카드: 호스트 프로필
+    onHostProfileClick: (hostId: String) -> Unit = {},  // 호스트 카드: 호스트 프로필 (후기 전체는 프로필의 '전체 >')
     modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
     onAppliedHandled: () -> Unit = {},
@@ -172,7 +171,6 @@ fun MeetingDetailScreen(
                 onWriteNotice = onWriteNotice,
                 onOpenNotices = onOpenNotices,
                 onOpenNotice = onOpenNotice,
-                onHostClick = onHostClick,
                 onAction = { action ->
                     when (action) {
                         DetailAction.APPLY -> onApply()
@@ -253,7 +251,6 @@ private fun DetailContent(
     onWriteNotice: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenNotice: (String) -> Unit,
-    onHostClick: (String) -> Unit,
     onShare: () -> Unit,
     onHostProfileClick: () -> Unit,
     onAction: (DetailAction) -> Unit,
@@ -285,7 +282,7 @@ private fun DetailContent(
             } else {
                 ParticipantsSection(meeting, state.nowMillis)
                 InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
-                HostCard(meeting, onClick = { onHostClick(meeting.hostId) })
+                HostCard(meeting, onClick = onHostProfileClick)
                 state.participantNotices?.let { ParticipantNoticeSection(it, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice) }
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
             }
@@ -521,7 +518,7 @@ private fun InfoRow(title: String, value: String, onClick: (() -> Unit)? = null,
 private fun HostCard(meeting: Meeting, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.lg)).background(AppColor.SurfaceMuted)
-            .clickable(enabled = meeting.hostId.isNotBlank(), onClickLabel = "호스트 후기 보기", onClick = onClick)
+            .clickable(enabled = meeting.hostId.isNotBlank(), onClickLabel = "호스트 프로필 보기", onClick = onClick)
             .padding(AppSpace.xxl),
         verticalAlignment = Alignment.CenterVertically,
     ) {
