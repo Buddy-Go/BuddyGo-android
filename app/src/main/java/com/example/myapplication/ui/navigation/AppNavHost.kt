@@ -29,6 +29,7 @@ import com.example.myapplication.data.local.SessionEvents
 import com.example.myapplication.data.local.SessionReset
 import com.example.myapplication.data.model.Sport
 import com.example.myapplication.data.repository.Repositories
+import com.example.myapplication.push.PushRegistrar
 import com.example.myapplication.ui.activity.ActivityScreen
 import com.example.myapplication.ui.activity.ActivityViewModel
 import com.example.myapplication.ui.auth.LoginScreen
@@ -97,6 +98,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
 
     // 앱을 켠 순간의 로그인 여부로 첫 화면을 정한다. (이후 로그인·로그아웃은 화면 이동으로 처리)
     val startRoute = remember { if (Api.tokens.hasSession) Routes.EXPLORE else Routes.LOGIN }
+
+    // 로그인·가입 직후 탐색 화면에 들어오면 푸시 토큰을 서버에 등록한다.
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == Routes.EXPLORE) PushRegistrar.sync()
+    }
 
     // 로그인이 풀렸을 때(리프레시 토큰 만료·재사용) 이전 사용자의 흔적을 지우고 로그인 화면으로 돌려보낸다.
     LaunchedEffect(Unit) {
