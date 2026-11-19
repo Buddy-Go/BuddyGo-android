@@ -1,6 +1,8 @@
 package com.example.myapplication
 
+import android.Manifest
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -8,6 +10,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.core.app.ActivityCompat
+import com.example.myapplication.push.PushRegistrar
 import com.example.myapplication.ui.navigation.AppNavHost
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
@@ -20,6 +24,9 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
         )
+        if (Build.VERSION.SDK_INT >= 33) // 알림 권한(안드로이드 13+). 거절해도 앱은 그대로 쓰고, 토큰 등록은 권한과 상관없이 한다.
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
+        PushRegistrar.sync()
         setContent {
             MyApplicationTheme {
                 AppNavHost(modifier = Modifier.fillMaxSize())

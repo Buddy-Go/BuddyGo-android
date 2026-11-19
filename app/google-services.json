@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30506693342",
+    "project_id": "buddygo-8ed65",
+    "storage_bucket": "buddygo-8ed65.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30506693342:android:83f98953c85eb7e8cc884f",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvbekV9kyaoKWajspqFfW-iul7kz20WPc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
