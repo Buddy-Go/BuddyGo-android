@@ -213,7 +213,7 @@ class MeetingCreateViewModel(
                     state = state.copy(isSubmitting = false, createdMeetingId = id)
                 }
                 // 실패 안내는 화면이 errorMessage를 공용 토스트(16j)로 보여 준다
-                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = e.message ?: "모임을 만들지 못했어요") }
+                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = createErrorText(e, "모임을 만들지 못했어요")) }
         }
     }
 
@@ -225,7 +225,7 @@ class MeetingCreateViewModel(
         viewModelScope.launch {
             meetingRepository.updateMeeting(id, meeting)
                 .onSuccess { state = state.copy(isSubmitting = false, updated = true) }
-                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = e.message ?: "모임을 수정하지 못했어요") }
+                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = createErrorText(e, "모임을 수정하지 못했어요")) }
         }
     }
 
@@ -243,4 +243,12 @@ class MeetingCreateViewModel(
             option
         }
     }
+}
+
+// 개설·수정 실패 안내 문구. 인터넷이 끊긴 경우(IOException)는 영어 시스템 문구 대신 연결 안내를 보여 주고,
+// 서버가 알려 준 이유(시작 시각이 너무 가까움 등)는 그대로 보여 준다.
+internal fun createErrorText(e: Throwable, fallback: String): String = when {
+    e is java.io.IOException -> "인터넷 연결을 확인하고 다시 시도해 주세요"
+    e.message.isNullOrBlank() -> fallback
+    else -> e.message!!
 }
