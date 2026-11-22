@@ -38,6 +38,8 @@ fun HealthCriteriaBottomSheet(
     initial: HealthCriteria,
     onApply: (parts: List<BodyPart>, showMyRecord: Boolean) -> Unit,
     onDismiss: () -> Unit,
+    // 기록 입력·수정하러 프로필 기록 화면으로 간다. 고른 부위는 넘겨서 돌아와도 유지한다.
+    onEditRecord: (parts: List<BodyPart>, showMyRecord: Boolean) -> Unit = { _, _ -> },
 ) {
     var parts by remember { mutableStateOf(initial.parts.toSet()) }
     var showMyRecord by remember { mutableStateOf(initial.showMyRecord) }
@@ -50,6 +52,7 @@ fun HealthCriteriaBottomSheet(
             onPartToggle = { part -> parts = if (part in parts) parts - part else parts + part },
             onShowMyRecordToggle = { showMyRecord = !showMyRecord },
             onApply = { onApply(HEALTH_PART_ORDER.filter { it in parts }, showMyRecord) },
+            onEditRecord = { onEditRecord(HEALTH_PART_ORDER.filter { it in parts }, showMyRecord) },
         )
     }
 }
@@ -63,11 +66,14 @@ internal fun HealthCriteriaSheetBody(
     onPartToggle: (BodyPart) -> Unit,
     onShowMyRecordToggle: () -> Unit,
     onApply: () -> Unit,
+    onEditRecord: () -> Unit = {},
 ) {
     val hasAnyRecord = HEALTH_PART_ORDER.any { myRecord.textFor(it) != null }
     // 기록이 하나도 없으면 토글을 끈 채로 비활성 (10d 보조)
     val recordOn = showMyRecord && hasAnyRecord
     val shownRecords = HEALTH_PART_ORDER.filter { it in parts && myRecord.textFor(it) != null }
+    // 고른 부위 중 기록이 없는 부위. 무게를 입력하도록 이끈다.
+    val missingRecords = HEALTH_PART_ORDER.filter { it in parts && myRecord.textFor(it) == null }
 
     Column(verticalArrangement = Arrangement.spacedBy(AppSpace.xxl)) {
         SheetTitle(title = "헬스 기준", subtitle = "모임에서 할 운동과 내 기록을 알려주세요")
@@ -112,7 +118,11 @@ internal fun HealthCriteriaSheetBody(
         }
 
         when {
-            !hasAnyRecord -> HintText("프로필에서 기록을 입력하면 보여줄 수 있어요")
+            !hasAnyRecord -> RecordLinkRow(
+                hint = "기록(무게)을 입력하면 비슷한 수준의 메이트가 찾기 쉬워져요",
+                linkText = "기록 입력하기",
+                onClick = onEditRecord,
+            )
             recordOn && shownRecords.isNotEmpty() -> {
                 Column {
                     shownRecords.forEachIndexed { index, part ->
@@ -129,6 +139,13 @@ internal fun HealthCriteriaSheetBody(
                 }
                 HintText("프로필 기록이에요. 모임을 연 뒤 기록을 바꿔도 이 모임에는 그대로 보여요")
             }
+        }
+        if (hasAnyRecord) {
+            RecordLinkRow(
+                hint = if (missingRecords.isNotEmpty()) "${missingRecords.joinToString(" · ") { it.label }} 기록이 아직 없어요" else "무게가 바뀌었다면 기록을 고쳐 주세요",
+                linkText = if (missingRecords.isNotEmpty()) "기록 입력하기" else "기록 수정하기",
+                onClick = onEditRecord,
+            )
         }
 
         if (parts.isEmpty()) {
@@ -183,6 +200,36 @@ private fun RecordRow(label: String, value: String) {
             modifier = Modifier.weight(1f),
         )
         Text(text = value, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+    }
+}
+
+// 기록 입력·수정으로 이끄는 한 줄: 왼쪽 안내, 오른쪽 '기록 입력하기 >'
+@Composable
+private fun RecordLinkRow(hint: String, linkText: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppSpace.xl),
+    ) {
+        Text(
+            text = hint,
+            modifier = Modifier.weight(1f),
+            fontSize = 12.sp,
+            lineHeight = 17.sp,
+            fontWeight = FontWeight.Medium,
+            color = AppColor.TextSecondary,
+        )
+        Text(
+            text = "$linkText >",
+            modifier = Modifier
+                .clip(RoundedCornerShape(AppRadius.pill))
+                .background(AppColor.AccentSoft)
+                .clickable(onClick = onClick)
+                .padding(horizontal = AppSpace.xl, vertical = AppSpace.md),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = AppColor.AccentStrong,
+        )
     }
 }
 

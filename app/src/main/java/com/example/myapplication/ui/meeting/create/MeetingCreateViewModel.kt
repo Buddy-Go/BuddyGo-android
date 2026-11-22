@@ -168,6 +168,25 @@ class MeetingCreateViewModel(
     }
 
     // 10d 적용
+    // 10d '기록 입력하기': 시트에서 고른 부위를 남겨 두고(시트는 열린 채) 프로필 기록 화면으로 간다.
+    fun onEditRecordFromSheet(parts: List<BodyPart>, showMyRecord: Boolean) {
+        state = state.copy(healthCriteria = state.healthCriteria.copy(parts = parts, showMyRecord = showMyRecord))
+    }
+
+    // 화면에 돌아올 때 내 기록을 다시 읽는다 (프로필 기록 화면에서 무게를 입력하고 돌아온 경우).
+    // 기록이 처음 생겼으면 '내 기록 표시'를 켠다.
+    fun onResume() {
+        viewModelScope.launch {
+            val record = userRepository.getCurrentUser().getOrNull()?.record ?: return@launch
+            val before = state.healthCriteria
+            if (before.myRecord == record) return@launch
+            val after = before.copy(myRecord = record)
+            state = state.copy(
+                healthCriteria = if (!before.hasAnyRecord && after.hasAnyRecord) after.copy(showMyRecord = true) else after,
+            )
+        }
+    }
+
     fun onHealthCriteriaApply(parts: List<BodyPart>, showMyRecord: Boolean) {
         if (parts.isEmpty()) return
         state = state.copy(

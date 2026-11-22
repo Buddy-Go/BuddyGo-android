@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,14 +39,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.myapplication.R
 import com.example.myapplication.data.model.BodyPart
-import com.example.myapplication.ui.common.ToastType
-import com.example.myapplication.ui.common.ToastState
-import com.example.myapplication.ui.common.ToastHost
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.GenderLimit
 import com.example.myapplication.data.model.SkillLevel
+import com.example.myapplication.ui.common.ToastHost
+import com.example.myapplication.ui.common.ToastState
+import com.example.myapplication.ui.common.ToastType
 import com.example.myapplication.ui.theme.AppColor
 import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
@@ -62,20 +66,28 @@ fun MeetingCreateScreen(
     onPlaceClick: () -> Unit, // 10g 장소 검색 화면으로 이동
     onCreated: (meetingId: String) -> Unit, // 개설 후 5번 모임 상세로
     onUpdated: () -> Unit = {}, // 수정 후 모임 상세로 돌아간다
+    onEditRecord: () -> Unit = {}, // 10d에서 헬스 기록(무게) 입력 화면으로
 ) {
     val state = viewModel.state
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) viewModel.onResume() }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     LaunchedEffect(state.createdMeetingId) {
         state.createdMeetingId?.let(onCreated)
     }
     LaunchedEffect(state.updated) {
         if (state.updated) onUpdated()
     }
-    // 실패 안내는 토스트로 한 번 보여 주고 지운다.
+    // 실패 안내는 토스트로 한 번 보여 주고(잠시 뒤 내려간다) 지운다.
+    // 보여 주기 전에 지우면 이 효과가 바로 취소돼 토스트가 사라지지 않고 남았다.
     val toast = remember { ToastState() }
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let {
-            viewModel.onErrorShown()
             toast.show(it, ToastType.Error)
+            viewModel.onErrorShown()
         }
     }
     Box(Modifier.fillMaxSize()) {
@@ -128,6 +140,10 @@ fun MeetingCreateScreen(
             initial = state.healthCriteria,
             onApply = viewModel::onHealthCriteriaApply,
             onDismiss = viewModel::onSheetDismiss,
+            onEditRecord = { parts, show ->
+                viewModel.onEditRecordFromSheet(parts, show)
+                onEditRecord()
+            },
         )
         CreateSheet.DESCRIPTION -> DescriptionBottomSheet(
             initial = state.description,
