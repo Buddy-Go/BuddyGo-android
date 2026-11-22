@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -27,6 +28,7 @@ import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.MapView
 import com.kakao.vectormap.camera.CameraUpdateFactory
+import com.kakao.vectormap.label.CompetitionType
 import com.kakao.vectormap.label.LabelLayerOptions
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
@@ -43,6 +45,9 @@ private const val MyLocationLayerId = "my-location"
 
 // 내 위치로 옮길 때의 배율 (동네가 보이는 정도)
 const val MyLocationZoom = 16
+
+// 이보다 멀리(작은 숫자) 볼 수 없다. 너무 넓게 보면 핀이 의미가 없어서 구 몇 개가 보이는 정도에서 막는다.
+const val MinMapZoom = 11
 
 // 파란 점 + 흰 테두리 + 옅은 파란 번짐
 private fun myLocationDot(density: Float): Bitmap {
@@ -80,6 +85,7 @@ fun KakaoMapView(
     val lifecycleOwner = context as? LifecycleOwner
     val mapView = remember { MapView(context) }
     var kakaoMap by remember { mutableStateOf<KakaoMap?>(null) }
+    var zoomLevel by remember { mutableIntStateOf(DefaultZoom) } // 지금 배율. 핀 묶음을 정한다.
 
     val currentOnPinClick by rememberUpdatedState(onPinClick)
     val currentOnMapClick by rememberUpdatedState(onMapClick)
@@ -95,12 +101,26 @@ fun KakaoMapView(
             object : KakaoMapReadyCallback() {
                 override fun onMapReady(map: KakaoMap) {
                     map.setOnLabelClickListener { _, _, label ->
-                        (label.tag as? String)?.let(currentOnPinClick)
+                        val tag = label.tag as? String
+                        if (tag != null && isClusterKey(tag)) {
+                            // 묶음 핀: 그 자리로 확대해서 핀을 풀어 보여 준다.
+                            map.moveCamera(
+                                CameraUpdateFactory.newCenterPosition(label.position, minOf(zoomLevel + 2, CLUSTER_MAX_ZOOM + 1)),
+                            )
+                        } else {
+                            tag?.let(currentOnPinClick)
+                        }
                         true
                     }
                     map.setOnMapClickListener { _, _, _, _ -> currentOnMapClick() }
                     // 코드로 옮긴 카메라(Unknown)는 빼고, 사용자가 손으로 옮긴 경우에만 알린다.
-                    map.setOnCameraMoveEndListener { _, _, gesture ->
+                    map.setOnCameraMoveEndListener { _, position, gesture ->
+                        if (position.zoomLevel < MinMapZoom) {
+                            // 너무 멀리 줄였으면 가장 넓은 배율로 되돌린다.
+                            map.moveCamera(CameraUpdateFactory.zoomTo(MinMapZoom))
+                            return@setOnCameraMoveEndListener
+                        }
+                        zoomLevel = position.zoomLevel
                         if (gesture != GestureType.Unknown) currentOnMoved(visibleBounds(map, mapView.width, mapView.height))
                     }
                     kakaoMap = map
@@ -133,11 +153,14 @@ fun KakaoMapView(
     // 같은 모양의 핀 비트맵은 한 번만 그린다.
     val bitmaps = remember { mutableMapOf<PinImageKey, Bitmap>() }
 
-    LaunchedEffect(kakaoMap, pins, selectedKey) {
+    // 멀리서 볼 때는 가까운 핀을 묶어 개수로 보여 준다. 고른 핀은 묶지 않는다.
+    val shownPins = remember(pins, zoomLevel, selectedKey) { clusterPins(pins, zoomLevel, selectedKey) }
+
+    LaunchedEffect(kakaoMap, shownPins, selectedKey) {
         val map = kakaoMap ?: return@LaunchedEffect
         val layer = map.labelManager?.layer ?: return@LaunchedEffect
         layer.removeAll()
-        val options = pins.map { pin ->
+        val options = shownPins.map { pin ->
             val style = pinStyleOf(pin, selectedKey)
             val key = PinImageKey(style, pin.count, pin.hasFavorite())
             val bitmap = bitmaps.getOrPut(key) { PinBitmap.create(context, style, pin.count, key.favorite) }
@@ -172,12 +195,17 @@ fun KakaoMapView(
     LaunchedEffect(kakaoMap, myLocation) {
         val map = kakaoMap ?: return@LaunchedEffect
         val manager = map.labelManager ?: return@LaunchedEffect
-        val layer = manager.getLayer(MyLocationLayerId) ?: manager.addLayer(LabelLayerOptions.from(MyLocationLayerId).setZOrder(0)) ?: return@LaunchedEffect
+        // 다른 라벨(핀, 지도의 가게 이름 등)과 겹쳐도 가려지지 않게 경쟁하지 않는 레이어에 그린다.
+        // (기본값이면 겹칠 때 파란 점이 숨어서 '가끔 안 보이는' 문제가 있었다)
+        val layer = manager.getLayer(MyLocationLayerId)
+            ?: manager.addLayer(LabelLayerOptions.from(MyLocationLayerId).setCompetitionType(CompetitionType.None).setZOrder(0))
+            ?: return@LaunchedEffect
         layer.removeAll()
         val here = myLocation ?: return@LaunchedEffect
         layer.addLabel(
             LabelOptions.from(LatLng.from(here.latitude, here.longitude))
                 .setStyles(LabelStyles.from(LabelStyle.from(dotBitmap).setApplyDpScale(false).setAnchorPoint(0.5f, 0.5f)))
+                .setRank(Long.MAX_VALUE)
                 .setClickable(false),
         )
     }

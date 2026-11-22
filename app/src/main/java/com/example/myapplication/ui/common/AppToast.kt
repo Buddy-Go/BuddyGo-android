@@ -103,8 +103,12 @@ class ToastState {
     suspend fun show(message: String, type: ToastType, durationMillis: Long = 2500) {
         this.message = message
         this.type = type
-        delay(durationMillis)
-        this.message = null
+        try {
+            delay(durationMillis)
+        } finally {
+            // 보여 주는 도중 취소돼도(화면 효과가 다시 시작되는 등) 토스트가 떠 있는 채로 남지 않게 한다.
+            if (this.message == message) this.message = null
+        }
     }
 }
 

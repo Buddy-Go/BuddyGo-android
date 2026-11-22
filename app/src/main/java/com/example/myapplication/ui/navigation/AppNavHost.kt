@@ -359,6 +359,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                                 popUpTo(Routes.MEETING_CREATE) { inclusive = true }
                             }
                         },
+                        onEditRecord = { navController.navigate(Routes.profileRecord(Sport.HEALTH)) },
                     )
                 }
                 composable(Routes.MEETING_EDIT, meetingArgs()) { entry ->
@@ -369,6 +370,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         onPlaceClick = {},
                         onCreated = {},
                         onUpdated = { navController.popBackStack() },
+                        onEditRecord = { navController.navigate(Routes.profileRecord(Sport.HEALTH)) },
                     )
                 }
                 composable(Routes.PLACE_SEARCH) {

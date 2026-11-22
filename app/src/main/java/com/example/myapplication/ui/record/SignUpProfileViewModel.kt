@@ -3,6 +3,7 @@ package com.example.myapplication.ui.record
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.Sport
+import com.example.myapplication.data.model.SportSupport
 import com.example.myapplication.data.repository.Repositories
 import com.example.myapplication.data.repository.SignUpDraftStore
 import com.example.myapplication.data.repository.UserRepository
@@ -31,6 +32,13 @@ class SignUpProfileViewModel(
             completed = s.completed,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SignUpProfileState())
+
+    init {
+        // 고를 종목이 하나뿐이면(지금은 헬스) 선택 단계 없이 그 종목으로 바로 기록을 묻는다.
+        SportSupport.supported.singleOrNull()?.let { only ->
+            SignUpDraftStore.update { if (only in it.preferredSports) it else it.copy(preferredSports = it.preferredSports + only) }
+        }
+    }
 
     fun onToggleSport(sport: Sport) {
         SignUpDraftStore.update { draft ->

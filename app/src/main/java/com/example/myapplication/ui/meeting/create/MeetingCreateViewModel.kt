@@ -168,6 +168,25 @@ class MeetingCreateViewModel(
     }
 
     // 10d 적용
+    // 10d '기록 입력하기': 시트에서 고른 부위를 남겨 두고(시트는 열린 채) 프로필 기록 화면으로 간다.
+    fun onEditRecordFromSheet(parts: List<BodyPart>, showMyRecord: Boolean) {
+        state = state.copy(healthCriteria = state.healthCriteria.copy(parts = parts, showMyRecord = showMyRecord))
+    }
+
+    // 화면에 돌아올 때 내 기록을 다시 읽는다 (프로필 기록 화면에서 무게를 입력하고 돌아온 경우).
+    // 기록이 처음 생겼으면 '내 기록 표시'를 켠다.
+    fun onResume() {
+        viewModelScope.launch {
+            val record = userRepository.getCurrentUser().getOrNull()?.record ?: return@launch
+            val before = state.healthCriteria
+            if (before.myRecord == record) return@launch
+            val after = before.copy(myRecord = record)
+            state = state.copy(
+                healthCriteria = if (!before.hasAnyRecord && after.hasAnyRecord) after.copy(showMyRecord = true) else after,
+            )
+        }
+    }
+
     fun onHealthCriteriaApply(parts: List<BodyPart>, showMyRecord: Boolean) {
         if (parts.isEmpty()) return
         state = state.copy(
@@ -194,7 +213,7 @@ class MeetingCreateViewModel(
                     state = state.copy(isSubmitting = false, createdMeetingId = id)
                 }
                 // 실패 안내는 화면이 errorMessage를 공용 토스트(16j)로 보여 준다
-                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = e.message ?: "모임을 만들지 못했어요") }
+                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = createErrorText(e, "모임을 만들지 못했어요")) }
         }
     }
 
@@ -206,7 +225,7 @@ class MeetingCreateViewModel(
         viewModelScope.launch {
             meetingRepository.updateMeeting(id, meeting)
                 .onSuccess { state = state.copy(isSubmitting = false, updated = true) }
-                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = e.message ?: "모임을 수정하지 못했어요") }
+                .onFailure { e -> state = state.copy(isSubmitting = false, errorMessage = createErrorText(e, "모임을 수정하지 못했어요")) }
         }
     }
 
@@ -224,4 +243,12 @@ class MeetingCreateViewModel(
             option
         }
     }
+}
+
+// 개설·수정 실패 안내 문구. 인터넷이 끊긴 경우(IOException)는 영어 시스템 문구 대신 연결 안내를 보여 주고,
+// 서버가 알려 준 이유(시작 시각이 너무 가까움 등)는 그대로 보여 준다.
+internal fun createErrorText(e: Throwable, fallback: String): String = when {
+    e is java.io.IOException -> "인터넷 연결을 확인하고 다시 시도해 주세요"
+    e.message.isNullOrBlank() -> fallback
+    else -> e.message!!
 }

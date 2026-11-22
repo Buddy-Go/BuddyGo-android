@@ -5,6 +5,7 @@ import com.example.myapplication.data.api.Api
 import com.example.myapplication.data.local.ActivityAreaStore
 import com.example.myapplication.data.local.AppStorage
 import com.example.myapplication.data.local.BlockedUsersStore
+import com.example.myapplication.push.PushChannels
 import com.example.myapplication.ui.explore.filter.RecentDistrictStore
 import com.example.myapplication.ui.meeting.create.PlaceSelectionStore
 import com.kakao.vectormap.KakaoMapSdk
@@ -21,5 +22,7 @@ class BuddyGoApplication : Application() {
         PlaceSelectionStore.attach(AppStorage.store)
         ActivityAreaStore.attach(AppStorage.store, Api.tokens.userId)
         BlockedUsersStore.attach(AppStorage.store)
+        // 푸시가 화면 위 배너로 뜨는 알림 채널을 미리 만든다 (앱이 꺼져 있을 때 오는 푸시도 이 채널을 쓴다)
+        PushChannels.ensure(this)
     }
 }

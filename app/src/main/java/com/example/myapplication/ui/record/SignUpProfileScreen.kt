@@ -96,37 +96,51 @@ private fun SignUpProfileContent(
                 InlineErrorBanner("가입하지 못했어요. 다시 시도해주세요.")
             }
             Spacer(Modifier.height(AppSpace.x4))
-            Text("어떤 운동을\n좋아하세요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(AppSpace.xl))
-            Text("나중에 언제든 수정할 수 있어요", color = AppColor.TextSecondary, fontSize = 15.sp)
-
-            Spacer(Modifier.height(AppSpace.x5))
-            Text(if (SportSupport.hasChoice) "선호 종목 · 복수 선택" else "선호 종목", color = AppColor.TextSecondary, fontSize = 14.sp)
-            Spacer(Modifier.height(AppSpace.xl))
-            Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
-                // 서버가 받는 종목만 보여 준다. 러닝·등산은 선호 종목·기록이 저장되지 않아 화면에서 아예 뺐다.
-                SportSupport.supported.forEach { sport ->
-                    SportCard(
-                        sport = sport,
-                        selected = sport in state.sports,
-                        onClick = { onToggleSport(sport) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-
-            if (state.selectedSports.isNotEmpty()) {
-                Spacer(Modifier.height(AppSpace.x5))
-                Text("선택한 종목의 기록 입력", color = AppColor.TextSecondary, fontSize = 14.sp)
+            val only = SportSupport.supported.singleOrNull()
+            if (only != null) {
+                // 고를 종목이 하나뿐이면(헬스) 종목 카드를 누르게 하지 않고 바로 그 종목의 기록을 묻는다.
+                Text("${sportLabel(only)} 기록을\n알려주세요", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(AppSpace.xl))
-                Column(verticalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
-                    state.selectedSports.forEach { sport ->
-                        RecordRow(
+                Text("비슷한 수준의 메이트를 찾을 때 참고돼요 · 나중에 언제든 수정할 수 있어요", color = AppColor.TextSecondary, fontSize = 15.sp)
+                Spacer(Modifier.height(AppSpace.x5))
+                RecordRow(
+                    sport = only,
+                    done = state.isRecordDone(only),
+                    statusText = state.recordStatusText(only),
+                    onClick = { onEditRecord(only) },
+                )
+            } else {
+                Text("어떤 운동을\n좋아하세요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(AppSpace.xl))
+                Text("나중에 언제든 수정할 수 있어요", color = AppColor.TextSecondary, fontSize = 15.sp)
+
+                Spacer(Modifier.height(AppSpace.x5))
+                Text("선호 종목 · 복수 선택", color = AppColor.TextSecondary, fontSize = 14.sp)
+                Spacer(Modifier.height(AppSpace.xl))
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
+                    SportSupport.supported.forEach { sport ->
+                        SportCard(
                             sport = sport,
-                            done = state.isRecordDone(sport),
-                            statusText = state.recordStatusText(sport),
-                            onClick = { onEditRecord(sport) },
+                            selected = sport in state.sports,
+                            onClick = { onToggleSport(sport) },
+                            modifier = Modifier.weight(1f),
                         )
+                    }
+                }
+
+                if (state.selectedSports.isNotEmpty()) {
+                    Spacer(Modifier.height(AppSpace.x5))
+                    Text("선택한 종목의 기록 입력", color = AppColor.TextSecondary, fontSize = 14.sp)
+                    Spacer(Modifier.height(AppSpace.xl))
+                    Column(verticalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
+                        state.selectedSports.forEach { sport ->
+                            RecordRow(
+                                sport = sport,
+                                done = state.isRecordDone(sport),
+                                statusText = state.recordStatusText(sport),
+                                onClick = { onEditRecord(sport) },
+                            )
+                        }
                     }
                 }
             }
