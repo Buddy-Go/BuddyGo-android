@@ -30,6 +30,11 @@
             </intent-filter>
         </activity>
 
+        <!-- 앱이 꺼져 있거나 뒤에 있을 때 오는 푸시도 배너(헤드업)로 뜨는 채널을 쓴다 (PushChannels) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="buddygo_alerts" />
+
         <service
             android:name=".push.BuddyGoMessagingService"
             android:exported="false">
