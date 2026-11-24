@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.meeting.detail
 
+import com.example.myapplication.ui.common.PullRefresh
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -166,6 +167,7 @@ fun MeetingDetailScreen(
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
                 onShare = { shareMeeting(context, loaded.data) },
                 onHostProfileClick = { onHostProfileClick(loaded.data.hostId) },
+                onRefresh = viewModel::onResume,
                 onHostAction = { action -> if (action == HostAction.EDIT) onEditMeeting() else viewModel.onHostAction(action) },
                 onManageParticipants = onManageParticipants,
                 onWriteNotice = onWriteNotice,
@@ -254,6 +256,7 @@ private fun DetailContent(
     onShare: () -> Unit,
     onHostProfileClick: () -> Unit,
     onAction: (DetailAction) -> Unit,
+    onRefresh: () -> Unit = {},
 ) {
     val role = state.role
     val host = if (role == MeetingRole.HOST) state.hostSection else null
@@ -267,7 +270,8 @@ private fun DetailContent(
             onToggleFavorite = onToggleFavorite,
         )
         Column(
-            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
+        PullRefresh(onRefresh = onRefresh, modifier = Modifier.weight(1f)) {
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
             ChipsRow(meeting, role, caption = if (host != null) hostChipCaption(meeting, state.nowMillis) else null)
@@ -290,6 +294,7 @@ private fun DetailContent(
         }
         // 호스트도 체크인 대상이라, 체크인이 열려 있으면 '참가자 관리' 위에 체크인 버튼을 함께 보여 준다. (service-rules 7장)
         if (host != null) HostBottomBar(
+        }
             host,
             onManageClick = onManageParticipants,
             checkIn = state.bottomAction?.let { action -> { ActionBox(action, state.submitting, onAction, Modifier.fillMaxWidth()) } },

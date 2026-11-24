@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.meeting.notice
 
+import com.example.myapplication.ui.common.PullRefresh
 import com.example.myapplication.ui.common.ConfirmDialog
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -110,9 +111,10 @@ private fun NoticeListContent(
             return@Column
         }
 
+        PullRefresh(onRefresh = onRetry, modifier = Modifier.weight(1f)) {
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xs, bottom = AppSpace.md),
         ) {
@@ -137,6 +139,7 @@ private fun NoticeListContent(
                     onDelete = { onDeleteClick(notice.id) },
                 )
             }
+        }
         }
 
         if (state.canManage) {

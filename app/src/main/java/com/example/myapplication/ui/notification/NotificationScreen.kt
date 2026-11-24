@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.notification
 
+import com.example.myapplication.ui.common.ScrollableEmpty
+import com.example.myapplication.ui.common.PullRefresh
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -70,14 +72,17 @@ fun NotificationScreen(
             is UiState.Success -> {
                 val sections = groupNotifications(s.data, nowMillis)
                 if (sections.isEmpty) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("아직 받은 알림이 없어요", color = AppColor.TextSecondary, fontSize = 15.sp)
+                    PullRefresh(onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
+                        ScrollableEmpty {
+                            Text("아직 받은 알림이 없어요", color = AppColor.TextSecondary, fontSize = 15.sp)
+                        }
                     }
                 } else {
                     val click: (Notification) -> Unit = { n ->
                         viewModel.onNotificationClick(n)
                         n.destination()?.let(onOpen)
                     }
+                    PullRefresh(onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
                     LazyColumn(Modifier.fillMaxSize()) {
                         if (sections.today.isNotEmpty()) {
                             item { SectionTitle("오늘") }
@@ -87,6 +92,7 @@ fun NotificationScreen(
                             item { SectionTitle("이전") }
                             items(sections.earlier, key = { it.id }) { NotificationRow(it, nowMillis, click) }
                         }
+                    }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.activity
 
+import com.example.myapplication.ui.common.PullRefresh
 import com.example.myapplication.data.model.Sport
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -60,6 +61,7 @@ fun ActivityScreen(
         onMeetingClick = onMeetingClick,
         onCreateClick = onCreateClick,
         onExploreClick = onExploreClick,
+        onRefresh = viewModel::onResume,
     )
 }
 
@@ -72,6 +74,7 @@ private fun ActivityContent(
     onMeetingClick: (String) -> Unit,
     onCreateClick: () -> Unit,
     onExploreClick: () -> Unit,
+    onRefresh: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     Column(
@@ -122,17 +125,21 @@ private fun ActivityContent(
                 ActivitySportFilter(selected = state.sportFilter, onSelect = onSportFilterSelect)
             }
         }
+        PullRefresh(onRefresh = onRefresh, modifier = Modifier.weight(1f).fillMaxWidth()) {
+        // 비어 있는 탭도 당겨서 새로고침이 되도록 항상 스크롤 가능하게 두고, 빈 화면은 화면 높이를 채워 가운데 놓는다.
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+        val viewportHeight = maxHeight
         Box(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+                .fillMaxSize()
                 .swipeTabs(
                     onNext = if (state.selectedTab == ActivityTab.HOST) ({ onTabSelect(ActivityTab.JOINED) }) else null,
                     onPrevious = if (state.selectedTab == ActivityTab.JOINED) ({ onTabSelect(ActivityTab.HOST) }) else null,
                 )
-                .then(if (isEmpty) Modifier else Modifier.verticalScroll(rememberScrollState()))
+                .verticalScroll(rememberScrollState())
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xxl, bottom = AppSpace.xxl),
         ) {
+            Box(if (isEmpty) Modifier.fillMaxWidth().height(viewportHeight - AppSpace.xxl * 2) else Modifier) {
             when (state.selectedTab) {
                 ActivityTab.HOST -> HostActivityTab(
                     upcoming = state.hostedUpcoming,
@@ -152,6 +159,9 @@ private fun ActivityContent(
                     hasAny = state.joined.isNotEmpty(),
                 )
             }
+            }
+        }
+        }
         }
     }
 }

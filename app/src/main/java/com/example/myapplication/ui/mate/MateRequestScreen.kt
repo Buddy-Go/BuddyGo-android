@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.ScrollableEmpty
+import com.example.myapplication.ui.common.PullRefresh
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.ErrorType
 import androidx.compose.foundation.background
@@ -98,15 +100,18 @@ private fun MateRequestContent(
 
         if (!state.isLoading && state.requests.isEmpty()) {
             // 11c-2
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(text = "받은 신청이 없어요", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = AppColor.TextDisabled)
+            PullRefresh(onRefresh = onRetry, modifier = Modifier.weight(1f).fillMaxWidth()) {
+                ScrollableEmpty {
+                    Text(text = "받은 신청이 없어요", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = AppColor.TextDisabled)
+                }
             }
             return@Column
         }
 
+        PullRefresh(onRefresh = onRetry, modifier = Modifier.weight(1f)) {
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.md, bottom = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xl),
@@ -130,6 +135,7 @@ private fun MateRequestContent(
                     .fillMaxWidth()
                     .padding(top = AppSpace.md),
             )
+        }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.PullRefresh
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.swipeTabs
@@ -70,6 +71,7 @@ fun MateScreen(
         onRequestsClick = onRequestsClick,
         onProfileClick = onProfileClick,
         onSendRequest = viewModel::onSendRequest,
+        onRefresh = viewModel::refresh,
     )
 }
 
@@ -82,6 +84,7 @@ private fun MateContent(
     onRequestsClick: () -> Unit,
     onProfileClick: (String) -> Unit,
     onSendRequest: (String) -> Unit,
+    onRefresh: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     Column(
@@ -148,6 +151,7 @@ private fun MateContent(
                     onPrevious = if (state.selectedTab == MateTab.WORKED_OUT) ({ onTabSelect(MateTab.MATES) }) else null,
                 ),
         ) {
+        PullRefresh(onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
         when (state.selectedTab) {
             MateTab.MATES -> MateListTab(
                 mates = state.mates,
@@ -169,6 +173,7 @@ private fun MateContent(
                 modifier = Modifier.fillMaxSize(),
                 timeZone = timeZone,
             )
+        }
         }
         }
     }

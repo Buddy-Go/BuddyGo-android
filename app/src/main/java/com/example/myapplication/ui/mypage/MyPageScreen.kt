@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mypage
 
+import com.example.myapplication.ui.common.PullRefresh
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Path
@@ -87,7 +88,8 @@ fun MyPageScreen(
         is UiState.Error -> FullScreenError(type = s.type, onRetry = viewModel::load, modifier = modifier, showHome = false)
         is UiState.Success -> {
             val d = s.data
-            Column(modifier.fillMaxSize().background(AppColor.Surface).verticalScroll(rememberScrollState())) {
+            PullRefresh(onRefresh = viewModel::refresh, modifier = modifier.fillMaxSize().background(AppColor.Surface)) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 ProfileHeader(d, onAllReviewsClick, onHostedClick)
                 if (d.stats.topTags.isNotEmpty()) TopTags(d.stats.topTags)
                 ReviewSection(d.reviews, onAllReviewsClick)
@@ -101,6 +103,7 @@ fun MyPageScreen(
                 )
                 MenuRow("로그아웃", muted = true, onClick = { confirmLogout = true }, leading = { LogoutIcon() })
                 Spacer(Modifier.height(AppSpace.x5))
+            }
             }
         }
     }

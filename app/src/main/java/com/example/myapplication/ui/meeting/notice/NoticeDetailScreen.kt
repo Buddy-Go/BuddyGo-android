@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.meeting.notice
 
+import com.example.myapplication.ui.common.PullRefresh
 import com.example.myapplication.ui.common.ConfirmDialog
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -135,8 +136,9 @@ private fun NoticeDetailContent(
         val notice = state.notice
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+        PullRefresh(onRefresh = onRetry, modifier = Modifier.weight(1f)) {
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xs, bottom = AppSpace.xxl),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
@@ -192,6 +194,7 @@ private fun NoticeDetailContent(
                 value = state.commentInput,
                 canSend = state.canSend,
                 onValueChange = onCommentInputChange,
+        }
                 onSend = onSend,
             )
         }
