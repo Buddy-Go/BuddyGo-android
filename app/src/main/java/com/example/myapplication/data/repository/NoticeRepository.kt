@@ -12,7 +12,8 @@ interface NoticeRepository {
     suspend fun updateNotice(noticeId: String, title: String, body: String): Result<Notice>
     suspend fun deleteNotice(noticeId: String): Result<Unit>
 
-    suspend fun getComments(noticeId: String): Result<List<Comment>> // 오래된 순
+    suspend fun getComments(noticeId: String): Result<List<Comment>> // 원댓글 오래된 순, 각 원댓글 바로 뒤에 그 답글
     suspend fun addComment(noticeId: String, body: String): Result<Comment>
+    suspend fun addReply(noticeId: String, parentCommentId: String, body: String): Result<Comment>
     suspend fun deleteComment(commentId: String): Result<Unit>
 }

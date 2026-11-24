@@ -86,8 +86,9 @@ class RealNoticeRepository(private val api: NoticeApi) : NoticeRepository {
                 if (!res.hasNext) break
                 page++
             }
-            val hostId = if (all.any { it.authorHost == null }) api.detail(g, n).requireData().authorId else null
-            all.map { it.toComment(hostId) }
+            val hostId = if (all.any { it.authorHost == null && !it.deleted }) api.detail(g, n).requireData().authorId else null
+            // 원댓글 바로 뒤에 그 답글을 이어 붙인다.
+            all.flatMap { parent -> listOf(parent.toComment(hostId)) + parent.replies.map { it.toComment(hostId, parentId = parent.commentId) } }
         }
     }
 
@@ -96,6 +97,15 @@ class RealNoticeRepository(private val api: NoticeApi) : NoticeRepository {
             val created = api.addComment(g, n, CommentCreateDto(body.trim())).requireData()
             val hostId = if (created.authorHost == null) api.detail(g, n).requireData().authorId else null
             created.toComment(hostId)
+        }
+    }
+
+    override suspend fun addReply(noticeId: String, parentCommentId: String, body: String): Result<Comment> = withNotice(noticeId) { g, n ->
+        val c = parentCommentId.toLongOrNull() ?: return@withNotice Result.failure(NoSuchElementException(parentCommentId))
+        apiCall {
+            val created = api.addReply(g, n, c, CommentCreateDto(body.trim())).requireData()
+            val hostId = if (created.authorHost == null) api.detail(g, n).requireData().authorId else null
+            created.toComment(hostId, parentId = created.parentCommentId ?: c)
         }
     }
 
@@ -125,16 +135,18 @@ class RealNoticeRepository(private val api: NoticeApi) : NoticeRepository {
         commentCount = commentCount,
     )
 
-    private fun CommentDto.toComment(hostId: Long?): Comment {
+    private fun CommentDto.toComment(hostId: Long?, parentId: Long? = parentCommentId): Comment {
         NoticeIndex.putComment(commentId.toString(), noticeId.toString())
         return Comment(
             id = commentId.toString(),
             noticeId = noticeId.toString(),
-            authorId = authorId.toString(),
-            authorNickname = authorNickname,
-            body = content,
+            authorId = authorId?.toString().orEmpty(),
+            authorNickname = authorNickname.orEmpty(),
+            body = content.orEmpty(),
             createdAtMillis = IsoTime.parse(createdAt),
-            isAuthorHost = authorHost ?: (authorId == hostId),
+            isAuthorHost = authorHost ?: (authorId != null && authorId == hostId),
+            parentId = parentId?.toString(),
+            isDeleted = deleted,
         )
     }
 

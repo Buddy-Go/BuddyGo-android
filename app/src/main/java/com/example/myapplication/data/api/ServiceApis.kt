@@ -32,6 +32,9 @@ interface NoticeApi {
     @POST("api/gatherings/{g}/notices/{n}/comments")
     suspend fun addComment(@Path("g") g: Long, @Path("n") n: Long, @Body request: CommentCreateDto): ApiResponse<CommentDto>
 
+    @POST("api/gatherings/{g}/notices/{n}/comments/{c}/replies")
+    suspend fun addReply(@Path("g") g: Long, @Path("n") n: Long, @Path("c") c: Long, @Body request: CommentCreateDto): ApiResponse<CommentDto>
+
     @DELETE("api/gatherings/{g}/notices/{n}/comments/{c}")
     suspend fun deleteComment(@Path("g") g: Long, @Path("n") n: Long, @Path("c") c: Long): ApiResponse<Unit>
 }
@@ -126,11 +129,14 @@ data class NoticeListDto(val content: List<NoticeDto> = emptyList(), val hasNext
 data class CommentDto(
     val commentId: Long,
     val noticeId: Long,
-    val authorId: Long,
-    val authorNickname: String = "",
-    val content: String = "",
+    val parentCommentId: Long? = null, // 답글이면 원댓글 id
+    val authorId: Long? = null, // 삭제 표시된 원댓글이면 null
+    val authorNickname: String? = null,
+    val content: String? = null,
+    val deleted: Boolean = false, // 답글이 남아 '삭제된 댓글입니다'로 보여줄 원댓글
     val createdAt: String,
     val authorHost: Boolean? = null, // 댓글 작성자가 모임 호스트인지. 비어 있을 수 있다
+    val replies: List<CommentDto> = emptyList(), // 원댓글에만. 작성순
 )
 
 @Serializable

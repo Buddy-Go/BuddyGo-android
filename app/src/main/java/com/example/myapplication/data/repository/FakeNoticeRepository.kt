@@ -40,8 +40,25 @@ class FakeNoticeRepository(
         return Result.success(Unit)
     }
 
-    override suspend fun getComments(noticeId: String): Result<List<Comment>> =
-        Result.success(comments.filter { it.noticeId == noticeId }.sortedBy { it.createdAtMillis })
+    override suspend fun getComments(noticeId: String): Result<List<Comment>> {
+        val all = comments.filter { it.noticeId == noticeId }.sortedBy { it.createdAtMillis }
+        val parents = all.filter { it.parentId == null }
+        return Result.success(parents.flatMap { p -> listOf(p) + all.filter { it.parentId == p.id } })
+    }
+
+    override suspend fun addReply(noticeId: String, parentCommentId: String, body: String): Result<Comment> {
+        val parent = comments.find { it.id == parentCommentId && it.noticeId == noticeId }
+            ?: return Result.failure(NoSuchElementException(parentCommentId))
+        if (parent.parentId != null) return Result.failure(IllegalArgumentException("답글에는 답글을 달 수 없어요"))
+        val notice = notices.find { it.id == noticeId } ?: return Result.failure(NoSuchElementException(noticeId))
+        val hostId = MockMeetings.all.find { it.id == notice.meetingId }?.hostId
+        val reply = Comment(
+            id = "c${nextId++}", noticeId = noticeId, authorId = me.id, authorNickname = me.nickname, body = body,
+            createdAtMillis = System.currentTimeMillis(), isAuthorHost = me.id == hostId, parentId = parentCommentId,
+        )
+        comments += reply
+        return Result.success(reply)
+    }
 
     override suspend fun addComment(noticeId: String, body: String): Result<Comment> {
         val notice = notices.find { it.id == noticeId } ?: return Result.failure(NoSuchElementException(noticeId))
@@ -60,7 +77,7 @@ class FakeNoticeRepository(
     }
 
     override suspend fun deleteComment(commentId: String): Result<Unit> {
-        comments.removeAll { it.id == commentId }
+        comments.removeAll { it.id == commentId || it.parentId == commentId }
         return Result.success(Unit)
     }
 

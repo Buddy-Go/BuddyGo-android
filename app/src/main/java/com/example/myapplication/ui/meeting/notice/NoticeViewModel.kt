@@ -144,14 +144,25 @@ class NoticeDetailViewModel(
         state = state.copy(commentInput = text)
     }
 
+    fun onReplyClick(commentId: String) {
+        val comment = state.comments.find { it.id == commentId } ?: return
+        if (state.canReplyTo(comment)) state = state.copy(replyingTo = comment)
+    }
+
+    fun onReplyCancel() {
+        state = state.copy(replyingTo = null)
+    }
+
     fun onSend() {
         if (!state.canSend || !state.canWriteComment) return
         val body = state.commentInput.trim()
+        val parent = state.replyingTo
         state = state.copy(isSending = true)
         viewModelScope.launch {
-            val ok = noticeRepository.addComment(noticeId, body).isSuccess
+            val ok = (if (parent == null) noticeRepository.addComment(noticeId, body) else noticeRepository.addReply(noticeId, parent.id, body)).isSuccess
             state = state.copy(
                 commentInput = if (ok) "" else state.commentInput,
+                replyingTo = if (ok) null else state.replyingTo,
                 isSending = false,
                 comments = noticeRepository.getComments(noticeId).getOrDefault(state.comments),
             )
@@ -163,7 +174,8 @@ class NoticeDetailViewModel(
         if (!state.isMine(comment)) return
         viewModelScope.launch {
             noticeRepository.deleteComment(commentId)
-            state = state.copy(comments = noticeRepository.getComments(noticeId).getOrDefault(emptyList()))
+            val comments = noticeRepository.getComments(noticeId).getOrDefault(emptyList())
+            state = state.copy(comments = comments, replyingTo = state.replyingTo?.takeIf { r -> comments.any { it.id == r.id && !it.isDeleted } })
         }
     }
 
