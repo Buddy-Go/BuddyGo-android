@@ -6,6 +6,7 @@ import com.example.myapplication.data.model.CriteriaMatchResult
 import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingCriteria
+import com.example.myapplication.data.model.MeetingMember
 import com.example.myapplication.data.model.MeetingRole
 import com.example.myapplication.data.model.MeetingStatus
 import com.example.myapplication.data.model.Notice
@@ -126,6 +127,10 @@ const val NOTICE_NOTE = "모임 안내는 공지로 전달돼요"
 
 // 아바타 줄: 앞의 [shown]명 + "+나머지"
 data class AvatarRow(val initials: List<String>, val extra: Int)
+
+// 참가자 화면의 확정 명단. 종료된 모임은 실제로 참여한(체크인한) 사람만 보인다. (service-rules 11장)
+fun rosterOf(meeting: Meeting): List<MeetingMember> =
+    if (meeting.status == MeetingStatus.ENDED) meeting.members.filter { it.checkedIn } else meeting.members
 
 fun avatarRowOf(meeting: Meeting, shown: Int = 3): AvatarRow? {
     if (meeting.members.isEmpty()) return null

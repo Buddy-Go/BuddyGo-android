@@ -167,6 +167,7 @@ fun MeetingDetailScreen(
                 onCriteriaClick = { viewModel.onOpenSheet(DetailSheet.CRITERIA) },
                 onShare = { shareMeeting(context, loaded.data) },
                 onHostProfileClick = { onHostProfileClick(loaded.data.hostId) },
+                onMemberClick = onHostProfileClick,
                 onRefresh = viewModel::onResume,
                 onHostAction = { action -> if (action == HostAction.EDIT) onEditMeeting() else viewModel.onHostAction(action) },
                 onManageParticipants = onManageParticipants,
@@ -255,8 +256,9 @@ private fun DetailContent(
     onOpenNotice: (String) -> Unit,
     onShare: () -> Unit,
     onHostProfileClick: () -> Unit,
-    onAction: (DetailAction) -> Unit,
+    onMemberClick: (userId: String) -> Unit = {},
     onRefresh: () -> Unit = {},
+    onAction: (DetailAction) -> Unit,
 ) {
     val role = state.role
     val host = if (role == MeetingRole.HOST) state.hostSection else null
@@ -269,9 +271,9 @@ private fun DetailContent(
             isFavorite = meeting.isFavorite,
             onToggleFavorite = onToggleFavorite,
         )
+        PullRefresh(onRefresh = onRefresh, modifier = Modifier.weight(1f)) {
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
-        PullRefresh(onRefresh = onRefresh, modifier = Modifier.weight(1f)) {
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
             ChipsRow(meeting, role, caption = if (host != null) hostChipCaption(meeting, state.nowMillis) else null)
@@ -284,7 +286,7 @@ private fun DetailContent(
                 HostNoticeSection(host, onWriteClick = onWriteNotice, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice)
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
             } else {
-                ParticipantsSection(meeting, state.nowMillis)
+                ParticipantsSection(meeting, state.nowMillis, myUserId = state.myUserId, onMemberClick = onMemberClick)
                 InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
                 HostCard(meeting, onClick = onHostProfileClick)
                 state.participantNotices?.let { ParticipantNoticeSection(it, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice) }
@@ -292,9 +294,9 @@ private fun DetailContent(
             }
             Spacer(Modifier.height(AppSpace.md))
         }
+        }
         // 호스트도 체크인 대상이라, 체크인이 열려 있으면 '참가자 관리' 위에 체크인 버튼을 함께 보여 준다. (service-rules 7장)
         if (host != null) HostBottomBar(
-        }
             host,
             onManageClick = onManageParticipants,
             checkIn = state.bottomAction?.let { action -> { ActionBox(action, state.submitting, onAction, Modifier.fillMaxWidth()) } },
@@ -426,7 +428,7 @@ private fun ChipsRow(meeting: Meeting, role: MeetingRole, caption: String? = nul
 }
 
 @Composable
-private fun ParticipantsSection(meeting: Meeting, nowMillis: Long) {
+private fun ParticipantsSection(meeting: Meeting, nowMillis: Long, myUserId: String = "", onMemberClick: (String) -> Unit = {}) {
     val active = meeting.status == MeetingStatus.RECRUITING || meeting.status == MeetingStatus.CLOSED
     Column(verticalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
         Text(participantsTitle(meeting), fontSize = 19.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
@@ -438,7 +440,33 @@ private fun ParticipantsSection(meeting: Meeting, nowMillis: Long) {
         } else if (meeting.status == MeetingStatus.IN_PROGRESS) {
             ProgressBar(meeting.confirmedCount, meeting.capacity, lime = false)
         }
-        avatarRowOf(meeting)?.let { AvatarRow(it) }
+        // 확정 명단: 이름을 누르면 그 참가자의 프로필로 간다. (내 줄은 누르지 않는다)
+        val roster = rosterOf(meeting)
+        if (roster.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
+                roster.forEach { member ->
+                    val mine = member.userId == myUserId
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(AppRadius.md))
+                            .clickable(enabled = !mine && member.userId.isNotBlank(), onClickLabel = "${member.nickname} 프로필 보기") { onMemberClick(member.userId) }
+                            .padding(vertical = AppSpace.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AppSpace.xl),
+                    ) {
+                        Avatar(member.nickname.take(1), 40.dp)
+                        Text(
+                            text = if (member.userId == meeting.hostId) "${member.nickname} · 호스트" else if (mine) "${member.nickname} (나)" else member.nickname,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AppColor.TextPrimary,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
         statusNoteOf(meeting, nowMillis)?.let { (title, sub) ->
             Column(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.md)).background(AppColor.SurfaceMuted).padding(AppSpace.xxl),
