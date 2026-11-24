@@ -54,7 +54,7 @@ class NotificationRulesTest {
     @Test
     fun 굵은_앞부분과_문장을_잇는다() {
         assertEquals("북한산 가볍게 모임이 곧 시작해요", joinSubject("북한산 가볍게", "모임이 곧 시작해요"))
-        assertEquals("서연님이 메이트 신청을 보냈어요", joinSubject("서연", "님이 메이트 신청을 보냈어요"))
+        assertEquals("서연님이 버디 신청을 보냈어요", joinSubject("서연", "님이 버디 신청을 보냈어요"))
         assertEquals("신청이 수락됐어요", joinSubject(null, "신청이 수락됐어요"))
     }
 
@@ -83,6 +83,6 @@ class NotificationRulesTest {
     fun 읽지_않은_알림은_읽어_줄_때_앞에_알린다() {
         val unread = MockNotifications.unreadNotice
         assertTrue(unread.spokenText("1시간 전").startsWith("읽지 않음, "))
-        assertEquals("서연님이 메이트 신청을 보냈어요, 어제", MockNotifications.readMate.spokenText("어제"))
+        assertEquals("서연님이 버디 신청을 보냈어요, 어제", MockNotifications.readMate.spokenText("어제"))
     }
 }

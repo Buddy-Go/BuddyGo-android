@@ -163,7 +163,7 @@ private fun ConfirmDialogTextPreview() {
     MyApplicationTheme(dynamicColor = false) {
         ConfirmDialog(
             title = "모임을 삭제할까요?",
-            message = "아직 확정된 메이트가 없어요",
+            message = "아직 확정된 버디가 없어요",
             confirmText = "삭제",
             dismissText = "취소",
             destructive = true,

@@ -143,7 +143,7 @@ private fun MateProfileContent(
     var confirmCancel by remember { mutableStateOf(false) }
     if (confirmCancel) {
         ConfirmDialog(
-            title = "메이트 신청을 취소할까요?",
+            title = "버디 신청을 취소할까요?",
             message = "${profile?.nickname ?: "이 사람"}님에게 보낸 신청이 사라져요",
             confirmText = "신청 취소",
             dismissText = "닫기",
@@ -159,8 +159,8 @@ private fun MateProfileContent(
     var confirmRemove by remember { mutableStateOf(false) }
     if (confirmRemove) {
         ConfirmDialog(
-            title = "메이트를 끊을까요?",
-            message = "${profile?.nickname ?: "이 사람"}님이 내 메이트 목록에서 사라져요",
+            title = "버디를 끊을까요?",
+            message = "${profile?.nickname ?: "이 사람"}님이 내 버디 목록에서 사라져요",
             confirmText = "끊기",
             dismissText = "취소",
             destructive = true,
@@ -266,7 +266,7 @@ private fun MateProfileContent(
                     }
                 }
             } else {
-                Text(text = "메이트가 되면 모임 활동을 볼 수 있어요", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
+                Text(text = "버디가 되면 모임 활동을 볼 수 있어요", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
             }
 
             // 후기
@@ -294,7 +294,7 @@ private fun MateProfileContent(
         }
 
         when (state.bottomButton) {
-            ProfileButton.REQUEST -> BottomButton("메이트 신청", filled = true, enabled = !state.isSending, onClick = onSendRequest)
+            ProfileButton.REQUEST -> BottomButton("버디 신청", filled = true, enabled = !state.isSending, onClick = onSendRequest)
             // 신청 id를 알 때만 취소할 수 있다. 모르면 예전처럼 눌리지 않는 '신청함'으로 둔다.
             ProfileButton.REQUESTED -> if (profile.requestId != null) {
                 BottomButton("신청함 · 취소", filled = false, enabled = !state.isSending, textColor = AppColor.TextPrimary, onClick = { confirmCancel = true })
@@ -335,7 +335,7 @@ private fun ProfileMenu(
                     onClick = { expanded = false; onToggleNotification() },
                 )
                 DropdownMenuItem(
-                    text = { Text("메이트 끊기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
+                    text = { Text("버디 끊기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
                     onClick = { expanded = false; onRemoveMate() },
                 )
             }
@@ -503,17 +503,17 @@ private fun PreviewContent(profile: MateProfile) {
     )
 }
 
-@Preview(name = "15a 메이트 프로필 · 메이트", widthDp = 360, heightDp = 800)
+@Preview(name = "15a 버디 프로필 · 버디", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview15a() = PreviewContent(previewProfile)
 
-@Preview(name = "15b 메이트 프로필 · 메이트 아님", widthDp = 360, heightDp = 800)
+@Preview(name = "15b 버디 프로필 · 버디 아님", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview15b() = PreviewContent(
     previewProfile.copy(userId = "w3", nickname = "태윤", relation = MateRelation.NONE, activities = emptyList(), reviewCount = 6),
 )
 
-@Preview(name = "15c 메이트 프로필 · 신청 보냄", widthDp = 360, heightDp = 800)
+@Preview(name = "15c 버디 프로필 · 신청 보냄", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview15c() = PreviewContent(
     previewProfile.copy(userId = "r2", nickname = "지훈", relation = MateRelation.REQUESTED, activities = emptyList(), reviewCount = 18),

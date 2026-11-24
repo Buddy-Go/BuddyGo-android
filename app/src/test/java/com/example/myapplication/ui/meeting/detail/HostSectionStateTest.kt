@@ -43,7 +43,7 @@ class HostSectionStateTest {
     fun 호스트만_있으면_삭제_확정자가_있으면_취소() {
         assertEquals(listOf(HostAction.EDIT, HostAction.DELETE), open.copy(confirmedNicknames = listOf("민준")).menuActions)
         assertEquals(listOf(HostAction.EDIT, HostAction.CANCEL), open.menuActions)
-        assertEquals("확정된 메이트 1명에게 취소 알림이 가요", open.cancelNoticeText)
+        assertEquals("확정된 버디 1명에게 취소 알림이 가요", open.cancelNoticeText)
     }
 
     @Test

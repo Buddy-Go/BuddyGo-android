@@ -63,8 +63,8 @@ data class HostSectionState(
             )
         }
 
-    // 5a-X2 "확정된 메이트 N명에게 취소 알림이 가요" (호스트 제외)
-    val cancelNoticeText: String get() = "확정된 메이트 ${confirmedOthersCount}명에게 취소 알림이 가요"
+    // 5a-X2 "확정된 버디 N명에게 취소 알림이 가요" (호스트 제외)
+    val cancelNoticeText: String get() = "확정된 버디 ${confirmedOthersCount}명에게 취소 알림이 가요"
 }
 
 enum class HostAction(val label: String) {

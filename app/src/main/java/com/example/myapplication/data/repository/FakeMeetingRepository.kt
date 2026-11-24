@@ -203,7 +203,7 @@ class FakeMeetingRepository(
     override suspend fun deleteMeeting(meetingId: String): Result<Unit> {
         val meeting = meetings.firstOrNull { it.id == meetingId }
             ?: return Result.failure(NoSuchElementException(meetingId))
-        if (meeting.confirmedCount > 1) return Result.failure(IllegalStateException("확정된 메이트가 있어요"))
+        if (meeting.confirmedCount > 1) return Result.failure(IllegalStateException("확정된 버디가 있어요"))
         meetings.remove(meeting)
         return Result.success(Unit)
     }

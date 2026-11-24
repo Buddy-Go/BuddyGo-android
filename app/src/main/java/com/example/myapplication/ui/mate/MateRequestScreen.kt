@@ -193,7 +193,7 @@ private fun DecisionButton(
 
 // ---------- 미리보기 ----------
 
-@Preview(name = "11c 메이트 신청 2건", widthDp = 360, heightDp = 800)
+@Preview(name = "11c 버디 신청 2건", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview11c() = MateRequestContent(
     state = MateRequestState(
@@ -209,7 +209,7 @@ private fun Preview11c() = MateRequestContent(
     onReject = {},
 )
 
-@Preview(name = "11c-2 메이트 신청 빈 상태", widthDp = 360, heightDp = 800)
+@Preview(name = "11c-2 버디 신청 빈 상태", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview11c2() = MateRequestContent(
     state = MateRequestState(isLoading = false),

@@ -52,7 +52,7 @@ class MateStateTest {
                 WorkedOutPerson("b", "우진", now, MateRelation.REQUESTED),
             ),
         )
-        assertEquals("메이트 신청 2명이 기다리고 있어요", s.bannerText)
+        assertEquals("버디 신청 2명이 기다리고 있어요", s.bannerText)
         assertNull(s.copy(pendingRequestCount = 0).bannerText)
         assertEquals(listOf("b"), s.copy(searchQuery = "우").filteredWorkedOut.map { it.userId })
         assertEquals("'민' 이름의 사람이 없어요", s.copy(searchQuery = "민").workedOutEmptyText)
@@ -85,8 +85,8 @@ class MateStateTest {
     fun 받은_신청_11c() {
         val r = MateRequest("q", "u", "지훈", 42.5f, 18)
         assertEquals("매너온도 42.5°C · 참여 18회", r.infoText())
-        assertEquals("메이트 신청 1", MateRequestState(requests = listOf(r)).title)
-        assertEquals("메이트 신청", MateRequestState().title)
+        assertEquals("버디 신청 1", MateRequestState(requests = listOf(r)).title)
+        assertEquals("버디 신청", MateRequestState().title)
     }
 
     private fun profile(relation: MateRelation, workedOut: Boolean) = MateProfile(

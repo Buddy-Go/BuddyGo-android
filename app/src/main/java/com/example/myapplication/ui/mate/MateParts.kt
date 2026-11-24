@@ -54,9 +54,9 @@ internal fun MateAvatar(userId: String, nickname: String, size: Dp = 40.dp, font
 @Composable
 internal fun RelationAction(relation: MateRelation, onRequest: () -> Unit) {
     when (relation) {
-        MateRelation.MATE -> Text(text = "메이트", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextDisabled)
+        MateRelation.MATE -> Text(text = "버디", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColor.TextDisabled)
         MateRelation.REQUESTED -> PillButton("신청함", AppColor.Border, AppColor.TextSecondary, enabled = false, onClick = {})
-        MateRelation.NONE -> PillButton("메이트 신청", AppColor.Accent, AppColor.AccentStrong, enabled = true, onClick = onRequest)
+        MateRelation.NONE -> PillButton("버디 신청", AppColor.Accent, AppColor.AccentStrong, enabled = true, onClick = onRequest)
     }
 }
 

@@ -97,7 +97,7 @@ private fun MateContent(
                 .padding(horizontal = AppSpace.x4),
             contentAlignment = Alignment.CenterStart,
         ) {
-            Text(text = "메이트", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+            Text(text = "버디", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         }
 
         state.bannerText?.let { text ->
@@ -120,7 +120,7 @@ private fun MateContent(
                 )
                 Icon(
                     painter = painterResource(R.drawable.ic_chevron_right),
-                    contentDescription = "메이트 신청 보기",
+                    contentDescription = "버디 신청 보기",
                     tint = AppColor.IconMuted,
                     modifier = Modifier.size(18.dp),
                 )
@@ -133,7 +133,7 @@ private fun MateContent(
                 modifier = Modifier.padding(horizontal = AppSpace.x4),
                 horizontalArrangement = Arrangement.spacedBy(AppSpace.x5),
             ) {
-                AccentTab("메이트", state.selectedTab == MateTab.MATES) { onTabSelect(MateTab.MATES) }
+                AccentTab("버디", state.selectedTab == MateTab.MATES) { onTabSelect(MateTab.MATES) }
                 AccentTab("함께 운동한 사람", state.selectedTab == MateTab.WORKED_OUT) { onTabSelect(MateTab.WORKED_OUT) }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.DividerSoft))
@@ -239,11 +239,11 @@ private fun PreviewContent(state: MateState) {
     )
 }
 
-@Preview(name = "11a 메이트 탭", widthDp = 360, heightDp = 800)
+@Preview(name = "11a 버디 탭", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview11a() = PreviewContent(previewState)
 
-@Preview(name = "11a-2 메이트 빈 상태", widthDp = 360, heightDp = 800)
+@Preview(name = "11a-2 버디 빈 상태", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview11a2() = PreviewContent(MateState(isLoading = false, now = PREVIEW_NOW))
 

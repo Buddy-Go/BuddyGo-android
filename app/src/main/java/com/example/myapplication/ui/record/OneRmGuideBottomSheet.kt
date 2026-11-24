@@ -54,7 +54,7 @@ fun OneRmGuideBottomSheet(onDismiss: () -> Unit) {
             Spacer(Modifier.height(AppSpace.xxl))
             HorizontalDivider(color = AppColor.Border)
             Spacer(Modifier.height(AppSpace.xxl))
-            Text("어림값이어도 괜찮아요. 비슷한 수준의 메이트를 찾는 용도라 10kg 정도 차이는 문제되지 않아요.", color = AppColor.TextSecondary, fontSize = 14.sp, lineHeight = 21.sp)
+            Text("어림값이어도 괜찮아요. 비슷한 수준의 버디를 찾는 용도라 10kg 정도 차이는 문제되지 않아요.", color = AppColor.TextSecondary, fontSize = 14.sp, lineHeight = 21.sp)
         }
     }
 }

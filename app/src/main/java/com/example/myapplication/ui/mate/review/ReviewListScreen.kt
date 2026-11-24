@@ -148,7 +148,7 @@ private fun TargetRow(target: ReviewTargetInfo, expired: Boolean, onReviewClick:
 
 // ---------- 미리보기 ----------
 
-@Preview(name = "12a 메이트 평가 목록", widthDp = 360, heightDp = 800)
+@Preview(name = "12a 버디 평가 목록", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview12a() {
     ReviewListContent(state = previewReviewState, onBack = {}, onReviewClick = {}, timeZone = TimeZone.getTimeZone("Asia/Seoul"))

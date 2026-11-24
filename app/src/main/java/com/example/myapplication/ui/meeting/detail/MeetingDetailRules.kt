@@ -116,12 +116,12 @@ fun participantsTitle(meeting: Meeting): String = when (meeting.status) {
         if (meeting.members.isEmpty()) base else "$base · 체크인 ${meeting.checkedInCount}"
     }
     MeetingStatus.ENDED ->
-        "참여한 메이트 ${if (meeting.members.isEmpty()) meeting.confirmedCount else meeting.checkedInCount} / ${meeting.capacity}"
+        "참여한 버디 ${if (meeting.members.isEmpty()) meeting.confirmedCount else meeting.checkedInCount} / ${meeting.capacity}"
     else -> "참여자 ${meeting.confirmedCount} / ${meeting.capacity}"
 }
 
 // 명단이 공개되지 않는 사람에게는 숫자만 보인다. (5장)
-const val MEMBERS_HIDDEN_NOTE = "참여자 목록은 마감 후 참여한 메이트에게만 보여요"
+const val MEMBERS_HIDDEN_NOTE = "참여자 목록은 마감 후 참여한 버디에게만 보여요"
 const val NOTICE_NOTE = "모임 안내는 공지로 전달돼요"
 
 // 아바타 줄: 앞의 [shown]명 + "+나머지"
@@ -142,7 +142,7 @@ fun statusNoteOf(meeting: Meeting, nowMillis: Long, timeZone: TimeZone = TimeZon
         "지금 진행 중이에요" to "$start 시작"
     }
     MeetingStatus.ENDED ->
-        "${formatStartTime(meeting.endAtMillis, nowMillis, timeZone)}에 종료됐어요" to "함께한 메이트를 평가하면 매너온도가 올라가요"
+        "${formatStartTime(meeting.endAtMillis, nowMillis, timeZone)}에 종료됐어요" to "함께한 버디를 평가하면 매너온도가 올라가요"
     else -> null
 }
 
@@ -286,7 +286,7 @@ fun bottomActionOf(
             else BottomAction(DetailAction.NONE, "진행중인 모임", enabled = false)
         MeetingStatus.ENDED ->
             if (role == MeetingRole.CONFIRMED && iCheckedIn)
-                BottomAction(DetailAction.REVIEW, "메이트 평가하기", "${meeting.confirmedCount}명 중 ${meeting.checkedInCount}명이 참여 완료")
+                BottomAction(DetailAction.REVIEW, "버디 평가하기", "${meeting.confirmedCount}명 중 ${meeting.checkedInCount}명이 참여 완료")
             else BottomAction(DetailAction.NONE, "종료된 모임", enabled = false)
         MeetingStatus.CANCELED -> BottomAction(DetailAction.NONE, "취소된 모임", "호스트가 모임을 취소했어요", enabled = false)
     }

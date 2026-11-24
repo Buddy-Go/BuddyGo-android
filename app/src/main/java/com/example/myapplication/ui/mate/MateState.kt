@@ -30,7 +30,7 @@ data class MateState(
     val now: Long = 0L,
 ) {
     // 받은 신청이 있을 때만 위에 배너 (11a-2에는 없음)
-    val bannerText: String? get() = if (pendingRequestCount > 0) "메이트 신청 ${pendingRequestCount}명이 기다리고 있어요" else null
+    val bannerText: String? get() = if (pendingRequestCount > 0) "버디 신청 ${pendingRequestCount}명이 기다리고 있어요" else null
 
     // 11b-2 칩 숫자: 이름 찾기와 상관없이 그 종목을 함께한 사람 수
     fun sportCount(sport: Sport?): Int = if (sport == null) workedOut.size else workedOut.count { sport in it.sports }
@@ -58,7 +58,7 @@ data class MateRequestState(
     val processingRequestId: String? = null,
     val isLoading: Boolean = true,
 ) {
-    val title: String get() = if (requests.isEmpty()) "메이트 신청" else "메이트 신청 ${requests.size}"
+    val title: String get() = if (requests.isEmpty()) "버디 신청" else "버디 신청 ${requests.size}"
 }
 
 // 15a 메이트 / 15b 메이트 아님 / 15c 신청 보냄
@@ -91,7 +91,7 @@ data class MateProfileState(
     val showMenu: Boolean get() = profile != null
 
     val notificationMenuLabel: String
-        get() = if (profile?.notificationEnabled == false) "이 메이트 알림 켜기" else "이 메이트 알림 끄기"
+        get() = if (profile?.notificationEnabled == false) "이 버디 알림 켜기" else "이 버디 알림 끄기"
 
     val reviewHeader: String get() = "후기 ${profile?.reviewCount ?: 0}"
 }

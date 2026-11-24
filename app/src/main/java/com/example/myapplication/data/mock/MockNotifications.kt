@@ -28,7 +28,7 @@ object MockNotifications {
     )
     val readMate = Notification(
         id = "n3", type = NotificationType.MATE_REQUESTED, subject = "서연",
-        message = "님이 메이트 신청을 보냈어요",
+        message = "님이 버디 신청을 보냈어요",
         userId = "u2", createdAtMillis = BASE - 24 * HOUR, isRead = true,
     )
 
