@@ -44,6 +44,10 @@ private const val DistrictZoom = 13
 private const val MyLocationLayerId = "my-location"
 
 // 내 위치로 옮길 때의 배율 (동네가 보이는 정도)
+// 내 위치 점 레이어의 우선순위. 지도 기본 아이콘(호텔·가게 표시 등) 위에 그려져야 점이 가려지지 않고,
+// 모임 핀(기본 레이어, 10000)보다는 아래여야 핀을 누를 수 있다. (0으로 두면 지도 아이콘 아래로 깔려 점이 가려졌다)
+private const val MyLocationLayerZOrder = 9999
+
 const val MyLocationZoom = 16
 
 // 이보다 멀리(작은 숫자) 볼 수 없다. 너무 넓게 보면 핀이 의미가 없어서 구 몇 개가 보이는 정도에서 막는다.
@@ -198,7 +202,7 @@ fun KakaoMapView(
         // 다른 라벨(핀, 지도의 가게 이름 등)과 겹쳐도 가려지지 않게 경쟁하지 않는 레이어에 그린다.
         // (기본값이면 겹칠 때 파란 점이 숨어서 '가끔 안 보이는' 문제가 있었다)
         val layer = manager.getLayer(MyLocationLayerId)
-            ?: manager.addLayer(LabelLayerOptions.from(MyLocationLayerId).setCompetitionType(CompetitionType.None).setZOrder(0))
+            ?: manager.addLayer(LabelLayerOptions.from(MyLocationLayerId).setCompetitionType(CompetitionType.None).setZOrder(MyLocationLayerZOrder).setClickable(false))
             ?: return@LaunchedEffect
         layer.removeAll()
         val here = myLocation ?: return@LaunchedEffect
