@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mypage
 
+import com.example.myapplication.ui.common.MannerGauge
 import com.example.myapplication.ui.common.PullRefresh
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -160,12 +161,13 @@ private fun ProfileHeader(d: MyPageData, onReviewsClick: () -> Unit, onHostedCli
             }
         }
         Spacer(Modifier.height(AppSpace.xxl))
+        // 매너온도는 숫자 한 칸이 아니라 게이지 카드로 보여 준다
+        MannerGauge(d.user.mannerTemperature)
+        Spacer(Modifier.height(AppSpace.xl))
         Row(
             Modifier.fillMaxWidth().clip(RoundedCornerShape(AppRadius.lg)).background(Color.White.copy(alpha = .3f))
                 .padding(vertical = AppSpace.xl),
         ) {
-            Stat("매너온도", formatTemperature(d.user.mannerTemperature), Modifier.weight(1.3f), thermometer = true)
-            StatDivider()
             Stat("받은 후기", d.stats.receivedReviewCount.toString(), Modifier.weight(1f), onClick = onReviewsClick)
             StatDivider()
             Stat("개설한 모임", d.stats.hostedMeetingCount.toString(), Modifier.weight(1f), onClick = onHostedClick)

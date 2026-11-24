@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.MannerGauge
 import com.example.myapplication.ui.common.SportChip
 import com.example.myapplication.ui.common.FullScreenError
 import com.example.myapplication.ui.common.ErrorType
@@ -205,7 +206,7 @@ private fun MateProfileContent(
                 .padding(start = AppSpace.x4, end = AppSpace.x4, bottom = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.x5),
         ) {
-            // 사진·이름·매너온도
+            // 사진·이름 / 매너온도 게이지
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 MateAvatar(userId = profile.userId, nickname = profile.nickname, size = 72.dp, fontSize = 28.sp)
                 Text(
@@ -213,9 +214,9 @@ private fun MateProfileContent(
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
                     color = AppColor.TextPrimary,
-                    modifier = Modifier.padding(top = AppSpace.xl, bottom = AppSpace.xs),
+                    modifier = Modifier.padding(top = AppSpace.xl, bottom = AppSpace.xl),
                 )
-                MannerLine(text = mannerText(profile.mannerTemperature), fontSize = 13.sp, iconSize = 15.dp)
+                MannerGauge(profile.mannerTemperature)
             }
 
             // 많이 받은 태그 (첫 번째만 초록)
