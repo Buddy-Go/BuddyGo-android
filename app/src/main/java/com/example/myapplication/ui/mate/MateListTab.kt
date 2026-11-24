@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.ScrollableEmpty
 import com.example.myapplication.ui.common.SportChip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,13 +45,11 @@ fun MateListTab(
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     if (mates.isEmpty()) {
-        Column(
-            modifier = modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(AppSpace.md, Alignment.CenterVertically),
-        ) {
-            Text(text = "아직 메이트가 없어요", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
-            Text(text = "모임에서 만난 사람에게 메이트를 신청해보세요", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
+        // 비어 있어도 당겨서 새로고침이 되도록 스크롤 가능한 칸에 둔다.
+        ScrollableEmpty(modifier) {
+            Text(text = "아직 버디가 없어요", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+            Spacer(Modifier.height(AppSpace.md))
+            Text(text = "모임에서 만난 사람에게 버디를 신청해보세요", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
         }
         return
     }

@@ -110,7 +110,7 @@ internal fun MeetingCancelSheetBody(
                 .padding(AppSpace.xxl),
             verticalArrangement = Arrangement.spacedBy(AppSpace.sm),
         ) {
-            WarningLine("확정된 메이트 ${confirmedOthersCount}명에게 취소 알림이 가요")
+            WarningLine("확정된 버디 ${confirmedOthersCount}명에게 취소 알림이 가요")
             WarningLine("매너온도가 내려가요")
         }
 
@@ -152,7 +152,7 @@ internal fun MeetingCancelSheetBody(
                 decorationBox = { inner ->
                     Box {
                         if (reason.isEmpty()) {
-                            Text(text = "메이트들에게 그대로 전달돼요", style = textStyle.copy(color = AppColor.TextDisabled))
+                            Text(text = "버디들에게 그대로 전달돼요", style = textStyle.copy(color = AppColor.TextDisabled))
                         }
                         inner()
                     }

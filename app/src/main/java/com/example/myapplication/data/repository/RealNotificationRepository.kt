@@ -69,6 +69,7 @@ internal fun String.toNotificationType(): NotificationType? = when (this) {
     "GATHERING_STARTED" -> NotificationType.MEETING_STARTED
     "GATHERING_FINISHED" -> NotificationType.MEETING_ENDED
     "NOTICE_CREATED", "NOTICE_UPDATED" -> NotificationType.NOTICE_WRITTEN
+    "NOTICE_COMMENT_REPLIED" -> NotificationType.NOTICE_REPLIED // 내 댓글에 답글이 달렸다
     "NOTICE_COMMENT_CREATED" -> NotificationType.NOTICE_COMMENTED // 호스트·댓글 단 참가자에게 같은 종류로 온다
     "BUDDY_REQUEST_RECEIVED" -> NotificationType.MATE_REQUESTED
     "BUDDY_REQUEST_ACCEPTED" -> NotificationType.MATE_ACCEPTED

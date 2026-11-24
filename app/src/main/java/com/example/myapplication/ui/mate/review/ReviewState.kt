@@ -99,7 +99,7 @@ data class ReviewState(
         return "${monthDay(s.meetingStartAtMillis, timeZone)} · ${s.placeName} · ${monthDay(s.reviewDueAtMillis, timeZone)}까지 평가 가능"
     }
 
-    val targetHeader: String get() = "함께한 메이트 ${targets.size}"
+    val targetHeader: String get() = "함께한 버디 ${targets.size}"
 
     // ---------- 12b ----------
 
@@ -145,7 +145,7 @@ data class ReviewState(
         }
 
     // 12b-2 '제출하고 다음 메이트' / 12b-4 마지막 '평가 제출'
-    val submitLabel: String get() = if (nextTargetId != null) "제출하고 다음 메이트" else "평가 제출"
+    val submitLabel: String get() = if (nextTargetId != null) "제출하고 다음 버디" else "평가 제출"
 
     val tagCounter: String get() = "${draft.tags.size} / $REVIEW_TAG_MAX"
 
@@ -157,7 +157,7 @@ data class ReviewState(
 
     val reviewedCount: Int get() = targets.count { it.isReviewed }
 
-    val doneSubtitle: String get() = "함께한 메이트 ${reviewedCount}명 평가 완료"
+    val doneSubtitle: String get() = "함께한 버디 ${reviewedCount}명 평가 완료"
 
     // 메이트로 추가할 사람: 아직 메이트가 아닌 사람 (신청함 포함). 없으면 12c-2
     val mateSuggestions: List<ReviewTargetInfo> get() = targets.filter { !it.isMate }

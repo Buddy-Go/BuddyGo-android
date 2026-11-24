@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.meeting.notice
 
+import com.example.myapplication.ui.common.PullRefresh
 import com.example.myapplication.ui.common.ConfirmDialog
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -83,6 +84,8 @@ fun NoticeDetailScreen(
         onCommentInputChange = viewModel::onCommentInputChange,
         onSend = viewModel::onSend,
         onDeleteComment = viewModel::onDeleteComment,
+        onReplyClick = viewModel::onReplyClick,
+        onReplyCancel = viewModel::onReplyCancel,
         onRetry = viewModel::refresh,
     )
 }
@@ -96,6 +99,8 @@ private fun NoticeDetailContent(
     onCommentInputChange: (String) -> Unit,
     onSend: () -> Unit,
     onDeleteComment: (String) -> Unit,
+    onReplyClick: (String) -> Unit = {},
+    onReplyCancel: () -> Unit = {},
     onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
@@ -133,9 +138,10 @@ private fun NoticeDetailContent(
         }
 
         val notice = state.notice
+        PullRefresh(onRefresh = onRetry, modifier = Modifier.weight(1f)) {
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xs, bottom = AppSpace.xxl),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
@@ -179,6 +185,8 @@ private fun NoticeDetailContent(
                                 comment = comment,
                                 timeText = noticeTimeText(comment.createdAtMillis, timeZone),
                                 showMenu = state.isMine(comment),
+                                canReply = state.canReplyTo(comment),
+                                onReply = { onReplyClick(comment.id) },
                                 onDelete = { onDeleteComment(comment.id) },
                             )
                         }
@@ -186,10 +194,13 @@ private fun NoticeDetailContent(
                 }
             }
         }
+        }
 
         if (state.canWriteComment) {
             CommentInputBar(
                 value = state.commentInput,
+                replyingTo = state.replyingTo?.authorNickname,
+                onReplyCancel = onReplyCancel,
                 canSend = state.canSend,
                 onValueChange = onCommentInputChange,
                 onSend = onSend,
@@ -199,8 +210,28 @@ private fun NoticeDetailContent(
 }
 
 @Composable
-private fun CommentRow(comment: Comment, timeText: String, showMenu: Boolean, onDelete: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.lg)) {
+private fun CommentRow(
+    comment: Comment,
+    timeText: String,
+    showMenu: Boolean,
+    canReply: Boolean = false,
+    onReply: () -> Unit = {},
+    onDelete: () -> Unit,
+) {
+    if (comment.isDeleted) {
+        // 답글이 남아 있어 내용만 지운 원댓글
+        Text(
+            text = "삭제된 댓글입니다",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = AppColor.TextDisabled,
+        )
+        return
+    }
+    Row(
+        modifier = Modifier.padding(start = if (comment.isReply) 40.dp else 0.dp),
+        horizontalArrangement = Arrangement.spacedBy(AppSpace.lg),
+    ) {
         // 호스트는 초록 원, 나머지는 회색 원 (8f)
         Box(
             modifier = Modifier
@@ -253,6 +284,15 @@ private fun CommentRow(comment: Comment, timeText: String, showMenu: Boolean, on
                 fontWeight = FontWeight.Medium,
                 color = AppColor.TextPrimary,
             )
+            if (canReply) {
+                Text(
+                    text = "답글 달기",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppColor.TextSecondary,
+                    modifier = Modifier.clickable(onClick = onReply).padding(vertical = AppSpace.xs),
+                )
+            }
         }
     }
 }
@@ -274,6 +314,8 @@ private fun HostBadge() {
 @Composable
 private fun CommentInputBar(
     value: String,
+    replyingTo: String?,
+    onReplyCancel: () -> Unit,
     canSend: Boolean,
     onValueChange: (String) -> Unit,
     onSend: () -> Unit,
@@ -281,6 +323,27 @@ private fun CommentInputBar(
     val textStyle = TextStyle(fontFamily = SuitFontFamily, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
     Column(modifier = Modifier.background(AppColor.Surface)) {
         NoticeDivider()
+        if (replyingTo != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth().background(AppColor.SurfaceMuted).padding(horizontal = AppSpace.xxl, vertical = AppSpace.md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "${replyingTo}님에게 답글 작성 중",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = AppColor.TextSecondary,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "취소",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColor.TextPrimary,
+                    modifier = Modifier.clickable(onClick = onReplyCancel).padding(AppSpace.xs),
+                )
+            }
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -302,7 +365,7 @@ private fun CommentInputBar(
                 decorationBox = { inner ->
                     Box {
                         if (value.isEmpty()) {
-                            Text(text = "댓글을 입력해주세요", style = textStyle.copy(color = AppColor.TextDisabled))
+                            Text(text = if (replyingTo != null) "답글을 입력해주세요" else "댓글을 입력해주세요", style = textStyle.copy(color = AppColor.TextDisabled))
                         }
                         inner()
                     }

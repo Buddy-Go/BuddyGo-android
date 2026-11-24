@@ -76,7 +76,7 @@ internal fun ReviewTopBar(@DrawableRes iconRes: Int, iconDescription: String, on
                 .clickable(onClick = onIconClick),
         )
         Text(
-            text = "메이트 평가",
+            text = "버디 평가",
             fontSize = 17.sp,
             fontWeight = FontWeight.SemiBold,
             color = AppColor.TextPrimary,
@@ -101,7 +101,7 @@ internal fun RefreshFailedBanner(onRetry: () -> Unit, modifier: Modifier = Modif
     ) {
         ExclamationIcon(AppColor.DestructiveText)
         Text(
-            text = "메이트 목록을 새로 불러오지 못했어요",
+            text = "버디 목록을 새로 불러오지 못했어요",
             color = AppColor.DestructiveText,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,

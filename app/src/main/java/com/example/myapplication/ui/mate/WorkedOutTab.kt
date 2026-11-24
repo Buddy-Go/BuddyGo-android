@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mate
 
+import com.example.myapplication.ui.common.ScrollableEmpty
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +67,7 @@ fun WorkedOutTab(
         SearchField(value = searchQuery, onValueChange = onSearchChange)
         SportChips(selected = sportFilter, count = sportCount, onSelect = onSportFilterSelect)
         if (people.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            ScrollableEmpty(Modifier.fillMaxSize()) {
                 Text(text = emptyText, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
             }
             return@Column

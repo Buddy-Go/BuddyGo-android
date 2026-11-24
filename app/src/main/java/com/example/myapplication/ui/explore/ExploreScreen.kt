@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,10 +64,12 @@ fun ExploreScreen(
     // 내 위치: 권한이 있으면 바로 가져오고, 없으면 이번 실행에서 한 번만 묻는다. 거절하면 위치 없이 쓴다.
     val context = LocalContext.current
     var pendingMoveToMe by remember { mutableStateOf(false) } // 내 위치 버튼으로 권한을 물었으면, 허용 뒤 바로 옮긴다
+    var locationGranted by remember { mutableStateOf(hasLocationPermission(context)) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
         val move = pendingMoveToMe
         pendingMoveToMe = false
         if (grants.values.any { it }) {
+            locationGranted = true
             fetchMyLocation(context) { loc -> if (move) viewModel.onMoveToMyLocation(loc) else viewModel.onMyLocation(loc) }
         }
     }
@@ -78,6 +81,11 @@ fun ExploreScreen(
                 permissionLauncher.launch(LocationPermissions)
             }
         }
+    }
+    // 화면이 보이는 동안 위치가 바뀌면 파란 점을 따라 옮긴다. 처음에 위치를 못 얻었어도 나중에 얻으면 그때 뜬다.
+    DisposableEffect(locationGranted) {
+        val stop = if (locationGranted) startMyLocationUpdates(context) { viewModel.onMyLocation(it) } else ({})
+        onDispose { stop() }
     }
     // 화면이 다시 보일 때마다 읽지 않은 알림 여부를 새로 확인한다.
     LaunchedEffect(Unit) {
@@ -112,6 +120,7 @@ fun ExploreScreen(
                 onPinClick = viewModel::onSelectPin,
                 onMapClick = viewModel::onClearPin,
                 onMovedByUser = { bounds -> viewModel.onCameraMoved(bounds) },
+                onBoundsChanged = { bounds -> viewModel.onBoundsChanged(bounds) },
                 onError = { mapFailed = true },
                 modifier = Modifier.fillMaxSize(),
                 myLocation = state.myLocation,
@@ -237,7 +246,7 @@ private fun SearchBar(state: ExploreState, onClick: () -> Unit, modifier: Modifi
                     fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary,
                 )
                 Text(
-                    "${if (state.hasLocationCondition) "설정한 지역" else "현재 지도 범위"} · 모임 ${state.visibleMeetings.size}개",
+                    "${state.rangeLabel} · 모임 ${state.visibleMeetings.size}개",
                     fontSize = 12.sp, color = AppColor.TextSecondary,
                 )
             }

@@ -166,7 +166,7 @@ class LiveServerTest {
 
         // 메이트: 함께 운동한 적이 없어 신청은 서버가 거절한다. 프로필과 후기 조회는 된다.
         assertTrue(p1.mates.sendRequest(host.id).isFailure)
-        assertTrue(p1.mates.getMates().ok("메이트 목록").isEmpty())
+        assertTrue(p1.mates.getMates().ok("버디 목록").isEmpty())
         assertTrue(p1.mates.getWorkedOut().ok("함께 운동한 사람").isEmpty())
         assertTrue(p1.mates.getRequests().ok("받은 신청").isEmpty())
         assertNotNull(p1.mates.getProfile(host.id).ok("프로필"))

@@ -51,6 +51,7 @@ data class NoticeDetailState(
     val isHost: Boolean = false,
     val isReadOnly: Boolean = false,
     val commentInput: String = "",
+    val replyingTo: Comment? = null, // 답글을 쓰는 중이면 원댓글
     val isSending: Boolean = false,
     val isDeleted: Boolean = false, // 공지를 지우면 화면을 닫는다
     val loadFailed: Boolean = false, // 공지를 못 찾았거나 불러오지 못함 (알림에서 지워진 공지로 들어온 경우 등)
@@ -64,7 +65,10 @@ data class NoticeDetailState(
     val canSend: Boolean get() = commentInput.isNotBlank() && !isSending
 
     // 8f "댓글 3" / 8i "댓글"
-    val commentHeader: String get() = if (comments.isEmpty()) "댓글" else "댓글 ${comments.size}"
+    val commentHeader: String get() = if (comments.isEmpty()) "댓글" else "댓글 ${comments.count { !it.isDeleted }}"
+
+    // 답글은 원댓글에만 한 단계. 삭제 표시된 원댓글에는 달 수 없다.
+    fun canReplyTo(comment: Comment): Boolean = canWriteComment && !comment.isReply && !comment.isDeleted
 
     // 8f·8g: 내가 쓴 댓글에만 ⋯ (삭제)
     fun isMine(comment: Comment): Boolean = comment.authorId == myUserId && !isReadOnly

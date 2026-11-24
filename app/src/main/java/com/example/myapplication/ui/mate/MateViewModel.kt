@@ -151,17 +151,6 @@ class MateProfileViewModel(
         state = state.copy(reportedMessage = null)
     }
 
-    // 차단하기: 메이트 관계도 함께 끊고(이미 메이트가 아니면 실패해도 무시), 차단 목록에 넣고 화면을 닫는다.
-    // 차단을 풀어도 메이트로 돌아오지 않고 다시 신청해야 한다.
-    fun onBlock() {
-        val p = state.profile ?: return
-        viewModelScope.launch {
-            repository.removeMate(userId)
-            BlockedUsersStore.block(p.userId, p.nickname)
-            state = state.copy(isBlocked = true)
-        }
-    }
-
     // 메이트 끊기. 확인 창은 화면(MateProfileScreen)이 공용 ConfirmDialog로 먼저 띄운다.
     fun onRemoveMate() {
         viewModelScope.launch {

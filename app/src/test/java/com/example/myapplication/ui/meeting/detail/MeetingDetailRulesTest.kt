@@ -99,7 +99,7 @@ class MeetingDetailRulesTest {
         val members = listOf(MeetingMember("a", "민", true), MeetingMember("b", "서", false))
         assertEquals("참여자 6 / 6 · 체크인 1", participantsTitle(meeting(MeetingStatus.IN_PROGRESS, confirmed = 6, members = members)))
         assertEquals("명단이 없으면 체크인 수를 붙이지 않는다", "참여자 6 / 6", participantsTitle(meeting(MeetingStatus.IN_PROGRESS, confirmed = 6)))
-        assertEquals("참여한 메이트 1 / 6", participantsTitle(meeting(MeetingStatus.ENDED, confirmed = 6, members = members)))
+        assertEquals("참여한 버디 1 / 6", participantsTitle(meeting(MeetingStatus.ENDED, confirmed = 6, members = members)))
     }
 
     @Test
@@ -129,7 +129,7 @@ class MeetingDetailRulesTest {
     @Test
     fun 종료_안내는_종료_시각과_평가_안내를_준다() {
         val m = meeting(MeetingStatus.ENDED, start = millis(9, 8, 5)) // 4시간 → 9:00 종료
-        assertEquals("오늘 오전 9:00에 종료됐어요" to "함께한 메이트를 평가하면 매너온도가 올라가요", statusNoteOf(m, millis(9, 8, 10), seoul))
+        assertEquals("오늘 오전 9:00에 종료됐어요" to "함께한 버디를 평가하면 매너온도가 올라가요", statusNoteOf(m, millis(9, 8, 10), seoul))
         assertNull(statusNoteOf(meeting(), millis(9, 8, 10), seoul))
     }
 

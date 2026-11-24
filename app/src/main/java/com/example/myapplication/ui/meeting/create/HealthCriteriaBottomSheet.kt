@@ -119,7 +119,7 @@ internal fun HealthCriteriaSheetBody(
 
         when {
             !hasAnyRecord -> RecordLinkRow(
-                hint = "기록(무게)을 입력하면 비슷한 수준의 메이트가 찾기 쉬워져요",
+                hint = "기록(무게)을 입력하면 비슷한 수준의 버디가 찾기 쉬워져요",
                 linkText = "기록 입력하기",
                 onClick = onEditRecord,
             )

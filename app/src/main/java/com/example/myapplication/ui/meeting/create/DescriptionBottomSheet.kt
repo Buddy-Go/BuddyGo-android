@@ -76,7 +76,7 @@ internal fun DescriptionSheetBody(
         Column(verticalArrangement = Arrangement.spacedBy(AppSpace.xxs)) {
             Text(text = "이런 내용이 도움이 돼요", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppColor.TextSecondary)
             Text(
-                text = "진행 방식, 준비물, 집결 방법을 적어주세요. 확정된 메이트에게는 공지로 추가 안내를 보낼 수 있어요.",
+                text = "진행 방식, 준비물, 집결 방법을 적어주세요. 확정된 버디에게는 공지로 추가 안내를 보낼 수 있어요.",
                 fontSize = 11.sp,
                 lineHeight = 17.sp,
                 fontWeight = FontWeight.Medium,

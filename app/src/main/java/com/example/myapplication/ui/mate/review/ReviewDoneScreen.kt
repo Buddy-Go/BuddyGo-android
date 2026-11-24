@@ -69,7 +69,7 @@ private fun ReviewDoneContent(
             DoneHeader(state.doneSubtitle, big = suggestions.isEmpty())
             if (suggestions.isNotEmpty()) {
                 Column(modifier = Modifier.padding(top = AppSpace.x4)) {
-                    Text(text = "메이트로 추가할까요?", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+                    Text(text = "버디로 추가할까요?", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
                     Text(
                         text = "수락하면 서로의 모임 활동을 볼 수 있어요",
                         fontSize = 13.sp,
@@ -149,7 +149,7 @@ private fun SuggestionRow(target: ReviewTargetInfo, onRequest: () -> Unit) {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = if (requested) "신청함" else "메이트 신청",
+                text = if (requested) "신청함" else "버디 신청",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (requested) AppColor.TextSecondary else AppColor.AccentStrong,

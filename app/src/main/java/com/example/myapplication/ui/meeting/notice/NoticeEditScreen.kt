@@ -143,7 +143,7 @@ private fun NoticeEditContent(
                 )
                 // 정의서 9장: 작성·수정 모두 확정 참가자에게 알림
                 Text(
-                    text = "확정된 메이트에게 알림이 가요",
+                    text = "확정된 버디에게 알림이 가요",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = AppColor.TextBody,

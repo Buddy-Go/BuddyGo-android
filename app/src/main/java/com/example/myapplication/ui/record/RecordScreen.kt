@@ -175,7 +175,7 @@ private fun HealthRecordContent(
             Spacer(Modifier.height(AppSpace.x4))
             Text("어떤 부위를\n주로 하세요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(AppSpace.xl))
-            Text("정확하지 않아도 괜찮아요. 비슷한 수준의 메이트를 찾는 데만 쓰여요", color = AppColor.TextSecondary, fontSize = 15.sp, lineHeight = 22.sp)
+            Text("정확하지 않아도 괜찮아요. 비슷한 수준의 버디를 찾는 데만 쓰여요", color = AppColor.TextSecondary, fontSize = 15.sp, lineHeight = 22.sp)
             Spacer(Modifier.height(AppSpace.x4))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpace.md)) {
                 BodyPart.entries.forEach { part -> PartChip(bodyPartLabel(part), part in state.parts) { onTogglePart(part) } }
@@ -197,7 +197,7 @@ private fun HealthRecordContent(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     InfoIcon(AppColor.IconMuted)
                     Spacer(Modifier.width(AppSpace.xl))
-                    Text("입력한 무게는 메이트 추천과 모임 필터(비슷한 중량)에 쓰여요", color = AppColor.TextSecondary, fontSize = 14.sp)
+                    Text("입력한 무게는 버디 추천과 모임 필터(비슷한 중량)에 쓰여요", color = AppColor.TextSecondary, fontSize = 14.sp)
                 }
             }
             Spacer(Modifier.height(AppSpace.x5))
@@ -378,7 +378,7 @@ private fun RunningRecordContent(state: RecordState, onBack: () -> Unit, onSelec
         Spacer(Modifier.height(AppSpace.x4))
         Text("평소 어떻게\n달리세요?", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(AppSpace.xl))
-        Text("정확하지 않아도 괜찮아요. 페이스가 맞는 메이트를 찾는 데만 쓰여요", color = AppColor.TextSecondary, fontSize = 15.sp, lineHeight = 22.sp)
+        Text("정확하지 않아도 괜찮아요. 페이스가 맞는 버디를 찾는 데만 쓰여요", color = AppColor.TextSecondary, fontSize = 15.sp, lineHeight = 22.sp)
         Spacer(Modifier.height(AppSpace.x5))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("평균 페이스", color = AppColor.TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))

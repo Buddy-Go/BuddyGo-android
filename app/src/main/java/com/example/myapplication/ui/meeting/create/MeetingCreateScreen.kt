@@ -454,7 +454,7 @@ private fun LockedNotice() {
             .padding(AppSpace.xxl),
         verticalArrangement = Arrangement.spacedBy(AppSpace.xxs),
     ) {
-        Text("확정된 메이트가 있어요", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
+        Text("확정된 버디가 있어요", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         Text(
             "제목, 설명, 상세주소만 바꿀 수 있어요. 일시·기준·정원은 공지로 안내해 주세요.",
             fontSize = 13.sp, lineHeight = 19.sp, color = AppColor.TextSecondary,

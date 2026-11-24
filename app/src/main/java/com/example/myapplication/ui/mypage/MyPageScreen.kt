@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.mypage
 
+import com.example.myapplication.ui.common.PullRefresh
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Path
@@ -63,14 +64,13 @@ import com.example.myapplication.ui.theme.AppRadius
 import com.example.myapplication.ui.theme.AppSpace
 
 // 14 마이페이지
-// 위치 설정(활동 지역), 신고·차단 관리 줄은 정의서(1장, 13장)에는 없지만 디자인(14)에 있어 만들었다. 쓰임새는 아직 표시뿐이다.
+// 위치 설정(활동 지역) 줄은 정의서(1장, 13장)에는 없지만 디자인(14)에 있어 만들었다. 쓰임새는 아직 표시뿐이다.
 @Composable
 fun MyPageScreen(
     onLogout: () -> Unit,
     onAllReviewsClick: () -> Unit = {},
     onHostedClick: () -> Unit = {},
     onLocationClick: () -> Unit = {},
-    onBlockManageClick: () -> Unit = {},
     onEditRecord: (Sport) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: MyPageViewModel = viewModel(),
@@ -88,7 +88,8 @@ fun MyPageScreen(
         is UiState.Error -> FullScreenError(type = s.type, onRetry = viewModel::load, modifier = modifier, showHome = false)
         is UiState.Success -> {
             val d = s.data
-            Column(modifier.fillMaxSize().background(AppColor.Surface).verticalScroll(rememberScrollState())) {
+            PullRefresh(onRefresh = viewModel::refresh, modifier = modifier.fillMaxSize().background(AppColor.Surface)) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 ProfileHeader(d, onAllReviewsClick, onHostedClick)
                 if (d.stats.topTags.isNotEmpty()) TopTags(d.stats.topTags)
                 ReviewSection(d.reviews, onAllReviewsClick)
@@ -100,9 +101,9 @@ fun MyPageScreen(
                     // 서버가 받는 종목이 하나뿐이면 고르는 단계 없이 바로 그 종목 기록을 연다.
                     onClick = { SportSupport.supported.singleOrNull()?.let(onEditRecord) ?: run { pickRecordSport = true } },
                 )
-                MenuRow("차단 관리", onClick = onBlockManageClick, leading = { ShieldIcon() })
                 MenuRow("로그아웃", muted = true, onClick = { confirmLogout = true }, leading = { LogoutIcon() })
                 Spacer(Modifier.height(AppSpace.x5))
+            }
             }
         }
     }

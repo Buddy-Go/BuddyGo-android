@@ -101,7 +101,7 @@ private fun SignUpProfileContent(
                 // 고를 종목이 하나뿐이면(헬스) 종목 카드를 누르게 하지 않고 바로 그 종목의 기록을 묻는다.
                 Text("${sportLabel(only)} 기록을\n알려주세요", color = AppColor.TextPrimary, fontSize = 28.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(AppSpace.xl))
-                Text("비슷한 수준의 메이트를 찾을 때 참고돼요 · 나중에 언제든 수정할 수 있어요", color = AppColor.TextSecondary, fontSize = 15.sp)
+                Text("비슷한 수준의 버디를 찾을 때 참고돼요 · 나중에 언제든 수정할 수 있어요", color = AppColor.TextSecondary, fontSize = 15.sp)
                 Spacer(Modifier.height(AppSpace.x5))
                 RecordRow(
                     sport = only,

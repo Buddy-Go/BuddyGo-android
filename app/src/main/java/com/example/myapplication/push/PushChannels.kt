@@ -18,7 +18,7 @@ object PushChannels {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         manager.createNotificationChannel(
             NotificationChannel(ALERTS, "BuddyGo 알림", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "신청·수락·공지·메이트 신청 같은 소식을 화면 위 배너로 알려줘요"
+                description = "신청·수락·공지·버디 신청 같은 소식을 화면 위 배너로 알려줘요"
             },
         )
         manager.deleteNotificationChannel(OLD_DEFAULT) // 배너가 뜨지 않던 예전 채널은 지운다

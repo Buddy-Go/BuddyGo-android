@@ -82,7 +82,7 @@ class ReviewRefetchFailureTest {
         assertTrue(s.isAllDone)
         assertNull(s.currentTargetId)
         assertEquals(3, s.reviewedCount)
-        assertEquals("함께한 메이트 3명 평가 완료", s.doneSubtitle)
+        assertEquals("함께한 버디 3명 평가 완료", s.doneSubtitle)
         assertEquals(listOf(true, true, true), s.targets.map { it.isReviewed })
     }
 

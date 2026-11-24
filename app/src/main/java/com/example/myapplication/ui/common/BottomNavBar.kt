@@ -89,7 +89,7 @@ private val tabs = listOf(
     Tab(Routes.EXPLORE, "탐색") { drawPin(it) },
     Tab(Routes.ACTIVITY, "활동") { drawCalendar(it) },
     Tab(Routes.MEETING_CREATE, "개설") { drawPlus(it) },
-    Tab(Routes.MATE, "메이트") { drawPeople(it) },
+    Tab(Routes.MATE, "버디") { drawPeople(it) },
     Tab(Routes.MYPAGE, "마이") { drawPerson(it) },
 )
 

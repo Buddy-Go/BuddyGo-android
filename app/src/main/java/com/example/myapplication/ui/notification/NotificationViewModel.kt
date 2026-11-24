@@ -33,6 +33,13 @@ class NotificationViewModel(
             )
         }
     }
+    // 당겨서 새로고침: 화면을 비우지 않고 새로 받는다. 실패하면 보던 목록을 그대로 둔다.
+    fun refresh() {
+        viewModelScope.launch {
+            repository.getNotifications().onSuccess { _state.value = UiState.Success(it) }
+        }
+    }
+
 
     // 알림 하나를 눌렀을 때. 화면에는 바로 읽은 것으로 보여 주고, 서버에는 뒤따라 알린다.
     fun onNotificationClick(notification: Notification) {

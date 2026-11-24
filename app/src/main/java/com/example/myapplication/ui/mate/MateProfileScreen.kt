@@ -62,8 +62,8 @@ fun MateProfileScreen(
     onAllReviewsClick: () -> Unit, // '전체 >' (후기 전체 화면은 디자인 없음)
 ) {
     val state = viewModel.state
-    LaunchedEffect(state.isRemoved, state.isBlocked) {
-        if (state.isRemoved || state.isBlocked) onBack()
+    LaunchedEffect(state.isRemoved) {
+        if (state.isRemoved) onBack()
     }
     MateProfileContent(
         state = state,
@@ -75,7 +75,6 @@ fun MateProfileScreen(
         onToggleNotification = viewModel::onToggleNotification,
         onRemoveMate = viewModel::onRemoveMate,
         onReport = viewModel::onReport,
-        onBlock = viewModel::onBlock,
         onRetry = viewModel::reload,
     )
 }
@@ -92,25 +91,12 @@ private fun MateProfileContent(
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
     onReport: (String) -> Unit = {},
-    onBlock: () -> Unit = {},
     onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     val profile = state.profile
-    var confirmBlock by remember { mutableStateOf(false) }
     var showReport by remember { mutableStateOf(false) }
     var reported by remember { mutableStateOf(false) }
-    if (confirmBlock) {
-        ConfirmDialog(
-            title = "${profile?.nickname ?: "이 사람"}님을 차단할까요?",
-            message = "차단하면 메이트 관계도 함께 해제돼요",
-            confirmText = "차단",
-            dismissText = "취소",
-            destructive = true,
-            onConfirm = { confirmBlock = false; onBlock() },
-            onDismiss = { confirmBlock = false },
-        )
-    }
     if (showReport) {
         // 신고 사유를 고르면 바로 보낸다. 디자인이 없어 공용 대화상자에 사유 목록을 넣은 임시 화면이다.
         ConfirmDialog(
@@ -143,7 +129,7 @@ private fun MateProfileContent(
     var confirmCancel by remember { mutableStateOf(false) }
     if (confirmCancel) {
         ConfirmDialog(
-            title = "메이트 신청을 취소할까요?",
+            title = "버디 신청을 취소할까요?",
             message = "${profile?.nickname ?: "이 사람"}님에게 보낸 신청이 사라져요",
             confirmText = "신청 취소",
             dismissText = "닫기",
@@ -159,8 +145,8 @@ private fun MateProfileContent(
     var confirmRemove by remember { mutableStateOf(false) }
     if (confirmRemove) {
         ConfirmDialog(
-            title = "메이트를 끊을까요?",
-            message = "${profile?.nickname ?: "이 사람"}님이 내 메이트 목록에서 사라져요",
+            title = "버디를 끊을까요?",
+            message = "${profile?.nickname ?: "이 사람"}님이 내 버디 목록에서 사라져요",
             confirmText = "끊기",
             dismissText = "취소",
             destructive = true,
@@ -203,7 +189,6 @@ private fun MateProfileContent(
                     onToggleNotification = onToggleNotification,
                     onRemoveMate = { confirmRemove = true },
                     onReport = { showReport = true },
-                    onBlock = { confirmBlock = true },
                 )
             }
         }
@@ -266,7 +251,7 @@ private fun MateProfileContent(
                     }
                 }
             } else {
-                Text(text = "메이트가 되면 모임 활동을 볼 수 있어요", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
+                Text(text = "버디가 되면 모임 활동을 볼 수 있어요", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
             }
 
             // 후기
@@ -294,7 +279,7 @@ private fun MateProfileContent(
         }
 
         when (state.bottomButton) {
-            ProfileButton.REQUEST -> BottomButton("메이트 신청", filled = true, enabled = !state.isSending, onClick = onSendRequest)
+            ProfileButton.REQUEST -> BottomButton("버디 신청", filled = true, enabled = !state.isSending, onClick = onSendRequest)
             // 신청 id를 알 때만 취소할 수 있다. 모르면 예전처럼 눌리지 않는 '신청함'으로 둔다.
             ProfileButton.REQUESTED -> if (profile.requestId != null) {
                 BottomButton("신청함 · 취소", filled = false, enabled = !state.isSending, textColor = AppColor.TextPrimary, onClick = { confirmCancel = true })
@@ -314,7 +299,6 @@ private fun ProfileMenu(
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
     onReport: () -> Unit,
-    onBlock: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
@@ -335,7 +319,7 @@ private fun ProfileMenu(
                     onClick = { expanded = false; onToggleNotification() },
                 )
                 DropdownMenuItem(
-                    text = { Text("메이트 끊기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
+                    text = { Text("버디 끊기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
                     onClick = { expanded = false; onRemoveMate() },
                 )
             }
@@ -345,10 +329,6 @@ private fun ProfileMenu(
                     onClick = { expanded = false; onReport() },
                 )
             }
-            DropdownMenuItem(
-                text = { Text("차단하기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
-                onClick = { expanded = false; onBlock() },
-            )
         }
     }
 }
@@ -503,17 +483,17 @@ private fun PreviewContent(profile: MateProfile) {
     )
 }
 
-@Preview(name = "15a 메이트 프로필 · 메이트", widthDp = 360, heightDp = 800)
+@Preview(name = "15a 버디 프로필 · 버디", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview15a() = PreviewContent(previewProfile)
 
-@Preview(name = "15b 메이트 프로필 · 메이트 아님", widthDp = 360, heightDp = 800)
+@Preview(name = "15b 버디 프로필 · 버디 아님", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview15b() = PreviewContent(
     previewProfile.copy(userId = "w3", nickname = "태윤", relation = MateRelation.NONE, activities = emptyList(), reviewCount = 6),
 )
 
-@Preview(name = "15c 메이트 프로필 · 신청 보냄", widthDp = 360, heightDp = 800)
+@Preview(name = "15c 버디 프로필 · 신청 보냄", widthDp = 360, heightDp = 800)
 @Composable
 private fun Preview15c() = PreviewContent(
     previewProfile.copy(userId = "r2", nickname = "지훈", relation = MateRelation.REQUESTED, activities = emptyList(), reviewCount = 18),

@@ -38,7 +38,7 @@ class ReviewStateTest {
     @Test
     fun 목록_머리글_12a() {
         assertEquals("9/14 · 스포애니 합정점 · 9/21까지 평가 가능", state.meetingSubtitle(seoul))
-        assertEquals("함께한 메이트 3", state.targetHeader)
+        assertEquals("함께한 버디 3", state.targetHeader)
     }
 
     @Test
@@ -47,7 +47,7 @@ class ReviewStateTest {
         assertEquals("1 / 3", s.progressText)
         assertEquals("서연님과 함께한 시간은 어땠나요?", s.question)
         assertEquals("c", s.nextTargetId) // 진현은 이미 평가함
-        assertEquals("제출하고 다음 메이트", s.submitLabel)
+        assertEquals("제출하고 다음 버디", s.submitLabel)
 
         val last = s.copy(currentTargetId = "c", session = s.session!!.copy(targets = s.targets.map { if (it.userId == "a") it.copy(isReviewed = true) else it }))
         assertNull(last.nextTargetId)
@@ -145,7 +145,7 @@ class ReviewStateTest {
     @Test
     fun 완료_화면_메이트_제안_12c() {
         assertEquals(listOf("a", "c"), state.mateSuggestions.map { it.userId })
-        assertEquals("함께한 메이트 1명 평가 완료", state.doneSubtitle)
+        assertEquals("함께한 버디 1명 평가 완료", state.doneSubtitle)
     }
 
     @Test
