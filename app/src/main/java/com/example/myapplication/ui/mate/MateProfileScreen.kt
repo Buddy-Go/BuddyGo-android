@@ -231,15 +231,6 @@ private fun MateProfileContent(
                 }
             }
 
-            // 자주 하는 운동 (15): 이 사람이 함께 운동한 종목
-            if (profile.frequentSports.isNotEmpty()) {
-                Section("자주 하는 운동") {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(AppSpace.md), verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
-                        profile.frequentSports.forEach { SportChip(it, fontSize = 14) }
-                    }
-                }
-            }
-
             // 현재 활동: 메이트만 볼 수 있다 (service-rules 10장)
             if (state.isMate) {
                 if (profile.activities.isNotEmpty()) {
