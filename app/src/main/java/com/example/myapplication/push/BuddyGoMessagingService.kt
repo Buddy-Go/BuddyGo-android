@@ -10,6 +10,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.myapplication.MainActivity
 import com.example.myapplication.R
+import com.example.myapplication.ui.notification.NotificationWatcher
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
@@ -18,9 +19,14 @@ class BuddyGoMessagingService : FirebaseMessagingService() {
         PushRegistrar.register(token)
     }
 
-    // 앱이 켜져 있을 때 온 푸시는 FCM이 알림을 띄워 주지 않아서 직접 띄운다.
-    // (앱이 꺼져 있거나 뒤에 있으면 notification 페이로드는 시스템이 띄운다)
+    // 앱이 켜져 있을 때 온 푸시는 FCM이 알림을 띄워 주지 않는다.
+    //  - 앱을 보고 있으면: 시스템 알림을 따로 띄우지 않고, 앱 안 배너(NotificationWatcher)가 바로 알려 주게 한다. (같은 알림이 두 번 뜨지 않게)
+    //  - 앱이 뒤에 있으면: 직접 시스템 알림을 띄운다. (앱이 꺼져 있을 때는 notification 페이로드를 시스템이 띄운다)
     override fun onMessageReceived(message: RemoteMessage) {
+        if (AppForeground.isForeground) {
+            NotificationWatcher.requestPoll()
+            return
+        }
         val title = message.notification?.title ?: message.data["title"] ?: getString(R.string.app_name)
         val body = message.notification?.body ?: message.data["body"] ?: return
         show(title, body)

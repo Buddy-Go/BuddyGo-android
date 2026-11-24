@@ -1,5 +1,10 @@
 package com.example.myapplication.ui.navigation
 
+import com.example.myapplication.ui.notification.InAppBannerHost
+import com.example.myapplication.ui.notification.NotificationWatcher
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import androidx.compose.runtime.produceState
 import com.example.myapplication.ui.auth.FindPasswordScreen
 import com.example.myapplication.data.local.ActivityAreaStore
@@ -82,10 +87,29 @@ private const val NO_RESULT = "\u0000none"
 private const val KEY_APPLIED = "applied"
 
 
-// 이름표(Routes)와 실제 화면을 연결한다.
+// 이름표(Routes)와 실제 화면을 연결한다. 새 알림이 오면 화면 위에서 내려오는 배너를 맨 위에 겹쳐 보인다.
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    // 앱이 화면에 보이는 동안만 새 알림을 확인한다.
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            NotificationWatcher.run(Repositories.notifications)
+        }
+    }
+    androidx.compose.foundation.layout.Box(modifier) {
+        AppNavHostContent(Modifier.fillMaxSize())
+        InAppBannerHost(Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+    }
+}
+
+@Composable
+private fun AppNavHostContent(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
+    // 배너를 누르면 그 알림이 가리키는 화면으로 간다.
+    LaunchedEffect(Unit) {
+        NotificationWatcher.open.collect { route -> navController.navigate(route) }
+    }
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     // 저장소는 Repositories에서 하나씩 같이 쓴다. (화면마다 새로 만들면 수락·공지 작성 결과가 다른 화면에 안 보인다)
