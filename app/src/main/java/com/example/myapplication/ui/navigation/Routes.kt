@@ -59,7 +59,6 @@ object Routes {
     const val ACTIVITY = "activity"
     const val MYPAGE = "mypage"
     const val ACTIVITY_AREA = "mypage/area" // 위치 설정(활동 지역)
-    const val BLOCK_MANAGE = "mypage/block" // 신고 · 차단 관리
     const val MY_REVIEWS = "mypage/reviews"
     const val MY_HOSTED = "mypage/hosted"
     const val MATE_REVIEWS = "mate/profile/{$ARG_USER_ID}/reviews"

@@ -1,7 +1,6 @@
 package com.example.myapplication.ui.navigation
 
 import androidx.compose.runtime.produceState
-import com.example.myapplication.ui.mypage.BlockManageScreen
 import com.example.myapplication.ui.auth.FindPasswordScreen
 import com.example.myapplication.data.local.ActivityAreaStore
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -497,15 +496,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         },
                     )
                 }
-                composable(Routes.BLOCK_MANAGE) {
-                    BlockManageScreen(onBack = { navController.popBackStack() })
-                }
                 composable(Routes.MYPAGE) {
                     MyPageScreen(
                         onAllReviewsClick = { navController.navigate(Routes.MY_REVIEWS) },
                         onHostedClick = { navController.navigate(Routes.MY_HOSTED) },
                         onLocationClick = { navController.navigate(Routes.ACTIVITY_AREA) },
-                        onBlockManageClick = { navController.navigate(Routes.BLOCK_MANAGE) },
                         onEditRecord = { sport -> navController.navigate(Routes.profileRecord(sport)) },
                         onLogout = {
                             SessionReset.onLogout()

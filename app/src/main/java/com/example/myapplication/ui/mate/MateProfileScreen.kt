@@ -62,8 +62,8 @@ fun MateProfileScreen(
     onAllReviewsClick: () -> Unit, // '전체 >' (후기 전체 화면은 디자인 없음)
 ) {
     val state = viewModel.state
-    LaunchedEffect(state.isRemoved, state.isBlocked) {
-        if (state.isRemoved || state.isBlocked) onBack()
+    LaunchedEffect(state.isRemoved) {
+        if (state.isRemoved) onBack()
     }
     MateProfileContent(
         state = state,
@@ -75,7 +75,6 @@ fun MateProfileScreen(
         onToggleNotification = viewModel::onToggleNotification,
         onRemoveMate = viewModel::onRemoveMate,
         onReport = viewModel::onReport,
-        onBlock = viewModel::onBlock,
         onRetry = viewModel::reload,
     )
 }
@@ -92,25 +91,12 @@ private fun MateProfileContent(
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
     onReport: (String) -> Unit = {},
-    onBlock: () -> Unit = {},
     onRetry: () -> Unit = {},
     timeZone: TimeZone = TimeZone.getDefault(),
 ) {
     val profile = state.profile
-    var confirmBlock by remember { mutableStateOf(false) }
     var showReport by remember { mutableStateOf(false) }
     var reported by remember { mutableStateOf(false) }
-    if (confirmBlock) {
-        ConfirmDialog(
-            title = "${profile?.nickname ?: "이 사람"}님을 차단할까요?",
-            message = "차단하면 메이트 관계도 함께 해제돼요",
-            confirmText = "차단",
-            dismissText = "취소",
-            destructive = true,
-            onConfirm = { confirmBlock = false; onBlock() },
-            onDismiss = { confirmBlock = false },
-        )
-    }
     if (showReport) {
         // 신고 사유를 고르면 바로 보낸다. 디자인이 없어 공용 대화상자에 사유 목록을 넣은 임시 화면이다.
         ConfirmDialog(
@@ -203,7 +189,6 @@ private fun MateProfileContent(
                     onToggleNotification = onToggleNotification,
                     onRemoveMate = { confirmRemove = true },
                     onReport = { showReport = true },
-                    onBlock = { confirmBlock = true },
                 )
             }
         }
@@ -314,7 +299,6 @@ private fun ProfileMenu(
     onToggleNotification: () -> Unit,
     onRemoveMate: () -> Unit,
     onReport: () -> Unit,
-    onBlock: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
@@ -345,10 +329,6 @@ private fun ProfileMenu(
                     onClick = { expanded = false; onReport() },
                 )
             }
-            DropdownMenuItem(
-                text = { Text("차단하기", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = AppColor.DestructiveText) },
-                onClick = { expanded = false; onBlock() },
-            )
         }
     }
 }

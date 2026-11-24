@@ -69,7 +69,6 @@ data class MateProfileState(
     val loadFailed: Boolean = false, // 프로필을 불러오지 못함 → 16g 오류 화면
     val isSending: Boolean = false,
     val isRemoved: Boolean = false,
-    val isBlocked: Boolean = false, // 차단하면 화면을 닫는다
     val reportedMessage: String? = null, // 신고를 보내면 잠깐 알린다
     val canReport: Boolean = true, // 서버가 신고를 받지 않으면 신고하기 메뉴를 숨긴다
     val now: Long = 0L,
@@ -87,8 +86,9 @@ data class MateProfileState(
             }
         }
 
-    // ⋯ 메뉴: 메이트일 때 알림 켜기·끄기와 메이트 끊기, 누구에게나 신고하기·차단하기. 화면 디자인이 없어 Material 기본 메뉴
-    val showMenu: Boolean get() = profile != null
+    // ⋯ 메뉴: 메이트일 때 알림 켜기·끄기와 메이트 끊기, 신고를 받는 서버면 신고하기. 화면 디자인이 없어 Material 기본 메뉴
+    // (차단 기능은 서버에 없어 뺐다) 넣을 항목이 없으면 메뉴 자체를 숨긴다.
+    val showMenu: Boolean get() = profile != null && (isMate || canReport)
 
     val notificationMenuLabel: String
         get() = if (profile?.notificationEnabled == false) "이 버디 알림 켜기" else "이 버디 알림 끄기"

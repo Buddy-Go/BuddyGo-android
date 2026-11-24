@@ -23,6 +23,7 @@ class BuddyGoApplication : Application() {
         ActivityAreaStore.attach(AppStorage.store, Api.tokens.userId)
         BlockedUsersStore.attach(AppStorage.store)
         // 푸시가 화면 위 배너로 뜨는 알림 채널을 미리 만든다 (앱이 꺼져 있을 때 오는 푸시도 이 채널을 쓴다)
+        BlockedUsersStore.clear() // 차단 기능을 없앴으니, 예전에 차단해 숨겨진 사람이 다시 보이게 한다.
         PushChannels.ensure(this)
     }
 }
