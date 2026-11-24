@@ -148,6 +148,9 @@ class ExploreViewModel(
     // 사용자가 지도를 옮기면 '현 지도에서 검색'이 나타나고, 그때 지도에 보이는 영역을 기억해 둔다.
     fun onCameraMoved(bounds: MapBounds? = null) = _state.update { it.withCameraMoved(bounds) }
 
+    // 지도가 어떻게 옮겨졌든(손·내 위치 버튼·지역 선택) 지금 보이는 영역을 기억한다. 재검색은 이 영역을 쓴다.
+    fun onBoundsChanged(bounds: MapBounds?) = _state.update { it.withBounds(bounds) }
+
     // 재검색: 기억해 둔 지도 영역 안의 모임을 다시 받는다.
     fun onResearch() {
         FilterStore.update { it.copy(district = null) } // 재검색하면 위치 조건이 풀린다

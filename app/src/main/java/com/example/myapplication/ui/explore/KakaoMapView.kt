@@ -19,6 +19,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import com.example.myapplication.data.local.MapCameraStore
 import com.example.myapplication.data.model.GeoPoint
 import com.example.myapplication.data.model.MapBounds
 import com.kakao.vectormap.GestureType
@@ -43,11 +44,11 @@ private const val DistrictZoom = 13
 
 private const val MyLocationLayerId = "my-location"
 
-// 내 위치로 옮길 때의 배율 (동네가 보이는 정도)
 // 내 위치 점 레이어의 우선순위. 지도 기본 아이콘(호텔·가게 표시 등) 위에 그려져야 점이 가려지지 않고,
 // 모임 핀(기본 레이어, 10000)보다는 아래여야 핀을 누를 수 있다. (0으로 두면 지도 아이콘 아래로 깔려 점이 가려졌다)
 private const val MyLocationLayerZOrder = 9999
 
+// 내 위치로 옮길 때의 배율 (동네가 보이는 정도)
 const val MyLocationZoom = 16
 
 // 이보다 멀리(작은 숫자) 볼 수 없다. 너무 넓게 보면 핀이 의미가 없어서 구 몇 개가 보이는 정도에서 막는다.
@@ -76,7 +77,8 @@ fun KakaoMapView(
     selectedKey: String?,
     onPinClick: (String) -> Unit,
     onMapClick: () -> Unit,
-    onMovedByUser: (MapBounds?) -> Unit, // 옮긴 뒤 지도에 보이는 영역(읽지 못하면 null)
+    onMovedByUser: (MapBounds?) -> Unit, // 손으로 옮긴 뒤 지도에 보이는 영역(읽지 못하면 null)
+    onBoundsChanged: (MapBounds?) -> Unit = {}, // 어떻게 옮겨졌든 카메라가 멈출 때마다 보이는 영역. 재검색 범위를 최신으로 유지한다.
     onError: () -> Unit,
     modifier: Modifier = Modifier,
     myLocation: GeoPoint? = null, // 있으면 파란 점으로 표시한다
@@ -89,11 +91,14 @@ fun KakaoMapView(
     val lifecycleOwner = context as? LifecycleOwner
     val mapView = remember { MapView(context) }
     var kakaoMap by remember { mutableStateOf<KakaoMap?>(null) }
-    var zoomLevel by remember { mutableIntStateOf(DefaultZoom) } // 지금 배율. 핀 묶음을 정한다.
+    val restoredCamera = remember { MapCameraStore.last } // 마지막으로 본 자리. 없으면 기본 위치에서 시작한다.
+    var zoomLevel by remember { mutableIntStateOf(restoredCamera?.zoom ?: DefaultZoom) } // 지금 배율. 핀 묶음을 정한다.
+    var restoreSkipPending by remember { mutableStateOf(restoredCamera != null) } // 복원한 자리에서는 처음 불러온 핀으로 카메라를 옮기지 않는다.
 
     val currentOnPinClick by rememberUpdatedState(onPinClick)
     val currentOnMapClick by rememberUpdatedState(onMapClick)
     val currentOnMoved by rememberUpdatedState(onMovedByUser)
+    val currentOnBounds by rememberUpdatedState(onBoundsChanged)
     val currentOnError by rememberUpdatedState(onError)
 
     DisposableEffect(mapView) {
@@ -125,13 +130,17 @@ fun KakaoMapView(
                             return@setOnCameraMoveEndListener
                         }
                         zoomLevel = position.zoomLevel
-                        if (gesture != GestureType.Unknown) currentOnMoved(visibleBounds(map, mapView.width, mapView.height))
+                        MapCameraStore.save(position.position.latitude, position.position.longitude, position.zoomLevel)
+                        val bounds = visibleBounds(map, mapView.width, mapView.height)
+                        currentOnBounds(bounds)
+                        if (gesture != GestureType.Unknown) currentOnMoved(bounds)
                     }
                     kakaoMap = map
                 }
 
-                override fun getPosition(): LatLng = DefaultCenter
-                override fun getZoomLevel(): Int = DefaultZoom
+                // 마지막으로 보던 자리가 있으면 거기서 시작한다.
+                override fun getPosition(): LatLng = restoredCamera?.let { LatLng.from(it.latitude, it.longitude) } ?: DefaultCenter
+                override fun getZoomLevel(): Int = restoredCamera?.zoom?.coerceAtLeast(MinMapZoom) ?: DefaultZoom
             },
         )
         val observer = LifecycleEventObserver { _, event ->
@@ -185,12 +194,16 @@ fun KakaoMapView(
         if (!followNearestPin) return@LaunchedEffect
         val map = kakaoMap ?: return@LaunchedEffect
         val first = pins.firstOrNull() ?: return@LaunchedEffect
+        if (restoreSkipPending) { restoreSkipPending = false; return@LaunchedEffect }
         map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(first.latitude, first.longitude)))
     }
     // 위치 조건으로 지역을 고르면 그 지역 중심으로 옮긴다. 핀이 있으면 아래 핀 이동이 이어서 그 지역의 가장 가까운 핀으로 맞춘다.
     LaunchedEffect(kakaoMap, focus) {
         val map = kakaoMap ?: return@LaunchedEffect
         val target = focus ?: return@LaunchedEffect
+        // 화면을 다시 만들 때 이미 적용한 옛 지점으로 되돌아가지 않는다.
+        if (target.id == MapCameraStore.appliedFocusId) return@LaunchedEffect
+        MapCameraStore.appliedFocusId = target.id
         map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(target.point.latitude, target.point.longitude), target.zoom ?: DistrictZoom))
     }
 

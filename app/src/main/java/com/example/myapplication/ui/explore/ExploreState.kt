@@ -47,6 +47,17 @@ data class ExploreState(
     // 위치 조건(구·동)이 걸려 있으면 검색 영역이 고정된다.
     val hasLocationCondition: Boolean get() = filter.district != null
 
+    // 검색창 보조 문구에 쓰는, 지금 목록이 어느 범위의 모임인지.
+    //  - 위치 조건(구·동)을 골랐으면 그 지역
+    //  - '현 지도에서 검색'을 눌렀으면 그때의 지도 영역
+    //  - 아직 둘 다 아니면 전국(지도 화면과 무관하게 넓게 불러온다)
+    val rangeLabel: String
+        get() = when {
+            hasLocationCondition -> "설정한 지역"
+            searchBounds != null -> "검색한 지도 범위"
+            else -> "전국"
+        }
+
     // 내 위치를 알면 거리를 그 위치에서 다시 잰다. 모르면 목록이 가져온 거리(서버 계산)를 그대로 쓴다.
     private fun withMyDistance(meeting: Meeting): Meeting =
         meeting.copy(distanceMeters = meetingDistanceMeters(meeting, myLocation))
@@ -76,6 +87,9 @@ data class ExploreState(
 
     // 지도를 움직이면 '현 지도에서 검색'이 나타난다. 위치 조건이 있어도 결과는 그대로이고 버튼만 보인다.
     fun withCameraMoved(bounds: MapBounds? = null) = copy(cameraMoved = true, cameraBounds = bounds ?: cameraBounds)
+
+    // 코드로 지도를 옮긴 뒤(내 위치 버튼 등)에도 지금 화면 영역을 기억한다. '현 지도에서 검색' 버튼을 새로 띄우지는 않는다.
+    fun withBounds(bounds: MapBounds?) = copy(cameraBounds = bounds ?: cameraBounds)
 
     // 재검색: 위치 조건이 풀리고 지도 범위 기준이 된다. 다른 조건(종목·찜 등)은 유지한다. (2장)
     fun afterResearch() = copy(

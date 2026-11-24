@@ -120,6 +120,7 @@ fun ExploreScreen(
                 onPinClick = viewModel::onSelectPin,
                 onMapClick = viewModel::onClearPin,
                 onMovedByUser = { bounds -> viewModel.onCameraMoved(bounds) },
+                onBoundsChanged = { bounds -> viewModel.onBoundsChanged(bounds) },
                 onError = { mapFailed = true },
                 modifier = Modifier.fillMaxSize(),
                 myLocation = state.myLocation,
@@ -245,7 +246,7 @@ private fun SearchBar(state: ExploreState, onClick: () -> Unit, modifier: Modifi
                     fontSize = 15.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary,
                 )
                 Text(
-                    "${if (state.hasLocationCondition) "설정한 지역" else "현재 지도 범위"} · 모임 ${state.visibleMeetings.size}개",
+                    "${state.rangeLabel} · 모임 ${state.visibleMeetings.size}개",
                     fontSize = 12.sp, color = AppColor.TextSecondary,
                 )
             }
