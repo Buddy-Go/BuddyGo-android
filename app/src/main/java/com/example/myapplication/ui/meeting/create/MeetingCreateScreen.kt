@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.meeting.create
 
+import com.example.myapplication.ui.common.keyboardOverBottomBar
+import com.example.myapplication.ui.common.measureBottomBar
+import com.example.myapplication.ui.common.rememberBottomBarHeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -181,14 +183,16 @@ private fun MeetingCreateContent(
             .fillMaxSize()
             .background(AppColor.Surface)
             .statusBarsPadding()
-            .navigationBarsPadding()
-            .imePadding(),
+            .navigationBarsPadding(),
     ) {
+        // 여러 칸을 채우는 긴 화면이라 키보드가 올라와도 하단 버튼은 올리지 않는다(키보드가 덮는다). 스크롤 영역만 키보드 위로 줄인다.
+        val bottomBar = rememberBottomBarHeight()
         Header(title = if (state.isEditMode) "모임 수정" else "모임 개설", onClose = onClose)
 
         Column(
             modifier = Modifier
                 .weight(1f)
+                .keyboardOverBottomBar(bottomBar)
                 .verticalScroll(rememberScrollState())
                 .padding(
                     start = AppSpace.x4,
@@ -219,11 +223,13 @@ private fun MeetingCreateContent(
             )
         }
 
-        BottomBar(
-            text = if (state.isEditMode) "수정 완료" else "모임 개설하기",
-            enabled = state.canSubmit && !state.isSubmitting,
-            onSubmit = onSubmit,
-        )
+        Box(Modifier.measureBottomBar(bottomBar)) {
+            BottomBar(
+                text = if (state.isEditMode) "수정 완료" else "모임 개설하기",
+                enabled = state.canSubmit && !state.isSubmitting,
+                onSubmit = onSubmit,
+            )
+        }
     }
 }
 

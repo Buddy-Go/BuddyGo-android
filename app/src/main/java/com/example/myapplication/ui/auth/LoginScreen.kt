@@ -10,6 +10,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -74,140 +79,150 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var keepLogin by remember { mutableStateOf(true) }
 
-    Column(
+    // 로그인 버튼이 입력칸 바로 아래 붙어 있는 폼이라 키보드가 올라오면 폼 전체를 키보드 위로 올린다.
+    // 남은 높이에 다 안 들어가는 작은 화면에서는 스크롤로 버튼까지 내려 볼 수 있게 한다.
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColor.Surface)
             .statusBarsPadding()
-            .padding(horizontal = AppSpace.x5),
-        verticalArrangement = Arrangement.Center,
+            .imePadding(),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            LogoMark()
-            Spacer(Modifier.width(AppSpace.xxl))
-            Text(
-                text = "BuddyGo",
-                color = AppColor.TextPrimary,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Spacer(Modifier.height(AppSpace.x4))
-        Text(
-            text = "오늘 운동, 같이 갈 사람?",
-            color = AppColor.TextSecondary,
-            fontSize = 15.sp,
-        )
-
-        Spacer(Modifier.height(48.dp))
-
-        LoginField(
-            label = "이메일",
-            value = email,
-            onValueChange = { email = it; onInputChange() },
-            keyboardType = KeyboardType.Email,
-            leading = { focused ->
-                PersonIcon(if (focused) AppColor.AccentStrong else AppColor.IconMuted)
-            },
-        )
-        Spacer(Modifier.height(AppSpace.xl))
-        LoginField(
-            label = "비밀번호",
-            value = password,
-            onValueChange = { password = it; onInputChange() },
-            keyboardType = KeyboardType.Password,
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            leading = { focused ->
-                LockIcon(if (focused) AppColor.AccentStrong else AppColor.IconMuted)
-            },
-            trailing = {
-                EyeIcon(
-                    crossed = passwordVisible,
-                    modifier = Modifier.clickable { passwordVisible = !passwordVisible },
-                )
-            },
-        )
-
-        Spacer(Modifier.height(AppSpace.xxl))
-        if (errorMessage != null) {
-            InlineErrorBanner(errorMessage)
-            Spacer(Modifier.height(AppSpace.xl))
-        }
-        // 제출 중에는 회색 버튼으로 바꾸고 누를 수 없게 한다. 실패하면 문구가 '다시 시도'로 바뀐다. (16c, 16i)
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(54.dp)
-                .clip(RoundedCornerShape(AppRadius.lg))
-                .background(if (submitting) AppColor.SkeletonBase else AppColor.Accent)
-                .clickable(enabled = !submitting) { onLoginClick(email, password, keepLogin) },
-            contentAlignment = Alignment.Center,
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight)
+                .padding(horizontal = AppSpace.x5),
+            verticalArrangement = Arrangement.Center,
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LogoMark()
+                Spacer(Modifier.width(AppSpace.xxl))
+                Text(
+                    text = "BuddyGo",
+                    color = AppColor.TextPrimary,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(Modifier.height(AppSpace.x4))
             Text(
-                text = when {
-                    submitting -> "로그인하는 중"
-                    errorMessage != null -> "다시 시도"
-                    else -> "로그인"
-                },
-                color = if (submitting) AppColor.TextDisabled else AppColor.TextPrimary,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
+                text = "오늘 운동, 같이 갈 사람?",
+                color = AppColor.TextSecondary,
+                fontSize = 15.sp,
             )
-        }
-
-        Spacer(Modifier.height(AppSpace.xl))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
+    
+            Spacer(Modifier.height(48.dp))
+    
+            LoginField(
+                label = "이메일",
+                value = email,
+                onValueChange = { email = it; onInputChange() },
+                keyboardType = KeyboardType.Email,
+                leading = { focused ->
+                    PersonIcon(if (focused) AppColor.AccentStrong else AppColor.IconMuted)
+                },
+            )
+            Spacer(Modifier.height(AppSpace.xl))
+            LoginField(
+                label = "비밀번호",
+                value = password,
+                onValueChange = { password = it; onInputChange() },
+                keyboardType = KeyboardType.Password,
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                leading = { focused ->
+                    LockIcon(if (focused) AppColor.AccentStrong else AppColor.IconMuted)
+                },
+                trailing = {
+                    EyeIcon(
+                        crossed = passwordVisible,
+                        modifier = Modifier.clickable { passwordVisible = !passwordVisible },
+                    )
+                },
+            )
+    
+            Spacer(Modifier.height(AppSpace.xxl))
+            if (errorMessage != null) {
+                InlineErrorBanner(errorMessage)
+                Spacer(Modifier.height(AppSpace.xl))
+            }
+            // 제출 중에는 회색 버튼으로 바꾸고 누를 수 없게 한다. 실패하면 문구가 '다시 시도'로 바뀐다. (16c, 16i)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .clip(RoundedCornerShape(AppRadius.lg))
+                    .background(if (submitting) AppColor.SkeletonBase else AppColor.Accent)
+                    .clickable(enabled = !submitting) { onLoginClick(email, password, keepLogin) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = when {
+                        submitting -> "로그인하는 중"
+                        errorMessage != null -> "다시 시도"
+                        else -> "로그인"
+                    },
+                    color = if (submitting) AppColor.TextDisabled else AppColor.TextPrimary,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+    
+            Spacer(Modifier.height(AppSpace.xl))
             Row(
-                modifier = Modifier.clickable { keepLogin = !keepLogin },
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    modifier = Modifier.clickable { keepLogin = !keepLogin },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (keepLogin) AppColor.Accent else AppColor.Surface)
+                            .border(
+                                BorderStroke(1.5.dp, if (keepLogin) AppColor.Accent else AppColor.Border),
+                                RoundedCornerShape(6.dp),
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (keepLogin) {
+                            CheckIcon()
+                        }
+                    }
+                    Spacer(Modifier.width(AppSpace.md))
+                    Text("로그인 상태 유지", color = AppColor.TextPrimary, fontSize = 14.sp)
+                }
+                // 비밀번호 찾기는 메일 발송이 필요해 추후 구현 (service-rules 1장)
+                Text(
+                    text = "비밀번호 찾기",
+                    color = AppColor.TextSecondary,
+                    fontSize = 14.sp,
+                    modifier = Modifier.clickable { onFindPasswordClick() },
+                )
+            }
+    
+            Spacer(Modifier.height(AppSpace.x5))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(22.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(if (keepLogin) AppColor.Accent else AppColor.Surface)
-                        .border(
-                            BorderStroke(1.5.dp, if (keepLogin) AppColor.Accent else AppColor.Border),
-                            RoundedCornerShape(6.dp),
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (keepLogin) {
-                        CheckIcon()
-                    }
-                }
-                Spacer(Modifier.width(AppSpace.md))
-                Text("로그인 상태 유지", color = AppColor.TextPrimary, fontSize = 14.sp)
+                Text("처음이신가요? ", color = AppColor.TextSecondary, fontSize = 14.sp)
+                Text(
+                    text = "회원가입",
+                    color = AppColor.AccentStrong,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onSignUpClick() },
+                )
             }
-            // 비밀번호 찾기는 메일 발송이 필요해 추후 구현 (service-rules 1장)
-            Text(
-                text = "비밀번호 찾기",
-                color = AppColor.TextSecondary,
-                fontSize = 14.sp,
-                modifier = Modifier.clickable { onFindPasswordClick() },
-            )
+            Spacer(Modifier.height(80.dp))
         }
-
-        Spacer(Modifier.height(AppSpace.x5))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("처음이신가요? ", color = AppColor.TextSecondary, fontSize = 14.sp)
-            Text(
-                text = "회원가입",
-                color = AppColor.AccentStrong,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { onSignUpClick() },
-            )
-        }
-        Spacer(Modifier.height(80.dp))
     }
 }
 
