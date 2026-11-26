@@ -1,5 +1,9 @@
 package com.example.myapplication.ui.record
 
+import androidx.compose.foundation.layout.Box
+import com.example.myapplication.ui.common.keyboardOverBottomBar
+import com.example.myapplication.ui.common.measureBottomBar
+import com.example.myapplication.ui.common.rememberBottomBarHeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -77,11 +80,14 @@ private fun SignUpInfoContent(
     onGenderSelect: (Gender) -> Unit,
     onNext: () -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
+    Column(Modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding()) {
+        // 여러 칸을 채우는 화면이라 키보드가 올라와도 "다음" 버튼은 올리지 않는다(키보드가 덮는다). 스크롤 영역만 키보드 위로 줄인다.
+        val bottomBar = rememberBottomBarHeight()
         SignUpHeader(step = 1, total = 3, onBack = onBack)
         Column(
             modifier = Modifier
                 .weight(1f)
+                .keyboardOverBottomBar(bottomBar)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = AppSpace.x4),
         ) {
@@ -147,13 +153,15 @@ private fun SignUpInfoContent(
             }
             Spacer(Modifier.height(AppSpace.x4))
         }
-        HorizontalDivider(color = AppColor.Border)
-        ActionButton(
-            text = "다음",
-            onClick = onNext,
-            enabled = state.canProceed,
-            modifier = Modifier.padding(AppSpace.x4),
-        )
+        Column(Modifier.measureBottomBar(bottomBar)) {
+            HorizontalDivider(color = AppColor.Border)
+            ActionButton(
+                text = "다음",
+                onClick = onNext,
+                enabled = state.canProceed,
+                modifier = Modifier.padding(AppSpace.x4),
+            )
+        }
     }
 }
 

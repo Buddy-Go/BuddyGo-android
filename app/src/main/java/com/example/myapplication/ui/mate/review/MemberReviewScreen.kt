@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.mate.review
 
+import com.example.myapplication.ui.common.keyboardOverBottomBar
+import com.example.myapplication.ui.common.measureBottomBar
+import com.example.myapplication.ui.common.rememberBottomBarHeight
 import com.example.myapplication.ui.common.InlineErrorBanner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -84,9 +86,10 @@ private fun MemberReviewContent(
             .fillMaxSize()
             .background(AppColor.Surface)
             .statusBarsPadding()
-            .navigationBarsPadding()
-            .imePadding(),
+            .navigationBarsPadding(),
     ) {
+        // 고르고 쓰는 칸이 여럿인 화면이라 키보드가 올라와도 하단 버튼은 올리지 않는다(키보드가 덮는다). 스크롤 영역만 키보드 위로 줄인다.
+        val bottomBar = rememberBottomBarHeight()
         ReviewTopBar(
             iconRes = R.drawable.ic_close,
             iconDescription = "닫기",
@@ -97,6 +100,7 @@ private fun MemberReviewContent(
         Column(
             modifier = Modifier
                 .weight(1f)
+                .keyboardOverBottomBar(bottomBar)
                 .verticalScroll(rememberScrollState())
                 .padding(start = AppSpace.x4, end = AppSpace.x4, top = AppSpace.xxl, bottom = AppSpace.x4),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
@@ -171,7 +175,9 @@ private fun MemberReviewContent(
                 Text(text = "남긴 글은 상대 프로필에 공개돼요.", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AppColor.TextSecondary)
             }
         }
-        ReviewBottomButton(text = state.submitLabel, enabled = state.canSubmit, onClick = onSubmit, showTopLine = true)
+        Box(Modifier.measureBottomBar(bottomBar)) {
+            ReviewBottomButton(text = state.submitLabel, enabled = state.canSubmit, onClick = onSubmit, showTopLine = true)
+        }
     }
 }
 

@@ -11,6 +11,7 @@ import com.example.myapplication.data.local.ActivityAreaStore
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.runtime.Composable
@@ -169,7 +170,9 @@ private fun AppNavHostContent(modifier: Modifier = Modifier) {
                 navController = navController,
                 // 로그인 상태 유지로 저장된 로그인이 있으면 로그인 화면을 건너뛴다.
                 startDestination = startRoute,
-                modifier = Modifier.padding(innerPadding),
+                // Scaffold가 넣은 하단(내비게이션 바·탭 바) 여백을 소비해 둔다. 안 하면 화면 쪽 navigationBarsPadding·imePadding이
+                // 같은 여백을 한 번 더 넣어, 키보드가 올라올 때 하단 버튼과 키보드 사이가 내비게이션 바 높이만큼 뜬다.
+                modifier = Modifier.padding(innerPadding).consumeWindowInsets(innerPadding),
             ) {
                 // 1~2 로그인 · 회원가입 · 종목 기록
                 composable(Routes.LOGIN) {

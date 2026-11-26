@@ -1,5 +1,8 @@
 package com.example.myapplication.ui.meeting.detail
 
+import com.example.myapplication.ui.common.keyboardOverBottomBar
+import com.example.myapplication.ui.common.measureBottomBar
+import com.example.myapplication.ui.common.rememberBottomBarHeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -84,7 +86,7 @@ fun ApplyScreen(
     // 신청이 끝나면 화면을 닫고 모임 상세로 돌아간다.
     LaunchedEffect(state.done) { if (state.done) onApplied() }
 
-    Column(modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding().imePadding()) {
+    Column(modifier.fillMaxSize().background(AppColor.Surface).statusBarsPadding()) {
         TopBar(onClose)
         when (val loaded = state.meeting) {
             UiState.Loading -> SkeletonDetail()
@@ -124,8 +126,10 @@ private fun ColumnScope.ApplyForm(
     viewModel: ApplyViewModel,
     onEditRecord: (Sport) -> Unit,
 ) {
+    // 정보가 긴 화면이라 키보드가 올라와도 "신청하기" 버튼은 올리지 않는다(키보드가 덮는다). 스크롤 영역만 키보드 위로 줄인다.
+    val bottomBar = rememberBottomBarHeight()
     Column(
-        Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
+        Modifier.weight(1f).keyboardOverBottomBar(bottomBar).verticalScroll(rememberScrollState()).padding(horizontal = AppSpace.x4),
         verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
     ) {
         if (state.failed) InlineErrorBanner("신청을 보내지 못했어요. 다시 시도해주세요.")
@@ -155,7 +159,7 @@ private fun ColumnScope.ApplyForm(
             fontSize = 14.sp, color = AppColor.TextSecondary, lineHeight = 21.sp,
         )
     }
-    Column(Modifier.fillMaxWidth().navigationBarsPadding()) {
+    Column(Modifier.fillMaxWidth().navigationBarsPadding().measureBottomBar(bottomBar)) {
         Box(Modifier.fillMaxWidth().height(1.dp).background(AppColor.Border))
         Column(Modifier.padding(horizontal = AppSpace.x4, vertical = AppSpace.xl), verticalArrangement = Arrangement.spacedBy(AppSpace.xl)) {
             // 16i 제출 실패: 버튼을 '다시 시도'로 바꾸고 띠는 화면 위에 보인다. 16c 제출 중에는 버튼이 '신청하는 중'이다.
