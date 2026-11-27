@@ -4,6 +4,7 @@ import com.example.myapplication.data.model.ExerciseRecord
 import com.example.myapplication.data.model.Gender
 import com.example.myapplication.data.model.Meeting
 import com.example.myapplication.data.model.MeetingRole
+import com.example.myapplication.data.model.TimeProposal
 import com.example.myapplication.ui.common.UiState
 import com.example.myapplication.ui.explore.GeoPoint
 import com.example.myapplication.ui.explore.meetingDistanceMeters
@@ -32,6 +33,9 @@ data class MeetingDetailState(
     val participantNotices: ParticipantNotices? = null, // 내가 확정 참가자일 때만 채운다 (공지는 호스트·확정 참가자만 읽는다, service-rules 9장)
     val hostDialog: HostDialog? = null,      // 취소 시트·삭제 확인창. null이면 닫혀 있다
     val deleted: Boolean = false,            // 모임을 삭제했다: 화면을 닫는다
+    val timeProposal: TimeProposal? = null,  // 진행 중인 시작 시각 변경 제안. 호스트·확정 참가자만 불러온다
+    val timeProposalSheet: Boolean = false,  // 시각 선택 시트가 열려 있다
+    val proposalConfirm: ProposalConfirm? = null, // 거절·철회 확인창. null이면 닫혀 있다
 ) {
     val loaded: Meeting? get() = (meeting as? UiState.Success)?.data
 
@@ -47,6 +51,14 @@ data class MeetingDetailState(
 
     // 지금 이 사람에게 ⋮ 메뉴에 보여 줄 '나가기'가 있는지와 그 확인창 내용 (없으면 null)
     val leavePlan: LeavePlan? get() = loaded?.let { leavePlanOf(it, role, nowMillis) }
+
+    // 진행 중인 제안 카드 내용 (없으면 null)
+    val timeProposalCard: TimeProposalCardView?
+        get() = timeProposal?.let { timeProposalCardOf(it, myUserId, nowMillis) }
+
+    // '일시' 줄에 '시간 변경 제안' 진입점을 보여 줄지
+    val canProposeTime: Boolean
+        get() = loaded?.let { canProposeTime(it, role, timeProposal, nowMillis) } ?: false
 
     fun withFavorite(favorite: Boolean): MeetingDetailState {
         val m = loaded ?: return this

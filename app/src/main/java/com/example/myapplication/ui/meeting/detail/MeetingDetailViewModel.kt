@@ -9,6 +9,8 @@ import com.example.myapplication.data.model.distanceMeters
 import com.example.myapplication.data.repository.MeetingRepository
 import com.example.myapplication.data.repository.NoticeRepository
 import com.example.myapplication.data.repository.Repositories
+import com.example.myapplication.data.repository.TimeProposalRepository
+import com.example.myapplication.data.model.TimeProposalStatus
 import com.example.myapplication.data.repository.UserRepository
 import com.example.myapplication.ui.common.ErrorType
 import com.example.myapplication.ui.common.UiState
@@ -28,6 +30,7 @@ class MeetingDetailViewModel(
     private val repository: MeetingRepository = Repositories.meetings,
     private val userRepository: UserRepository = Repositories.users,
     private val noticeRepository: NoticeRepository = Repositories.notices,
+    private val timeProposalRepository: TimeProposalRepository = Repositories.timeProposals,
     private val nowMillis: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MeetingDetailState(nowMillis = nowMillis(), myLocation = LastKnownLocation.point.value))
@@ -47,7 +50,10 @@ class MeetingDetailViewModel(
             val me = userRepository.getCurrentUser().getOrNull()
             _state.update { it.copy(myUserId = me?.id.orEmpty(), myGender = me?.gender, myRecord = me?.record) }
             val result = repository.getMeeting(meetingId)
-            result.onSuccess { loadHostSection(it) }
+            result.onSuccess {
+                loadHostSection(it)
+                loadTimeProposal(it)
+            }
             _state.update {
                 it.copy(
                     meeting = result.fold(
@@ -71,7 +77,10 @@ class MeetingDetailViewModel(
                 val now = nowMillis()
                 _state.update { if (it.nowMillis == now) it else it.copy(nowMillis = now) }
                 val meeting = _state.value.loaded ?: return@launch
-                val next = nextDetailChangeMillis(meeting, now) ?: return@launch
+                val next = listOfNotNull(
+                    nextDetailChangeMillis(meeting, now),
+                    nextTimeProposalChangeMillis(meeting, _state.value.timeProposal, now),
+                ).minOrNull() ?: return@launch
                 delay(next - now)
             }
         }
@@ -181,6 +190,7 @@ class MeetingDetailViewModel(
     private suspend fun reloadMeeting() {
         repository.getMeeting(meetingId).onSuccess { meeting ->
             loadHostSection(meeting)
+            loadTimeProposal(meeting)
             _state.update { it.copy(meeting = UiState.Success(meeting)) }
             restartClock()
         }
@@ -253,6 +263,108 @@ class MeetingDetailViewModel(
             repository.deleteMeeting(meetingId)
                 .onSuccess { _state.update { it.copy(hostDialog = null, deleted = true) } }
                 .onFailure { _state.update { it.copy(hostDialog = null, message = "모임을 삭제하지 못했어요. 다시 시도해주세요.") } }
+            _state.update { it.copy(submitting = false) }
+        }
+    }
+
+    // ---- 시작 시각 변경 제안 (서버 PR #43) ----
+
+    // 호스트·확정 참가자일 때만 진행 중인 제안을 받는다. 못 받으면 카드를 숨긴다(모임 상세 자체는 보여 준다).
+    private suspend fun loadTimeProposal(meeting: Meeting) {
+        if (!shouldLoadTimeProposal(meeting, meeting.roleOf(_state.value.myUserId))) {
+            _state.update { it.copy(timeProposal = null) }
+            return
+        }
+        val proposal = timeProposalRepository.getCurrent(meetingId).getOrNull()
+        _state.update { it.copy(timeProposal = proposal?.takeIf { p -> p.status == TimeProposalStatus.PENDING }) }
+    }
+
+    // '일시' 줄의 '시간 변경 제안'. 지금 제안할 수 없으면(기한 지남 등) 이유를 알려 준다.
+    fun onProposeTimeClick() {
+        val s = _state.value
+        if (s.timeProposal != null) {
+            _state.update { it.copy(message = "이미 진행 중인 시간 변경 제안이 있어요") }
+            return
+        }
+        if (!s.canProposeTime) {
+            _state.update { it.copy(message = "지금은 시간 변경을 제안할 수 없어요") }
+            return
+        }
+        _state.update { it.copy(timeProposalSheet = true) }
+    }
+
+    fun onProposeTimeDismiss() = _state.update { it.copy(timeProposalSheet = false) }
+
+    fun onProposeTime(startAtMillis: Long) {
+        if (_state.value.submitting) return
+        _state.update { it.copy(submitting = true) }
+        viewModelScope.launch {
+            timeProposalRepository.propose(meetingId, startAtMillis)
+                .onSuccess { p ->
+                    _state.update { it.copy(timeProposal = p, timeProposalSheet = false, notice = "시간 변경을 제안했어요. 모두 수락하면 바뀌어요") }
+                    restartClock()
+                }
+                .onFailure { e ->
+                    // 시트 위에서는 토스트가 가려져서 시트를 닫고 알려 준다. 그 사이 다른 사람이 제안했을 수 있어 다시 받는다.
+                    _state.update { it.copy(timeProposalSheet = false, message = timeProposalErrorMessage(e, "제안하지 못했어요. 다시 시도해 주세요.")) }
+                    reloadMeeting()
+                }
+            _state.update { it.copy(submitting = false) }
+        }
+    }
+
+    fun onAcceptProposal() {
+        val p = _state.value.timeProposal ?: return
+        if (_state.value.submitting) return
+        _state.update { it.copy(submitting = true) }
+        viewModelScope.launch {
+            timeProposalRepository.accept(meetingId, p.id)
+                .onSuccess { result ->
+                    val (text, ok) = acceptResultNotice(result.status)
+                    _state.update {
+                        it.copy(
+                            timeProposal = result.takeIf { r -> r.status == TimeProposalStatus.PENDING },
+                            notice = if (ok) text else it.notice,
+                            message = if (ok) it.message else text,
+                        )
+                    }
+                    // 통과했으면 시작·종료 시각과 데드라인이 바뀌었다
+                    if (result.status != TimeProposalStatus.PENDING) reloadMeeting()
+                }
+                .onFailure { e ->
+                    _state.update { it.copy(message = timeProposalErrorMessage(e, "수락하지 못했어요. 다시 시도해 주세요.")) }
+                    reloadMeeting()
+                }
+            _state.update { it.copy(submitting = false) }
+        }
+    }
+
+    fun onRejectProposalClick() = _state.update { it.copy(proposalConfirm = ProposalConfirm.REJECT) }
+    fun onWithdrawProposalClick() = _state.update { it.copy(proposalConfirm = ProposalConfirm.WITHDRAW) }
+    fun onProposalConfirmDismiss() = _state.update { it.copy(proposalConfirm = null) }
+
+    // 거절·철회 확인창의 확인
+    fun onProposalConfirm() {
+        val s = _state.value
+        val p = s.timeProposal ?: return
+        val kind = s.proposalConfirm ?: return
+        if (s.submitting) return
+        _state.update { it.copy(submitting = true) }
+        viewModelScope.launch {
+            val result = when (kind) {
+                ProposalConfirm.REJECT -> timeProposalRepository.reject(meetingId, p.id).map { }
+                ProposalConfirm.WITHDRAW -> timeProposalRepository.withdraw(meetingId, p.id)
+            }
+            result
+                .onSuccess {
+                    val text = if (kind == ProposalConfirm.REJECT) "제안을 거절했어요" else "제안을 철회했어요"
+                    _state.update { it.copy(proposalConfirm = null, timeProposal = null, notice = text) }
+                }
+                .onFailure { e ->
+                    val fallback = if (kind == ProposalConfirm.REJECT) "거절하지 못했어요. 다시 시도해 주세요." else "철회하지 못했어요. 다시 시도해 주세요."
+                    _state.update { it.copy(proposalConfirm = null, message = timeProposalErrorMessage(e, fallback)) }
+                    reloadMeeting()
+                }
             _state.update { it.copy(submitting = false) }
         }
     }

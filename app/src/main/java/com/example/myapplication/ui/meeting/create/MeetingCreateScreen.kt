@@ -69,6 +69,7 @@ fun MeetingCreateScreen(
     onCreated: (meetingId: String) -> Unit, // 개설 후 5번 모임 상세로
     onUpdated: () -> Unit = {}, // 수정 후 모임 상세로 돌아간다
     onEditRecord: () -> Unit = {}, // 10d에서 헬스 기록(무게) 입력 화면으로
+    onProposeTime: () -> Unit = {}, // 수정 + 확정 참가자 있음: 일시는 '시간 변경 제안'으로 바꾼다 (모임 상세의 시트로 돌아간다)
 ) {
     val state = viewModel.state
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -106,6 +107,7 @@ fun MeetingCreateScreen(
         onCapacityClick = viewModel::onCapacityClick,
         onDescriptionClick = viewModel::onDescriptionClick,
         onSubmit = viewModel::onSubmit,
+        onProposeTime = onProposeTime,
     )
     ToastHost(toast, Modifier.align(Alignment.BottomCenter).padding(bottom = 88.dp))
     }
@@ -177,6 +179,7 @@ private fun MeetingCreateContent(
     onDescriptionClick: () -> Unit,
     onSubmit: () -> Unit,
     onSportSelect: (com.example.myapplication.data.model.Sport) -> Unit = {},
+    onProposeTime: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -202,7 +205,7 @@ private fun MeetingCreateContent(
                 ),
             verticalArrangement = Arrangement.spacedBy(AppSpace.xxl),
         ) {
-            if (state.lockedCore) LockedNotice()
+            if (state.lockedCore) LockedNotice(onProposeTime)
             // 종목 선택은 새로 만들 때만. 수정에서는 종목을 바꿀 수 없다. 서버가 받는 종목이 하나뿐이면 고를 게 없어 숨긴다.
             if (!state.isEditMode && com.example.myapplication.data.model.SportSupport.hasChoice) SportPicker(selected = state.sport, onSelect = onSportSelect)
             TitleSection(title = state.title, onTitleChange = onTitleChange)
@@ -451,7 +454,7 @@ private fun ValueRow(
 
 // 수정 모드 + 확정 참가자 있음: 무엇이 잠기는지 알려 준다. (service-rules 4장)
 @Composable
-private fun LockedNotice() {
+private fun LockedNotice(onProposeTime: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -462,8 +465,12 @@ private fun LockedNotice() {
     ) {
         Text("확정된 버디가 있어요", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         Text(
-            "제목, 설명, 상세주소만 바꿀 수 있어요. 일시·기준·정원은 공지로 안내해 주세요.",
+            "제목, 설명, 상세주소만 바꿀 수 있어요. 시작 시각은 버디 모두의 동의를 받아 바꿀 수 있고, 기준·정원은 공지로 안내해 주세요.",
             fontSize = 13.sp, lineHeight = 19.sp, color = AppColor.TextSecondary,
+        )
+        Text(
+            "시간 변경 제안하기 >", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppColor.AccentStrong,
+            modifier = Modifier.padding(top = AppSpace.sm).clickable(onClick = onProposeTime),
         )
     }
 }
@@ -560,6 +567,10 @@ private fun Preview10a() = PreviewContent(preview10a)
 @Composable
 private fun Preview10a2() =
     PreviewContent(preview10a.copy(healthCriteria = preview10a.healthCriteria.copy(showMyRecord = false)))
+
+@Preview(name = "수정 - 확정 버디 있음(일시 잠김)", widthDp = 360, heightDp = 800)
+@Composable
+private fun PreviewEditLocked() = PreviewContent(preview10a.copy(editMeetingId = "m8", lockedCore = true))
 
 @Preview(name = "빈 상태", widthDp = 360, heightDp = 800)
 @Composable

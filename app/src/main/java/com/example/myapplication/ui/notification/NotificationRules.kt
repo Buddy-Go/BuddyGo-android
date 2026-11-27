@@ -49,7 +49,7 @@ private fun dayIndex(millis: Long, timeZone: TimeZone): Long =
     (millis + timeZone.getOffset(millis)) / 86_400_000L
 
 // 알림 종류별 아이콘 모양
-enum class NotificationIcon { PIN_CHECK, MEGAPHONE, PEOPLE, CHECK, CLOSE }
+enum class NotificationIcon { PIN_CHECK, MEGAPHONE, PEOPLE, CHECK, CLOSE, CLOCK }
 
 fun NotificationType.icon(): NotificationIcon = when (this) {
     NotificationType.CHECKIN_OPENED, NotificationType.MEETING_STARTED -> NotificationIcon.PIN_CHECK
@@ -57,7 +57,9 @@ fun NotificationType.icon(): NotificationIcon = when (this) {
     NotificationType.MATE_REQUESTED, NotificationType.MATE_ACCEPTED,
     NotificationType.MATE_MEETING_CREATED, NotificationType.MATE_MEETING_JOINED -> NotificationIcon.PEOPLE
     NotificationType.JOIN_REJECTED, NotificationType.MEETING_CANCELED_UNDERFILLED,
-    NotificationType.MEETING_CANCELED_BY_HOST -> NotificationIcon.CLOSE
+    NotificationType.MEETING_CANCELED_BY_HOST,
+    NotificationType.TIME_CHANGE_REJECTED, NotificationType.TIME_CHANGE_CANCELED -> NotificationIcon.CLOSE
+    NotificationType.TIME_CHANGE_PROPOSED, NotificationType.TIME_CHANGE_APPROVED -> NotificationIcon.CLOCK
     else -> NotificationIcon.CHECK
 }
 
