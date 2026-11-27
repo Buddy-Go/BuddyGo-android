@@ -128,7 +128,7 @@ fun timeProposalCardOf(
     val note = when {
         expired -> "모두 수락하지 않아 곧 무산돼요"
         actions == ProposalCardActions.WITHDRAW -> "모두 수락하면 시작 시각이 바뀌어요"
-        myDecision == VoteDecision.ACCEPTED -> "수락했어요. 다른 메이트의 응답을 기다리고 있어요"
+        myDecision == VoteDecision.ACCEPTED -> "수락했어요. 다른 버디의 응답을 기다리고 있어요"
         actions == ProposalCardActions.RESPOND -> "한 명이라도 거절하면 제안은 무산돼요"
         else -> null
     }

@@ -363,7 +363,7 @@ fun TimeProposalConfirmDialog(kind: ProposalConfirm, onConfirm: () -> Unit, onDi
         )
         ProposalConfirm.WITHDRAW -> ConfirmDialog(
             title = "제안을 철회할까요?",
-            message = "이미 수락한 메이트에게도 철회 알림이 가요.",
+            message = "이미 수락한 버디에게도 철회 알림이 가요.",
             confirmText = "철회",
             dismissText = "취소",
             destructive = true,

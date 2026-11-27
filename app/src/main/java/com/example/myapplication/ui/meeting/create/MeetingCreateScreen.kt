@@ -465,7 +465,7 @@ private fun LockedNotice(onProposeTime: () -> Unit) {
     ) {
         Text("확정된 버디가 있어요", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary)
         Text(
-            "제목, 설명, 상세주소만 바꿀 수 있어요. 시작 시각은 메이트 모두의 동의를 받아 바꿀 수 있고, 기준·정원은 공지로 안내해 주세요.",
+            "제목, 설명, 상세주소만 바꿀 수 있어요. 시작 시각은 버디 모두의 동의를 받아 바꿀 수 있고, 기준·정원은 공지로 안내해 주세요.",
             fontSize = 13.sp, lineHeight = 19.sp, color = AppColor.TextSecondary,
         )
         Text(
@@ -568,7 +568,7 @@ private fun Preview10a() = PreviewContent(preview10a)
 private fun Preview10a2() =
     PreviewContent(preview10a.copy(healthCriteria = preview10a.healthCriteria.copy(showMyRecord = false)))
 
-@Preview(name = "수정 - 확정 메이트 있음(일시 잠김)", widthDp = 360, heightDp = 800)
+@Preview(name = "수정 - 확정 버디 있음(일시 잠김)", widthDp = 360, heightDp = 800)
 @Composable
 private fun PreviewEditLocked() = PreviewContent(preview10a.copy(editMeetingId = "m8", lockedCore = true))
 
