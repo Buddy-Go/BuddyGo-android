@@ -29,6 +29,9 @@ object Repositories {
         if (!Api.isInitialized) FakeMateRepository()
         else RealMateRepository(Api.client.buddyApi, Api.client.userApi, Api.client.meetingApi, Api.client.reviewApi)
     }
+    val timeProposals: TimeProposalRepository by lazy {
+        if (!Api.isInitialized) FakeTimeProposalRepository() else RealTimeProposalRepository(Api.client.timeProposalApi)
+    }
     val reviews: ReviewRepository by lazy {
         if (!Api.isInitialized) FakeReviewRepository()
         else RealReviewRepository(Api.client.reviewApi, Api.client.meetingApi, Api.client.buddyApi)

@@ -86,6 +86,7 @@ private const val KEY_DISTRICT_RESULT = "district_result"
 private const val NO_RESULT = "\u0000none"
 // 신청 화면(6)이 끝나면 모임 상세에 알리는 키
 private const val KEY_APPLIED = "applied"
+private const val KEY_PROPOSE_TIME = "proposeTime" // 모임 수정 → 모임 상세: 시간 변경 제안 시트를 연다
 
 
 // 이름표(Routes)와 실제 화면을 연결한다. 새 알림이 오면 화면 위에서 내려오는 배너를 맨 위에 겹쳐 보인다.
@@ -286,10 +287,13 @@ private fun AppNavHostContent(modifier: Modifier = Modifier) {
                 composable(Routes.MEETING_DETAIL, meetingArgs()) { entry ->
                     val meetingId = entry.arguments?.getString(Routes.ARG_MEETING_ID).orEmpty()
                     val applied by entry.savedStateHandle.getStateFlow(KEY_APPLIED, false).collectAsState()
+                    val proposeTime by entry.savedStateHandle.getStateFlow(KEY_PROPOSE_TIME, false).collectAsState()
                     MeetingDetailScreen(
                         meetingId = meetingId,
                         justApplied = applied,
                         onAppliedHandled = { entry.savedStateHandle[KEY_APPLIED] = false },
+                        openTimeProposal = proposeTime,
+                        onTimeProposalHandled = { entry.savedStateHandle[KEY_PROPOSE_TIME] = false },
                         onBack = { navController.popBackStack() },
                         onApply = { navController.navigate(Routes.apply(meetingId)) },
                         onReview = { navController.navigate(Routes.reviewList(meetingId)) },
@@ -397,6 +401,10 @@ private fun AppNavHostContent(modifier: Modifier = Modifier) {
                         onCreated = {},
                         onUpdated = { navController.popBackStack() },
                         onEditRecord = { navController.navigate(Routes.profileRecord(Sport.HEALTH)) },
+                        onProposeTime = {
+                            navController.previousBackStackEntry?.savedStateHandle?.set(KEY_PROPOSE_TIME, true)
+                            navController.popBackStack()
+                        },
                     )
                 }
                 composable(Routes.PLACE_SEARCH) {

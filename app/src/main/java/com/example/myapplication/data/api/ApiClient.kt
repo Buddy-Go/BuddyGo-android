@@ -55,6 +55,7 @@ class ApiClient(
     val notificationApi: NotificationApi = retrofitAuthed.create(NotificationApi::class.java)
     val buddyApi: BuddyApi = retrofitAuthed.create(BuddyApi::class.java)
     val reviewApi: ReviewApi = retrofitAuthed.create(ReviewApi::class.java)
+    val timeProposalApi: TimeProposalApi = retrofitAuthed.create(TimeProposalApi::class.java)
 
     // 다른 도메인 API를 붙일 때: api.create(MeetingApi::class.java)
     fun <T> create(service: Class<T>): T = retrofitAuthed.create(service)

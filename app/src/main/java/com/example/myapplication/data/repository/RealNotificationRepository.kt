@@ -75,5 +75,9 @@ internal fun String.toNotificationType(): NotificationType? = when (this) {
     "BUDDY_REQUEST_ACCEPTED" -> NotificationType.MATE_ACCEPTED
     "BUDDY_GATHERING_CREATED" -> NotificationType.MATE_MEETING_CREATED
     "BUDDY_GATHERING_APPLIED" -> NotificationType.MATE_MEETING_JOINED
+    "TIME_CHANGE_PROPOSED" -> NotificationType.TIME_CHANGE_PROPOSED
+    "TIME_CHANGE_APPROVED" -> NotificationType.TIME_CHANGE_APPROVED
+    "TIME_CHANGE_REJECTED" -> NotificationType.TIME_CHANGE_REJECTED
+    "TIME_CHANGE_CANCELED" -> NotificationType.TIME_CHANGE_CANCELED
     else -> null
 }

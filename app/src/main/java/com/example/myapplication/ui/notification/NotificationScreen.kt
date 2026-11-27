@@ -193,6 +193,10 @@ private fun TypeIcon(icon: NotificationIcon) {
                 drawLine(c, p(.25f, .25f), p(.75f, .75f), stroke.width, StrokeCap.Round)
                 drawLine(c, p(.75f, .25f), p(.25f, .75f), stroke.width, StrokeCap.Round)
             }
+            NotificationIcon.CLOCK -> {
+                drawCircle(c, w * .4f, p(.5f, .5f), style = stroke)
+                drawPath(Path().apply { moveTo(w * .5f, w * .28f); lineTo(w * .5f, w * .5f); lineTo(w * .66f, w * .6f) }, c, style = stroke)
+            }
         }
     }
 }

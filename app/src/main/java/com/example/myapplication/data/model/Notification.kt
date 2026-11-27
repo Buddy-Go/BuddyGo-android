@@ -20,6 +20,10 @@ enum class NotificationType {
     MATE_ACCEPTED,         // 메이트 수락
     MATE_MEETING_CREATED,  // 메이트가 모임 개설
     MATE_MEETING_JOINED,   // 메이트가 모임 신청
+    TIME_CHANGE_PROPOSED,  // 시작 시각 변경 제안 → 제안자를 뺀 구성원 (응답이 필요하다)
+    TIME_CHANGE_APPROVED,  // 모두 수락해 시각이 바뀜 → 마지막 수락자를 뺀 구성원
+    TIME_CHANGE_REJECTED,  // 한 명이 거절해 무산 → 거절한 사람을 뺀 구성원
+    TIME_CHANGE_CANCELED,  // 철회·만료·명단 변경으로 무산 → 구성원
 }
 
 // 알림을 누르면 관련 화면으로 가므로, 이동에 필요한 id만 담는다. (화면 사이에는 id만 넘긴다)

@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -98,6 +99,8 @@ fun MeetingDetailScreen(
     modifier: Modifier = Modifier,
     justApplied: Boolean = false,       // 신청 화면에서 방금 신청을 마치고 돌아왔는지
     onAppliedHandled: () -> Unit = {},
+    openTimeProposal: Boolean = false,  // 모임 수정 화면의 '시간 변경 제안하기'로 돌아왔는지: 시각 선택 시트를 연다
+    onTimeProposalHandled: () -> Unit = {},
     viewModel: MeetingDetailViewModel = viewModel(
         key = meetingId,
         factory = viewModelFactory { initializer { MeetingDetailViewModel(meetingId) } },
@@ -150,6 +153,14 @@ fun MeetingDetailScreen(
         }
     }
 
+    // 모임 수정 화면에서 '시간 변경 제안하기'로 돌아왔다: 모임을 불러온 뒤 시트를 연다.
+    LaunchedEffect(openTimeProposal, state.loaded != null) {
+        if (openTimeProposal && state.loaded != null) {
+            viewModel.onProposeTimeClick()
+            onTimeProposalHandled()
+        }
+    }
+
     Box(modifier.fillMaxSize().background(AppColor.Surface)) {
         when (val loaded = state.meeting) {
             UiState.Loading -> Column(Modifier.statusBarsPadding()) {
@@ -174,6 +185,10 @@ fun MeetingDetailScreen(
                 onWriteNotice = onWriteNotice,
                 onOpenNotices = onOpenNotices,
                 onOpenNotice = onOpenNotice,
+                onProposeTime = viewModel::onProposeTimeClick,
+                onAcceptProposal = viewModel::onAcceptProposal,
+                onRejectProposal = viewModel::onRejectProposalClick,
+                onWithdrawProposal = viewModel::onWithdrawProposalClick,
                 onAction = { action ->
                     when (action) {
                         DetailAction.APPLY -> onApply()
@@ -198,6 +213,20 @@ fun MeetingDetailScreen(
                 onDismiss = viewModel::onHostDialogDismiss,
             )
             null -> Unit
+        }
+        // 시작 시각 변경 제안: 시각 선택 시트, 거절·철회 확인창
+        val proposalMeeting = state.loaded
+        if (state.timeProposalSheet && proposalMeeting != null) {
+            TimeProposalBottomSheet(
+                meeting = proposalMeeting,
+                nowMillis = state.nowMillis,
+                submitting = state.submitting,
+                onSubmit = viewModel::onProposeTime,
+                onDismiss = viewModel::onProposeTimeDismiss,
+            )
+        }
+        state.proposalConfirm?.let { kind ->
+            TimeProposalConfirmDialog(kind, onConfirm = viewModel::onProposalConfirm, onDismiss = viewModel::onProposalConfirmDismiss)
         }
         // 나가기 확인창
         state.leaveDialog?.let { plan ->
@@ -254,6 +283,10 @@ private fun DetailContent(
     onWriteNotice: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenNotice: (String) -> Unit,
+    onProposeTime: () -> Unit,
+    onAcceptProposal: () -> Unit,
+    onRejectProposal: () -> Unit,
+    onWithdrawProposal: () -> Unit,
     onShare: () -> Unit,
     onHostProfileClick: () -> Unit,
     onMemberClick: (userId: String) -> Unit = {},
@@ -278,16 +311,34 @@ private fun DetailContent(
         ) {
             ChipsRow(meeting, role, caption = if (host != null) hostChipCaption(meeting, state.nowMillis) else null)
             Text(meeting.title, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = AppColor.TextPrimary, lineHeight = 34.sp)
+            // 진행 중인 시작 시각 변경 제안: 응답이 필요한 상태라 맨 위에 둔다
+            // 화면을 열 때마다 펼쳐서 보여 주고, 사용자가 접을 수 있다. 새 제안이 오면 다시 펼친다(제안 id마다 따로 기억).
+            state.timeProposalCard?.let {
+                var expanded by rememberSaveable(it.proposalId) { mutableStateOf(true) }
+                TimeProposalCard(
+                    it, state.submitting,
+                    onAccept = onAcceptProposal, onReject = onRejectProposal, onWithdraw = onWithdrawProposal,
+                    expanded = expanded, onToggle = { expanded = !expanded },
+                )
+            }
             if (host != null) {
                 // 5a-H 계열: 확정 명단, 정보 카드, '내가 호스트', 공지, 모임 소개
                 HostRosterSection(host, onRosterClick = onManageParticipants)
-                InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
+                // 정보 카드 + 바로 아래 '시간 변경 제안' 안내 줄(제안할 수 있을 때만). 카드 안 줄 높이는 그대로 둔다.
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
+                    InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null, onProposeTime = if (state.canProposeTime) onProposeTime else null)
+                    if (state.canProposeTime) ProposeTimeRow(onProposeTime)
+                }
                 HostSelfRow(meeting.hostNickname)
                 HostNoticeSection(host, onWriteClick = onWriteNotice, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice)
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
             } else {
                 ParticipantsSection(meeting, state.nowMillis, myUserId = state.myUserId, onMemberClick = onMemberClick)
-                InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null)
+                // 정보 카드 + 바로 아래 '시간 변경 제안' 안내 줄(제안할 수 있을 때만). 카드 안 줄 높이는 그대로 둔다.
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpace.md)) {
+                    InfoCard(meeting, onPlaceClick, onCriteriaClick, showDuration = host == null, onProposeTime = if (state.canProposeTime) onProposeTime else null)
+                    if (state.canProposeTime) ProposeTimeRow(onProposeTime)
+                }
                 HostCard(meeting, onClick = onHostProfileClick)
                 state.participantNotices?.let { ParticipantNoticeSection(it, onAllClick = onOpenNotices, onNoticeClick = onOpenNotice) }
                 if (meeting.description.isNotBlank()) IntroCard(meeting.description)
@@ -504,11 +555,22 @@ private fun Avatar(text: String, size: androidx.compose.ui.unit.Dp) {
 
 @Composable
 // showDuration: 호스트 화면(5a-H)은 디자인이 일시 줄에 진행 시간을 붙이지 않는다.
-private fun InfoCard(meeting: Meeting, onPlaceClick: () -> Unit, onCriteriaClick: () -> Unit, showDuration: Boolean = true) {
+// onProposeTime: 시간 변경을 제안할 수 있으면 '일시' 줄을 장소 줄처럼 눌러지게(>) 하고, 누르면 시각 선택 시트를 연다.
+// 버튼을 따로 붙이면 일시 줄만 높아져서 카드 안 줄 높이가 들쭉날쭉해진다.
+private fun InfoCard(
+    meeting: Meeting,
+    onPlaceClick: () -> Unit,
+    onCriteriaClick: () -> Unit,
+    showDuration: Boolean = true,
+    onProposeTime: (() -> Unit)? = null,
+) {
     val shape = RoundedCornerShape(AppRadius.lg)
     val judgement = judgementViewOf(meeting)
     Column(Modifier.fillMaxWidth().clip(shape).border1(AppColor.Border, shape)) {
-        InfoRow("일시", formatDetailDateTime(meeting.startAtMillis, if (showDuration) meeting.durationMinutes else 0))
+        InfoRow(
+            "일시", formatDetailDateTime(meeting.startAtMillis, if (showDuration) meeting.durationMinutes else 0),
+            onClick = onProposeTime, onClickLabel = "시간 변경 제안",
+        )
         Divider()
         InfoRow(
             "장소", placeLine(meeting), onClick = onPlaceClick,
@@ -534,9 +596,9 @@ private fun InfoCard(meeting: Meeting, onPlaceClick: () -> Unit, onCriteriaClick
 private fun Divider() = Box(Modifier.padding(horizontal = AppSpace.xxl).fillMaxWidth().height(1.dp).background(AppColor.Border))
 
 @Composable
-private fun InfoRow(title: String, value: String, onClick: (() -> Unit)? = null, sub: String? = null) {
+private fun InfoRow(title: String, value: String, onClick: (() -> Unit)? = null, sub: String? = null, onClickLabel: String? = null) {
     Row(
-        Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).padding(horizontal = AppSpace.xxl, vertical = 18.dp),
+        Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, onClick = onClick) else Modifier).padding(horizontal = AppSpace.xxl, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = AppColor.TextPrimary)
